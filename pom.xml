@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.envirover</groupId>
+	<artifactId>rock7mavlink</artifactId>
+	<version>1.0</version>
+	<packaging>jar</packaging>
+
+	<name>Rock7MAVLink</name>
+	<description>MAVLink Proxy for RockBLOCK Web Services</description>
+
+	<properties>
+		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.target>1.7</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<organization>
+		<name>Envirover</name>
+		<url>http://envirover.com</url>
+	</organization>
+
+	<scm>
+		<developerConnection>Pavel Bobov</developerConnection>
+		<url>http://github.com/envirover/rock7mavlink</url>
+	</scm>
+
+	<issueManagement>
+		<system>GitHub</system>
+		<url>http://github.com/envirover/rock7mavlink</url>
+	</issueManagement>
+
+	<dependencies>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.3</version>
+		</dependency>
+	</dependencies>
+</project>
