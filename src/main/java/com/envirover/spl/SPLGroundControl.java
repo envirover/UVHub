@@ -25,14 +25,13 @@ package com.envirover.spl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 
 import com.sun.net.httpserver.HttpServer;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_heartbeat;
+import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.enums.MAV_COMPONENT;
 import com.MAVLink.enums.MAV_MODE_FLAG;
 
@@ -44,59 +43,30 @@ public class SPLGroundControl {
 
     public static void main(String[] args) {
         final Config config = new Config();
-
-        ServerSocket welcomeSocket = null;
+        MAVLinkChannel channel = null;
 
         try {
             config.init();
 
-            welcomeSocket = new ServerSocket(5760);
-            Socket connectionSocket = welcomeSocket.accept();
-            MAVLinkChannel channel = new MAVLinkSocket(connectionSocket);
+            MAVLinkMessageQueue messageQueue = new MAVLinkMessageQueue();
 
             HttpServer server = HttpServer.create(new InetSocketAddress(config.getHttpPort()), 0);
-            server.createContext("/test", new RockBLOCKHttpHandler(channel));
-            server.setExecutor(null); // creates a default executor
+            server.createContext("/test", new RockBLOCKHttpHandler(messageQueue));
+            server.setExecutor(null);
             server.start();
+
+            channel = new MAVLinkSocket(config.getMAVLinkPort());
 
             Thread.sleep(1000);
 
-/*            HttpClient httpclient = HttpClients.createDefault();
+            // Message pump for mobile-originated messages
+            Thread msgPumpThread = new Thread(new MessagePump(messageQueue, channel));
+            msgPumpThread.start();
 
-            URIBuilder builder = new URIBuilder();
-            builder.setScheme("http");
-            builder.setHost("127.0.0.1");
-            builder.setPort(httpPort);
-            builder.setPath("/test");
-
-            URI uri = builder.build();
-            System.out.println(uri.toString());
-            HttpPost httppost = new HttpPost(uri);
-
-            // Request parameters and other properties.
-            List<NameValuePair> params = new ArrayList<NameValuePair>(2);
-            params.add(new BasicNameValuePair("param-1", "12345"));
-            params.add(new BasicNameValuePair("param-2", "Hello!"));
-            httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
-
-            // Execute and get the response.
-            HttpResponse response = httpclient.execute(httppost);
-            HttpEntity entity = response.getEntity();
-
-            if (entity != null) {
-                InputStream instream = entity.getContent();
-                try {
-                    // do something useful
-                } finally {
-                    instream.close();
-                }
-            }
-*/
-            Thread receiverThread = new Thread(new Receiver(channel));
-            receiverThread.start();
-
+            /*
             Thread senderThread = new Thread(new Sender(channel));
             senderThread.start();
+            */
 
             System.out.println("Press any key to continue...");
             try {
@@ -108,14 +78,68 @@ public class SPLGroundControl {
             ex.printStackTrace();
         } finally {
             try {
-                if (welcomeSocket != null)
-                    welcomeSocket.close();
+                if (channel != null)
+                    channel.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
+    private static class MessagePump implements Runnable {
+        private final static int HEARTBEAT_INTERVAL = 1000;
+
+        private final MAVLinkChannel src;
+        private final MAVLinkChannel dst;
+        private msg_high_latency msgHighLatency = null;
+        private int heartbeat_seq = 0;
+
+        public MessagePump(MAVLinkChannel src, MAVLinkChannel dst) {
+            this.src = src;
+            this.dst = dst;
+        }
+
+        @Override
+        public void run() {
+            MAVLinkPacket packet;
+            while(true) {
+                try {
+                    while ((packet = src.receiveMessage()) != null) {
+                        dst.sendMessage(packet);
+
+                        MAVLinkMessage msg = packet.unpack();
+                        if (msg.msgid == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
+                            msgHighLatency = (msg_high_latency)msg;
+                        }
+                    }
+
+                    heartbeat();
+
+                    Thread.sleep(HEARTBEAT_INTERVAL);
+                } catch(IOException ex) {
+                    ex.printStackTrace();
+                } catch (InterruptedException e) {
+                    return;
+                }
+            }
+        }
+
+        private void heartbeat() throws IOException {
+            msg_heartbeat heartbeat = new msg_heartbeat();
+            heartbeat.base_mode = MAV_MODE_FLAG.MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
+
+            MAVLinkPacket packet = heartbeat.pack();
+            packet.sysid = SYSTEM_ID;
+            packet.compid = COMP_ID;
+            packet.seq = heartbeat_seq++;
+
+            dst.sendMessage(packet);
+
+            //TODO: Derive high frequency messages from HIGH_LATENCY message
+        }
+    }
+
+    /*
     private static class Receiver implements Runnable {
 
         private final MAVLinkChannel channel;
@@ -178,5 +202,5 @@ public class SPLGroundControl {
             }
         }
     }
-
+    */
 }
