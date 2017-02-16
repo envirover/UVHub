@@ -24,7 +24,12 @@ public class Mk2MAVLinkTest {
 
     //Test receiving messages from your RockBLOCK
     @Test
-    public void testPostRockBLOCKMessage() throws URISyntaxException, ClientProtocolException, IOException {
+    public void testPostRockBLOCKMessage() throws URISyntaxException, ClientProtocolException, IOException, InterruptedException {
+
+        Thread theAppThread = new Thread(new TheApp());
+        theAppThread.start();
+        Thread.sleep(1000);
+
         final Config config = new Config();
         config.init();
 
@@ -64,6 +69,16 @@ public class Mk2MAVLinkTest {
                 responseStream.close();
             }
         }
+
+        theAppThread.interrupt();
     }
 
+    static class TheApp implements Runnable {
+
+        @Override
+        public void run() {
+            SPLGroundControl.main(null);
+        }
+        
+    }
 }
