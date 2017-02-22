@@ -1,18 +1,19 @@
 /*
-This file is part of Rock7MAVLink.
+This file is part of SPLGroundControl application.
 
-Rock7MAVLink is MAVLink Proxy for RockBLOCK Web Services.
+SPLGroundControl is a ground control proxy station for ArduPilot rovers with
+RockBLOCK satellite communication.
 
 See http://www.rock7mobile.com/downloads/RockBLOCK-Web-Services-User-Guide.pdf
 
 Copyright (C) 2017 Envirover
 
-Rock7MAVLink is free software: you can redistribute it and/or modify
+SPLGroundControl is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-Rock7MAVLink is distributed in the hope that it will be useful,
+SPLGroundControl is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
@@ -24,56 +25,62 @@ along with Rock7MAVLink.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.spl;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Scanner;
 
 import com.sun.net.httpserver.HttpServer;
-
-import com.MAVLink.MAVLinkPacket;
-import com.MAVLink.Messages.MAVLinkMessage;
-import com.MAVLink.common.msg_heartbeat;
-import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.enums.MAV_COMPONENT;
-import com.MAVLink.enums.MAV_MODE_FLAG;
 
 @SuppressWarnings("restriction")
 public class SPLGroundControl {
 
+    private final static int MAX_MGS_QUEUE_SIZE = 10;
+
     final static int SYSTEM_ID = 1;
     final static int COMP_ID = MAV_COMPONENT.MAV_COMP_ID_ALL;
+    final static MAVLinkMessageQueue messageQueue = new MAVLinkMessageQueue(MAX_MGS_QUEUE_SIZE);
+    final static Config config = new Config();
 
     public static void main(String[] args) {
-        final Config config = new Config();
         MAVLinkChannel channel = null;
 
         try {
-            config.init();
+            config.init(args);
 
-            MAVLinkMessageQueue messageQueue = new MAVLinkMessageQueue();
+            String ip = InetAddress.getLocalHost().getHostAddress();
+            System.out.printf("Starting RockBLOCK HTTP message handler on http://%s:%d%s...",
+                              ip, config.getHttpPort(), config.getHtppContext());
+            System.out.println();
 
             HttpServer server = HttpServer.create(new InetSocketAddress(config.getHttpPort()), 0);
-            server.createContext("/test", new RockBLOCKHttpHandler(messageQueue));
+            server.createContext(config.getHtppContext(), new RockBLOCKHttpHandler(messageQueue));
             server.setExecutor(null);
             server.start();
 
-            channel = new MAVLinkSocket(config.getMAVLinkPort());
+            // Start message pump for mobile-originated messages
+            MOMessagePump msgPump = new MOMessagePump(messageQueue, config.getMAVLinkPort());
+            Thread msgPumpThread = new Thread(msgPump);
+            msgPumpThread.start();
 
             Thread.sleep(1000);
 
-            // Message pump for mobile-originated messages
-            Thread msgPumpThread = new Thread(new MessagePump(messageQueue, channel));
-            msgPumpThread.start();
+            System.out.println("Enter 'exit' to exit the program.");
 
-            /*
-            Thread senderThread = new Thread(new Sender(channel));
-            senderThread.start();
-            */
-
-            System.out.println("Press any key to continue...");
-            try {
-                System.in.read();
-            } catch (Exception e) {
-                e.printStackTrace();
+            Scanner scanner = new Scanner(System.in);
+            String str;
+            while (!(str = scanner.next()).equalsIgnoreCase("exit")) {
+                //Just echo the user input for now.
+                System.out.println(str);
             }
+
+            System.out.println("Exiting...");
+            scanner.close();
+            server.stop(0);
+            msgPumpThread.interrupt();
+            Thread.sleep(1000);
+            System.out.println("Done.");
+            System.exit(0);
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
@@ -83,59 +90,6 @@ public class SPLGroundControl {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    private static class MessagePump implements Runnable {
-        private final static int HEARTBEAT_INTERVAL = 1000;
-
-        private final MAVLinkChannel src;
-        private final MAVLinkChannel dst;
-        private msg_high_latency msgHighLatency = null;
-        private int heartbeat_seq = 0;
-
-        public MessagePump(MAVLinkChannel src, MAVLinkChannel dst) {
-            this.src = src;
-            this.dst = dst;
-        }
-
-        @Override
-        public void run() {
-            MAVLinkPacket packet;
-            while(true) {
-                try {
-                    while ((packet = src.receiveMessage()) != null) {
-                        dst.sendMessage(packet);
-
-                        MAVLinkMessage msg = packet.unpack();
-                        if (msg.msgid == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
-                            msgHighLatency = (msg_high_latency)msg;
-                        }
-                    }
-
-                    heartbeat();
-
-                    Thread.sleep(HEARTBEAT_INTERVAL);
-                } catch(IOException ex) {
-                    ex.printStackTrace();
-                } catch (InterruptedException e) {
-                    return;
-                }
-            }
-        }
-
-        private void heartbeat() throws IOException {
-            msg_heartbeat heartbeat = new msg_heartbeat();
-            heartbeat.base_mode = MAV_MODE_FLAG.MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
-
-            MAVLinkPacket packet = heartbeat.pack();
-            packet.sysid = SYSTEM_ID;
-            packet.compid = COMP_ID;
-            packet.seq = heartbeat_seq++;
-
-            dst.sendMessage(packet);
-
-            //TODO: Derive high frequency messages from HIGH_LATENCY message
         }
     }
 
