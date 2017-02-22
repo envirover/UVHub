@@ -11,40 +11,76 @@ import com.MAVLink.Parser;
 
 public class MAVLinkSocket implements MAVLinkChannel {
 
-    private final DataInputStream in;
-    private final DataOutputStream out;
     private final Parser parser = new Parser();
     private final ServerSocket socket;
 
+    private Socket connection;
+    private DataInputStream in;
+    private DataOutputStream out;
+
     public MAVLinkSocket(int port) throws IOException {
         socket = new ServerSocket(port);
-        Socket connectionSocket = socket.accept();
+    }
 
-        in = new DataInputStream(connectionSocket.getInputStream());
-        out = new DataOutputStream(connectionSocket.getOutputStream());
+    public synchronized void connect() throws IOException {
+        if (!isConnected()) {
+            System.out.printf("Waiting for MAVLink client connection on tcp://%s:%d...",
+                    socket.getInetAddress().getHostAddress(), socket.getLocalPort());
+            System.out.println();
+
+            connection = socket.accept();
+            in = new DataInputStream(connection.getInputStream());
+            out = new DataOutputStream(connection.getOutputStream());
+
+            System.out.println("MAVLink client connected.");
+        }
+    }
+
+    public boolean isConnected() {
+        return !socket.isClosed() && connection != null && connection.isConnected();
     }
 
     @Override
-    public MAVLinkPacket receiveMessage() throws IOException {
-        MAVLinkPacket packet;
+    public synchronized MAVLinkPacket receiveMessage() throws IOException {
+        MAVLinkPacket packet = null;
 
-        do {
-            int c = in.readUnsignedByte();
-            packet = parser.mavlink_parse_char(c);
-        } while (packet == null);
+        connect();
+
+        if (isConnected()) {
+            do {
+                int c = in.readUnsignedByte();
+                packet = parser.mavlink_parse_char(c);
+            } while (packet == null);
+        }
 
         return packet;
     }
 
     @Override
-    public void sendMessage(MAVLinkPacket packet) throws IOException {
-        byte[] data = packet.encodePacket();
-        out.write(data);
-        out.flush();
+    public synchronized void sendMessage(MAVLinkPacket packet) throws IOException {
+        connect();
+
+        if (isConnected()) {
+            byte[] data = packet.encodePacket();
+            out.write(data);
+            out.flush();
+        }
     }
 
     @Override
     public void close() throws IOException {
+        if (in != null) {
+            in.close();
+        }
+
+        if (out != null) {
+            out.close();
+        }
+
+        if (connection != null) {
+            connection.close();
+        }
+
         socket.close();
     }
 

@@ -153,9 +153,10 @@ public class RockBLOCKHttpHandler implements HttpHandler {
         }
 
         public void print() {
-            System.out.printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+            System.out.printf("MO message received: %s %s %s %s %s %s %s",
                               imei, momsn, transmitTime, iridiumLatitude,
                               iridiumLongitude, iridiumCep, data);
+            System.out.println();
         }
     }
 }
