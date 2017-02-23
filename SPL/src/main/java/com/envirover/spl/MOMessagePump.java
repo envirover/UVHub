@@ -49,34 +49,29 @@ class MOMessagePump implements Runnable {
     private final static int HEARTBEAT_INTERVAL = 1000;
 
     private final MAVLinkChannel src;
-    private final int port;
+    private final MAVLinkChannel dst;
     private final msg_high_latency msgHighLatency = new msg_high_latency();
-    private int seq = 0;
-    private MAVLinkSocket dst = null;
 
-    public MOMessagePump(MAVLinkChannel src, int port) {
+    private int seq = 0;
+
+    public MOMessagePump(MAVLinkChannel src, MAVLinkChannel dst) {
         this.src = src;
-        this.port = port;
+        this.dst = dst;
     }
 
     @Override
     public void run() {
         MAVLinkPacket packet;
 
-        try {
-            dst = new MAVLinkSocket(port);
-        } catch (IOException e1) {
-            e1.printStackTrace();
-            return;
-        }
-
-        while(true) {
+        while (true) {
             try {
                 while ((packet = src.receiveMessage()) != null) {
                     dst.sendMessage(packet);
 
                     if (packet.msgid == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
                         msgHighLatency.unpack(packet.payload);
+                    } else {
+                        dst.sendMessage(packet);
                     }
                 }
 
@@ -94,11 +89,7 @@ class MOMessagePump implements Runnable {
                 ex.printStackTrace();
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                try {
-                    dst.close();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
+                dst.close();
                 return;
             }
         }

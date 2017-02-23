@@ -9,5 +9,5 @@ public interface MAVLinkChannel {
 
     void sendMessage(MAVLinkPacket packet) throws IOException;
 
-    void close() throws IOException;
+    void close();
 }

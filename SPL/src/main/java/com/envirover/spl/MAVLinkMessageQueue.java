@@ -53,7 +53,7 @@ public class MAVLinkMessageQueue implements MAVLinkChannel {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
     }
 
 }
