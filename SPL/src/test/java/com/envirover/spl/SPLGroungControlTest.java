@@ -27,6 +27,7 @@ package com.envirover.spl;
 import static org.junit.Assert.fail;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -48,6 +49,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.MAVLink.MAVLinkPacket;
@@ -55,23 +58,35 @@ import com.MAVLink.Parser;
 import com.MAVLink.common.msg_high_latency;
 
 public class SPLGroungControlTest {
+    private static final Config config = new Config();
+    private static Thread theAppThread;
     private final Parser parser = new Parser();
 
-    //Test receiving messages from your RockBLOCK
-    @Test
-    public void testPostRockBLOCKMessage() throws URISyntaxException, ClientProtocolException, IOException, InterruptedException {
-        System.out.println("TEST: Testing MO message handler...");
-
-        final Config config = new Config();
+    @BeforeClass
+    public static void setUpClass() throws Exception {
+        System.out.println("SETUP: Starting SPLGroundControl application...");
         config.init();
 
-        Thread theAppThread = new Thread(new Runnable() {
+        theAppThread = new Thread(new Runnable() {
             public void run() {
                 SPLGroundControl.main(null);
             }
         });
         theAppThread.start();
-        
+
+        Thread.sleep(1000);
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws Exception {
+        theAppThread.interrupt();
+    }
+
+    //Test receiving MO messages from RockBLOCK
+    @Test
+    public void testMOMessagePipeline() throws URISyntaxException, ClientProtocolException, IOException, InterruptedException {
+        System.out.println("MO TEST: Testing MO message pipeline...");
+
         Thread.sleep(1000);
 
         Thread mavlinkThread = new Thread(new Runnable() {
@@ -79,7 +94,7 @@ public class SPLGroungControlTest {
                 Socket client = null;
 
                 try {
-                    System.out.printf("TEST: Connecting to tcp://%s:%d", 
+                    System.out.printf("MO TEST: Connecting to tcp://%s:%d", 
                                       InetAddress.getLocalHost().getHostAddress(), 
                                       config.getMAVLinkPort());
                     System.out.println();
@@ -87,7 +102,7 @@ public class SPLGroungControlTest {
                     client = new Socket(InetAddress.getLocalHost().getHostAddress(), 
                                                config.getMAVLinkPort());
 
-                    System.out.printf("TEST: Just connected tcp://%s:%d", 
+                    System.out.printf("MO TEST: Connected tcp://%s:%d", 
                                       InetAddress.getLocalHost().getHostAddress(), 
                                       config.getMAVLinkPort());
                     System.out.println();
@@ -100,10 +115,14 @@ public class SPLGroungControlTest {
                             packet = parser.mavlink_parse_char(c);
                         } while (packet == null);
 
-                        System.out.printf("TEST: MAVLink message received: msgid = %d", packet.msgid);
+                        System.out.printf("MO TEST: MAVLink message received: msgid = %d", packet.msgid);
                         System.out.println();
+
+                        Thread.sleep(100);
                     }
-                } catch(Exception ex) {
+                } catch(InterruptedException ex) {
+                    return;
+                }  catch(Exception ex) {
                     ex.printStackTrace();
                 } finally {
                     try {
@@ -122,7 +141,7 @@ public class SPLGroungControlTest {
         builder.setScheme("http");
         builder.setHost(InetAddress.getLocalHost().getHostAddress());
         builder.setPort(config.getHttpPort());
-        builder.setPath(config.getHtppContext());
+        builder.setPath(config.getHttpContext());
 
         URI uri = builder.build();
         HttpPost httppost = new HttpPost(uri);
@@ -139,7 +158,7 @@ public class SPLGroungControlTest {
         httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
         // Execute and get the response.
-        System.out.printf("TEST: Sending test message to %s", uri.toString());
+        System.out.printf("MO TEST: Sending test message to %s", uri.toString());
         System.out.println();
 
         HttpResponse response = httpclient.execute(httppost);
@@ -161,11 +180,59 @@ public class SPLGroungControlTest {
             }
         }
 
-        theAppThread.interrupt();
+        Thread.sleep(1000);
 
-        Thread.sleep(10000);
+        mavlinkThread.interrupt();
+        System.out.println("MO TEST: Complete.");
+    }
 
-        System.out.println("TEST: Complete.");
+    //Test sending MT messages to RockBLOCK
+    @Test
+    public void testMTMessagePipeline() {
+        System.out.println("MT TEST: Testing MT message pipeline...");
+
+        Socket client = null;
+        DataOutputStream out = null;
+
+        try {
+            System.out.printf("MT TEST: Connecting to tcp://%s:%d",
+                              InetAddress.getLocalHost().getHostAddress(),
+                              config.getMAVLinkPort());
+            System.out.println();
+
+            client = new Socket(InetAddress.getLocalHost().getHostAddress(), 
+                                config.getMAVLinkPort());
+
+            System.out.printf("MT TEST: Connected to tcp://%s:%d", 
+                              InetAddress.getLocalHost().getHostAddress(), 
+                              config.getMAVLinkPort());
+            System.out.println();
+
+            out = new DataOutputStream(client.getOutputStream());
+
+            MAVLinkPacket packet = getSamplePacket();
+            out.write(packet.encodePacket());
+            out.flush();
+
+            System.out.printf("MT TEST: MAVLink message sent: msgid = %d", packet.msgid);
+            System.out.println();
+
+            Thread.sleep(5000);
+
+            System.out.println("MT TEST: Complete.");
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try {
+                if (out != null) 
+                    out.close();
+
+                if (client != null) 
+                    client.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private MAVLinkPacket getSamplePacket() {

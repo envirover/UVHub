@@ -24,13 +24,13 @@ along with Rock7MAVLink.  If not, see <http://www.gnu.org/licenses/>.
 
 package com.envirover.spl;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Scanner;
 
 import com.sun.net.httpserver.HttpServer;
 import com.MAVLink.enums.MAV_COMPONENT;
+
 
 @SuppressWarnings("restriction")
 public class SPLGroundControl {
@@ -46,22 +46,33 @@ public class SPLGroundControl {
         MAVLinkChannel channel = null;
 
         try {
+            System.out.println("Starting...");
             config.init(args);
 
             String ip = InetAddress.getLocalHost().getHostAddress();
             System.out.printf("Starting RockBLOCK HTTP message handler on http://%s:%d%s...",
-                              ip, config.getHttpPort(), config.getHtppContext());
+                              ip, config.getHttpPort(), config.getHttpContext());
             System.out.println();
 
             HttpServer server = HttpServer.create(new InetSocketAddress(config.getHttpPort()), 0);
-            server.createContext(config.getHtppContext(), new RockBLOCKHttpHandler(messageQueue));
+            server.createContext(config.getHttpContext(), new RockBLOCKHttpHandler(messageQueue));
             server.setExecutor(null);
             server.start();
 
             // Start message pump for mobile-originated messages
-            MOMessagePump msgPump = new MOMessagePump(messageQueue, config.getMAVLinkPort());
-            Thread msgPumpThread = new Thread(msgPump);
-            msgPumpThread.start();
+            MAVLinkChannel socket = new MAVLinkSocket(config.getMAVLinkPort());
+
+            RockBLOCKClient rockblock = new RockBLOCKClient(config.getRockBlockIMEI(),
+                                                            config.getRockBlockUsername(),
+                                                            config.getRockBlockPassword());
+
+            MOMessagePump moMsgPump = new MOMessagePump(messageQueue, socket);
+            Thread moMsgPumpThread = new Thread(moMsgPump);
+            moMsgPumpThread.start();
+
+            MTMessagePump mtMsgPump = new MTMessagePump(socket, rockblock);
+            Thread mtMsgPumpThread = new Thread(mtMsgPump);
+            mtMsgPumpThread.start();
 
             Thread.sleep(1000);
 
@@ -77,19 +88,16 @@ public class SPLGroundControl {
             System.out.println("Exiting...");
             scanner.close();
             server.stop(0);
-            msgPumpThread.interrupt();
+            moMsgPumpThread.interrupt();
+            mtMsgPumpThread.interrupt();
             Thread.sleep(1000);
             System.out.println("Done.");
             System.exit(0);
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
-            try {
-                if (channel != null)
-                    channel.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            if (channel != null)
+                channel.close();
         }
     }
 

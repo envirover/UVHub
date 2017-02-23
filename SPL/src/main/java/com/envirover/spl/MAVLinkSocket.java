@@ -5,18 +5,17 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
 
 public class MAVLinkSocket implements MAVLinkChannel {
-
-    private final Parser parser = new Parser();
     private final ServerSocket socket;
 
-    private Socket connection;
-    private DataInputStream in;
-    private DataOutputStream out;
+    private Socket connection = null;
+    private DataInputStream in = null;
+    private DataOutputStream out = null;
 
     public MAVLinkSocket(int port) throws IOException {
         socket = new ServerSocket(port);
@@ -36,52 +35,90 @@ public class MAVLinkSocket implements MAVLinkChannel {
         }
     }
 
-    public boolean isConnected() {
+    public synchronized boolean isConnected() {
         return !socket.isClosed() && connection != null && connection.isConnected();
     }
 
     @Override
-    public synchronized MAVLinkPacket receiveMessage() throws IOException {
+    public MAVLinkPacket receiveMessage() throws IOException {
+        final Parser parser = new Parser();
+
         MAVLinkPacket packet = null;
 
         connect();
 
-        if (isConnected()) {
-            do {
-                int c = in.readUnsignedByte();
-                packet = parser.mavlink_parse_char(c);
-            } while (packet == null);
+        try {
+            if (isConnected()) {
+                do {
+                    try {
+                        int c = in.readUnsignedByte();
+                        packet = parser.mavlink_parse_char(c);
+                    } catch(java.io.EOFException ex) {
+                    }
+                } while (packet == null);
+            }
+        } catch (SocketException ex) {
+            System.out.println("MAVLink client disconnected.");
+            closeConnection();
         }
 
         return packet;
     }
 
     @Override
-    public synchronized void sendMessage(MAVLinkPacket packet) throws IOException {
+    public void sendMessage(MAVLinkPacket packet) throws IOException {
         connect();
 
-        if (isConnected()) {
-            byte[] data = packet.encodePacket();
-            out.write(data);
-            out.flush();
+        try {
+            if (isConnected()) {
+                byte[] data = packet.encodePacket();
+                out.write(data);
+                out.flush();
+            }
+        } catch (SocketException ex) {
+            System.out.println("MAVLink client disconnected.");
+            closeConnection();
         }
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
+        closeConnection();
+
+        try {
+            socket.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void closeConnection() {
         if (in != null) {
-            in.close();
+            try {
+                in.close();
+                in = null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         if (out != null) {
-            out.close();
+            try {
+                out.close();
+                out = null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         if (connection != null) {
-            connection.close();
+            try {
+                connection.close();
+                connection = null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-
-        socket.close();
     }
 
 }
