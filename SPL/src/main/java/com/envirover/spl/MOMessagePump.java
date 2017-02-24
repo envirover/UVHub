@@ -38,6 +38,7 @@ import com.MAVLink.common.msg_nav_controller_output;
 import com.MAVLink.common.msg_sys_status;
 import com.MAVLink.common.msg_vfr_hud;
 import com.MAVLink.enums.MAV_MODE_FLAG;
+import com.envirover.mavlink.MAVLinkChannel;
 
 /*
  * Message pump for mobile-originated messages receives MAVLink messages
@@ -97,6 +98,8 @@ class MOMessagePump implements Runnable {
 
     private MAVLinkMessage getHeartbeatMsg() {
         msg_heartbeat msg = new msg_heartbeat();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
         msg.base_mode = MAV_MODE_FLAG.MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
         return msg;
     }
@@ -104,12 +107,16 @@ class MOMessagePump implements Runnable {
     // Split high frequency messages from HIGH_LATENCY message
     private MAVLinkMessage getSysStatusMsg() {
         msg_sys_status msg = new msg_sys_status();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
         msg.battery_remaining = (byte)msgHighLatency.battery_remaining;
         return msg;
     }
 
     private MAVLinkMessage getGpsRawIntMsg() {
         msg_gps_raw_int msg = new msg_gps_raw_int();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
         msg.fix_type = msgHighLatency.gps_fix_type;
         msg.satellites_visible = msgHighLatency.gps_nsat;
         msg.lat = msgHighLatency.latitude;
@@ -120,6 +127,8 @@ class MOMessagePump implements Runnable {
 
     private MAVLinkMessage getAttitudeMsg() {
         msg_attitude msg = new msg_attitude();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
         msg.yaw = msgHighLatency.heading / 100;
         msg.pitch = (float)(msgHighLatency.pitch * Math.PI / 18000.0);
         msg.roll = (float)(msgHighLatency.roll * Math.PI / 18000.0);
@@ -128,6 +137,8 @@ class MOMessagePump implements Runnable {
 
     private MAVLinkMessage getGlobalPositionIntMsg() {
         msg_global_position_int msg = new msg_global_position_int();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
         msg.alt = msgHighLatency.altitude_amsl;
         msg.lat = msgHighLatency.latitude;
         msg.lon = msgHighLatency.longitude;
@@ -138,18 +149,24 @@ class MOMessagePump implements Runnable {
 
     private MAVLinkMessage getMissionCurrentMsg() {
         msg_mission_current msg = new msg_mission_current();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
         msg.seq = msgHighLatency.wp_num;
         return msg;
     }
 
     private MAVLinkMessage getNavControllerOutputMsg() {
         msg_nav_controller_output msg = new msg_nav_controller_output();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
         msg.nav_bearing = (short)(msgHighLatency.heading_sp / 100);
         return msg;
     }
  
     private MAVLinkMessage getVfrHudMsg() {
         msg_vfr_hud msg = new msg_vfr_hud();
+        msg.sysid = msgHighLatency.sysid;
+        msg.compid = msgHighLatency.compid;
         msg.airspeed = msgHighLatency.airspeed;
         msg.alt = msgHighLatency.altitude_amsl;
         msg.climb = msgHighLatency.climb_rate;
@@ -161,10 +178,7 @@ class MOMessagePump implements Runnable {
 
     private MAVLinkPacket pack(MAVLinkMessage msg) {
         MAVLinkPacket packet = msg.pack();
-        packet.sysid = SPLGroundControl.SYSTEM_ID;
-        packet.compid = SPLGroundControl.COMP_ID;
         packet.seq = seq++;
-
         return packet;
     }
 }

@@ -1,4 +1,4 @@
-package com.envirover.spl;
+package com.envirover.rockblock;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,8 +18,9 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 
 import com.MAVLink.MAVLinkPacket;
+import com.envirover.mavlink.MAVLinkChannel;
 
-public class RockBLOCKClient implements MAVLinkChannel {
+public class RockBlockClient implements MAVLinkChannel {
     // HTTP POST request parameters
 
     // IMEI of the RockBLOCK
@@ -38,11 +39,11 @@ public class RockBLOCKClient implements MAVLinkChannel {
     private final String password; 
     private final String serviceURL;
 
-    public RockBLOCKClient(String imei, String username, String password) {
+    public RockBlockClient(String imei, String username, String password) {
        this(imei, username, password, "https://core.rock7.com/rockblock/MT");
     }
 
-    public RockBLOCKClient(String imei, String username, String password, String serviceURL) {
+    public RockBlockClient(String imei, String username, String password, String serviceURL) {
         this.imei = imei;
         this.username = username;
         this.password = password;
