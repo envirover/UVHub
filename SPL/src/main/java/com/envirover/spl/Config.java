@@ -86,7 +86,8 @@ public class Config {
 
         if (cmd.hasOption(CLI_OPTION_HELP)) {
             HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp( "ant", options );
+            formatter.printHelp( "spl", options );
+            return false;
         }
 
         Properties props = new Properties();
