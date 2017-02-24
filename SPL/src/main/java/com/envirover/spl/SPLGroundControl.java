@@ -28,8 +28,13 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Scanner;
 
+import com.envirover.mavlink.MAVLinkChannel;
+import com.envirover.mavlink.MAVLinkMessageQueue;
+import com.envirover.mavlink.MAVLinkSocket;
+import com.envirover.rockblock.RockBlockClient;
+import com.envirover.rockblock.RockBlockHttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import com.MAVLink.enums.MAV_COMPONENT;
+
 
 
 @SuppressWarnings("restriction")
@@ -37,17 +42,16 @@ public class SPLGroundControl {
 
     private final static int MAX_MGS_QUEUE_SIZE = 10;
 
-    final static int SYSTEM_ID = 1;
-    final static int COMP_ID = MAV_COMPONENT.MAV_COMP_ID_ALL;
-    final static MAVLinkMessageQueue messageQueue = new MAVLinkMessageQueue(MAX_MGS_QUEUE_SIZE);
-    final static Config config = new Config();
-
     public static void main(String[] args) {
         MAVLinkChannel channel = null;
 
         try {
-            System.out.println("Starting...");
-            config.init(args);
+            final Config config = new Config();
+
+            if (!config.init(args))
+                return;
+
+            MAVLinkMessageQueue messageQueue = new MAVLinkMessageQueue(MAX_MGS_QUEUE_SIZE);
 
             String ip = InetAddress.getLocalHost().getHostAddress();
             System.out.printf("Starting RockBLOCK HTTP message handler on http://%s:%d%s...",
@@ -55,21 +59,23 @@ public class SPLGroundControl {
             System.out.println();
 
             HttpServer server = HttpServer.create(new InetSocketAddress(config.getHttpPort()), 0);
-            server.createContext(config.getHttpContext(), new RockBLOCKHttpHandler(messageQueue));
+            server.createContext(config.getHttpContext(), new RockBlockHttpHandler(messageQueue));
             server.setExecutor(null);
             server.start();
 
-            // Start message pump for mobile-originated messages
             MAVLinkChannel socket = new MAVLinkSocket(config.getMAVLinkPort());
 
-            RockBLOCKClient rockblock = new RockBLOCKClient(config.getRockBlockIMEI(),
+            RockBlockClient rockblock = new RockBlockClient(config.getRockBlockIMEI(),
                                                             config.getRockBlockUsername(),
-                                                            config.getRockBlockPassword());
+                                                            config.getRockBlockPassword(),
+                                                            config.getRockBlockURL());
 
+            // Start pump for mobile-originated messages
             MOMessagePump moMsgPump = new MOMessagePump(messageQueue, socket);
             Thread moMsgPumpThread = new Thread(moMsgPump);
             moMsgPumpThread.start();
 
+            // Start pump for mobile-terminated messages
             MTMessagePump mtMsgPump = new MTMessagePump(socket, rockblock);
             Thread mtMsgPumpThread = new Thread(mtMsgPump);
             mtMsgPumpThread.start();
@@ -86,11 +92,14 @@ public class SPLGroundControl {
             }
 
             System.out.println("Exiting...");
+
             scanner.close();
             server.stop(0);
             moMsgPumpThread.interrupt();
             mtMsgPumpThread.interrupt();
+
             Thread.sleep(1000);
+
             System.out.println("Done.");
             System.exit(0);
         } catch (Exception ex) {
@@ -101,68 +110,4 @@ public class SPLGroundControl {
         }
     }
 
-    /*
-    private static class Receiver implements Runnable {
-
-        private final MAVLinkChannel channel;
-
-        public Receiver(MAVLinkChannel channel) {
-            this.channel = channel;
-        }
-
-        @Override
-        public void run() {
-            System.out.println("Receiving messages...");
-
-            while (true) {
-                try {
-                    MAVLinkPacket packet = channel.receiveMessage();
-
-                    MAVLinkMessage msg = packet.unpack();
-                    if (msg != null) {
-                        System.out.printf("Message received. msgid = %d\n", msg.msgid);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    private static class Sender implements Runnable {
-
-        private static int heartbeat_seq = 0;
-
-        private final MAVLinkChannel channel;
-
-        public Sender(MAVLinkChannel channel) {
-            this.channel = channel;
-        }
-
-        @Override
-        public void run() {
-            System.out.println("Sending messages...");
-
-            while (true) {
-                try {
-                    msg_heartbeat heartbeat = new msg_heartbeat();
-                    heartbeat.base_mode = MAV_MODE_FLAG.MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
-
-                    MAVLinkPacket packet = heartbeat.pack();
-                    packet.sysid = SYSTEM_ID;
-                    packet.compid = COMP_ID;
-                    packet.seq = heartbeat_seq++;
-
-                    channel.sendMessage(packet);
-
-                    System.out.println("*");
-
-                    Thread.sleep(1000);
-                } catch (IOException | InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-    */
 }

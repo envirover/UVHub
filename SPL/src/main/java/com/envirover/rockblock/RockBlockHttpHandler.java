@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License
 along with Rock7MAVLink.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.envirover.spl;
+package com.envirover.rockblock;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,17 +40,18 @@ import org.apache.http.client.utils.URLEncodedUtils;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
+import com.envirover.mavlink.MAVLinkChannel;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 @SuppressWarnings("restriction")
-public class RockBLOCKHttpHandler implements HttpHandler {
+public class RockBlockHttpHandler implements HttpHandler {
 
     private final Parser parser = new Parser();
 
     private final MAVLinkChannel channel;
 
-    public RockBLOCKHttpHandler(MAVLinkChannel channel) {
+    public RockBlockHttpHandler(MAVLinkChannel channel) {
         this.channel = channel;
     }
 

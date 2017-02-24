@@ -25,9 +25,9 @@ along with Rock7MAVLink.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.spl;
 
 import java.io.IOException;
-import java.net.SocketException;
 
 import com.MAVLink.MAVLinkPacket;
+import com.envirover.mavlink.MAVLinkChannel;
 
 /*
  * Mobile-terminated message pump.

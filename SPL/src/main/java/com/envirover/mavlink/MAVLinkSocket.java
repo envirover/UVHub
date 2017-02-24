@@ -1,4 +1,4 @@
-package com.envirover.spl;
+package com.envirover.mavlink;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

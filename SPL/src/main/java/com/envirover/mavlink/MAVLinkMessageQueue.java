@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License
 along with Rock7MAVLink.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.envirover.spl;
+package com.envirover.mavlink;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
