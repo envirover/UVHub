@@ -2,6 +2,7 @@ package com.envirover.rockblock;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
@@ -32,16 +34,14 @@ public class RockBlockClient implements MAVLinkChannel {
     // Hex-encoded message.
     private final static String PARAM_DATA = "data"; 
 
+    private final static Logger logger = Logger.getLogger(RockBlockClient.class);
+
     private final HttpClient httpclient = HttpClients.createDefault();
 
     private final String imei;
     private final String username;
     private final String password; 
     private final String serviceURL;
-
-    public RockBlockClient(String imei, String username, String password) {
-       this(imei, username, password, "https://core.rock7.com/rockblock/MT");
-    }
 
     public RockBlockClient(String imei, String username, String password, String serviceURL) {
         this.imei = imei;
@@ -51,11 +51,12 @@ public class RockBlockClient implements MAVLinkChannel {
     }
 
     public void sendMessage(MAVLinkPacket packet) throws ClientProtocolException, IOException {
+        if (packet == null)
+            return;
+
         HttpPost httppost = new HttpPost(serviceURL);
 
         String data = Hex.encodeHexString(packet.encodePacket());
-        System.out.printf("Rock7 service message: %s", data);
-        System.out.println();
 
         // Request parameters and other properties.
         List<NameValuePair> params = new ArrayList<NameValuePair>(2);
@@ -75,8 +76,6 @@ public class RockBlockClient implements MAVLinkChannel {
             InputStream responseStream = entity.getContent();
             try {
                 responseString = IOUtils.toString(responseStream);
-                System.out.printf("Rock7 service response: %d (%s)", response.getStatusLine().getStatusCode(), responseString);
-                System.out.println();
             } finally {
                 responseStream.close();
             }
@@ -85,6 +84,8 @@ public class RockBlockClient implements MAVLinkChannel {
         if (responseString == null || responseString.startsWith("FAILED")) {
             throw new IOException(String.format("Failed to post message to RockBLOCK API. %s", responseString));
         }
+
+        logger.info(MessageFormat.format("MT message sent (msgid={0})", packet.msgid));
     }
 
     @Override

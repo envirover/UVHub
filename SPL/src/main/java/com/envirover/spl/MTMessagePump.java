@@ -25,14 +25,22 @@ along with Rock7MAVLink.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.spl;
 
 import java.io.IOException;
+import java.text.MessageFormat;
+
+import org.apache.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
+import com.MAVLink.common.msg_heartbeat;
+import com.MAVLink.common.msg_param_request_list;
+import com.MAVLink.common.msg_request_data_stream;
 import com.envirover.mavlink.MAVLinkChannel;
 
 /*
  * Mobile-terminated message pump.
  */
 public class MTMessagePump implements Runnable {
+
+    private final static Logger logger = Logger.getLogger(MTMessagePump.class);
 
     private final MAVLinkChannel src;
     private final MAVLinkChannel dst;
@@ -48,25 +56,27 @@ public class MTMessagePump implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("MTMessagePump Started.");
+        logger.debug("MTMessagePump started.");
 
         while(true) {
             try {
                 MAVLinkPacket packet = src.receiveMessage();
 
                 if (packet != null) {
-                    System.out.printf("MT message received: msgid = %d.", packet.msgid);
-                    System.out.println();
+                    logger.debug(MessageFormat.format("MT message received (msgid = {0}).", packet.msgid));
 
                     //TODO: filter out high frequency messages
+                    if (packet.msgid != msg_heartbeat.MAVLINK_MSG_ID_HEARTBEAT &&
+                        packet.msgid != msg_param_request_list.MAVLINK_MSG_ID_PARAM_REQUEST_LIST &&
+                        packet.msgid != msg_request_data_stream.MAVLINK_MSG_ID_REQUEST_DATA_STREAM)
                     dst.sendMessage(packet);
                 }
 
                 Thread.sleep(10);
             } catch(IOException ex) {
-                ex.printStackTrace();
+                logger.error(ex.getMessage());
             } catch (InterruptedException e) {
-                System.out.println("MTMessagePump Exited.");
+                logger.debug("MTMessagePump interrupted.");
                 return;
             }
         }

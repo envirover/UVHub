@@ -6,11 +6,18 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.text.MessageFormat;
+
+import org.apache.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
 
+
 public class MAVLinkSocket implements MAVLinkChannel {
+
+    private final static Logger logger = Logger.getLogger(MAVLinkSocket.class);
+
     private final ServerSocket socket;
 
     private Socket connection = null;
@@ -31,7 +38,7 @@ public class MAVLinkSocket implements MAVLinkChannel {
             in = new DataInputStream(connection.getInputStream());
             out = new DataOutputStream(connection.getOutputStream());
 
-            System.out.println("MAVLink client connected.");
+            logger.info("MAVLink client connected.");
         }
     }
 
@@ -41,25 +48,30 @@ public class MAVLinkSocket implements MAVLinkChannel {
 
     @Override
     public MAVLinkPacket receiveMessage() throws IOException {
-        final Parser parser = new Parser();
+        Parser parser = new Parser();
 
         MAVLinkPacket packet = null;
 
         connect();
 
         try {
-            if (isConnected()) {
+//            if (isConnected()) {
                 do {
                     try {
                         int c = in.readUnsignedByte();
                         packet = parser.mavlink_parse_char(c);
                     } catch(java.io.EOFException ex) {
+                        return null;
                     }
                 } while (packet == null);
-            }
+//            }
         } catch (SocketException ex) {
-            System.out.println("MAVLink client disconnected.");
+            logger.info("MAVLink client disconnected.");
             closeConnection();
+        }
+
+        if (packet != null) {
+            logger.debug(MessageFormat.format("MAVLink message received: msgid = {0}, seq={1}", packet.msgid, packet.seq));
         }
 
         return packet;
@@ -67,6 +79,9 @@ public class MAVLinkSocket implements MAVLinkChannel {
 
     @Override
     public void sendMessage(MAVLinkPacket packet) throws IOException {
+        if (packet == null)
+            return;
+
         connect();
 
         try {
@@ -74,9 +89,11 @@ public class MAVLinkSocket implements MAVLinkChannel {
                 byte[] data = packet.encodePacket();
                 out.write(data);
                 out.flush();
+
+                logger.debug(MessageFormat.format("MAVLink message sent: msgid = {0}, seq={1}", packet.msgid, packet.seq));
             }
         } catch (SocketException ex) {
-            System.out.println("MAVLink client disconnected.");
+            logger.info("MAVLink client disconnected.");
             closeConnection();
         }
     }
