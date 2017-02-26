@@ -26,6 +26,8 @@ package com.envirover.spl;
 
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_attitude;
@@ -47,11 +49,15 @@ import com.envirover.mavlink.MAVLinkChannel;
  * 
  */
 class MOMessagePump implements Runnable {
+
     private final static int HEARTBEAT_INTERVAL = 1000;
+
+    private final static Logger logger = Logger.getLogger(MOMessagePump.class);
+
+    private final msg_high_latency msgHighLatency = new msg_high_latency();
 
     private final MAVLinkChannel src;
     private final MAVLinkChannel dst;
-    private final msg_high_latency msgHighLatency = new msg_high_latency();
 
     private int seq = 0;
 
@@ -62,10 +68,12 @@ class MOMessagePump implements Runnable {
 
     @Override
     public void run() {
-        MAVLinkPacket packet;
+        logger.debug("MOMessagePump started.");
 
         while (true) {
             try {
+                MAVLinkPacket packet;
+
                 while ((packet = src.receiveMessage()) != null) {
                     dst.sendMessage(packet);
 
@@ -87,10 +95,10 @@ class MOMessagePump implements Runnable {
 
                 Thread.sleep(HEARTBEAT_INTERVAL);
             } catch (IOException ex) {
-                ex.printStackTrace();
+                logger.error(ex.getMessage());
             } catch (InterruptedException e) {
-                e.printStackTrace();
                 dst.close();
+                logger.debug("MOMessagePump interrupted.");
                 return;
             }
         }

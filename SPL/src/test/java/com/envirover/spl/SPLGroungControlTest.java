@@ -58,6 +58,7 @@ import com.MAVLink.Parser;
 import com.MAVLink.common.msg_high_latency;
 
 public class SPLGroungControlTest {
+    private static String[] args = {"-i", "1234567890", "-u", "user", "-p", "password"};
     private static final Config config = new Config();
     private static Thread theAppThread;
     private final Parser parser = new Parser();
@@ -65,11 +66,11 @@ public class SPLGroungControlTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         System.out.println("SETUP: Starting SPLGroundControl application...");
-        config.init();
+        config.init(args);
 
         theAppThread = new Thread(new Runnable() {
             public void run() {
-                SPLGroundControl.main(null);
+                SPLGroundControl.main(args);
             }
         });
         theAppThread.start();

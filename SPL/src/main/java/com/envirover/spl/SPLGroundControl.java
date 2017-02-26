@@ -40,8 +40,6 @@ import com.sun.net.httpserver.HttpServer;
 @SuppressWarnings("restriction")
 public class SPLGroundControl {
 
-    private final static int MAX_MGS_QUEUE_SIZE = 10;
-
     public static void main(String[] args) {
         MAVLinkChannel channel = null;
 
@@ -51,7 +49,7 @@ public class SPLGroundControl {
             if (!config.init(args))
                 return;
 
-            MAVLinkMessageQueue messageQueue = new MAVLinkMessageQueue(MAX_MGS_QUEUE_SIZE);
+            MAVLinkMessageQueue messageQueue = new MAVLinkMessageQueue(config.getQueueSize());
 
             String ip = InetAddress.getLocalHost().getHostAddress();
             System.out.printf("Starting RockBLOCK HTTP message handler on http://%s:%d%s...",
@@ -59,7 +57,8 @@ public class SPLGroundControl {
             System.out.println();
 
             HttpServer server = HttpServer.create(new InetSocketAddress(config.getHttpPort()), 0);
-            server.createContext(config.getHttpContext(), new RockBlockHttpHandler(messageQueue));
+            server.createContext(config.getHttpContext(), 
+                                 new RockBlockHttpHandler(messageQueue, config.getRockBlockIMEI()));
             server.setExecutor(null);
             server.start();
 

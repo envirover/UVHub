@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.text.MessageFormat;
 import java.util.List;
 
 import org.apache.commons.codec.DecoderException;
@@ -37,6 +38,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
@@ -47,12 +49,19 @@ import com.sun.net.httpserver.HttpHandler;
 @SuppressWarnings("restriction")
 public class RockBlockHttpHandler implements HttpHandler {
 
-    private final Parser parser = new Parser();
+    private final static Logger logger = Logger.getLogger(RockBlockHttpHandler.class);
 
-    private final MAVLinkChannel channel;
+    private final MAVLinkChannel queue;
+    private final String imei;
 
-    public RockBlockHttpHandler(MAVLinkChannel channel) {
-        this.channel = channel;
+    /**
+     * Constructor
+     * 
+     * @param queue MAVLink message queue
+     */
+    public RockBlockHttpHandler(MAVLinkChannel queue, String imei) {
+        this.queue = queue;
+        this.imei = imei;
     }
 
     @Override
@@ -67,12 +76,17 @@ public class RockBlockHttpHandler implements HttpHandler {
 
             IridiumMessage message = new IridiumMessage(params);
 
-            message.print();
+            logger.debug(message);
 
             MAVLinkPacket packet = message.getPacket();
 
             if (packet != null) {
-                channel.sendMessage(packet);
+                logger.info(MessageFormat.format("MO message received (msgid={0})", packet.msgid));
+
+                if (message.imei.equalsIgnoreCase(imei))
+                    queue.sendMessage(packet);
+                else
+                    logger.warn(MessageFormat.format("Invalid IMEI ''{0}''.", message.imei));
             }
 
             //Send response
@@ -82,7 +96,7 @@ public class RockBlockHttpHandler implements HttpHandler {
             os.write(response.getBytes());
             os.close();
         } catch (DecoderException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
             throw new IOException(e.getMessage());
         }
     }
@@ -142,22 +156,21 @@ public class RockBlockHttpHandler implements HttpHandler {
         }
 
         public MAVLinkPacket getPacket() throws DecoderException {
-            byte[] decoded_data = Hex.decodeHex(data.toCharArray());
-
+            Parser parser = new Parser();
             MAVLinkPacket packet = null;
 
-            for (int i = 0; i < decoded_data.length; i++) {
-                packet = parser.mavlink_parse_char(decoded_data[i]);
+            for (byte b : Hex.decodeHex(data.toCharArray())) {
+                packet = parser.mavlink_parse_char(b & 0xFF);
             }
 
             return packet;
         }
 
-        public void print() {
-            System.out.printf("MO message received: %s %s %s %s %s %s %s",
-                              imei, momsn, transmitTime, iridiumLatitude,
-                              iridiumLongitude, iridiumCep, data);
-            System.out.println();
+        @Override
+        public String toString() {
+            return String.format("%s %s %s %s %s %s %s",
+                                 imei, momsn, transmitTime, iridiumLatitude,
+                                 iridiumLongitude, iridiumCep, data);
         }
     }
 }
