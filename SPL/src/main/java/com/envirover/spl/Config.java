@@ -100,7 +100,8 @@ public class Config {
         try {
             ClassLoader loader = Config.class.getClassLoader();
             in = loader.getResourceAsStream(CONFIG_PROPERTIES_FILE);
-            props.load(in);
+            if (in != null)
+              props.load(in);
         } finally {
             if (in != null) {
                 in.close();
