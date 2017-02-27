@@ -149,7 +149,7 @@ public class SPLGroungControlTest {
 
         // Request parameters and other properties.
         List<NameValuePair> params = new ArrayList<NameValuePair>(2);
-        params.add(new BasicNameValuePair("imei", "300234010753370"));
+        params.add(new BasicNameValuePair("imei", config.getRockBlockIMEI()));
         params.add(new BasicNameValuePair("momsn", "12345"));
         params.add(new BasicNameValuePair("transmit_time", "12-10-10 10:41:50"));
         params.add(new BasicNameValuePair("iridium_latitude", "52.3867"));

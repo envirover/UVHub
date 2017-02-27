@@ -26,6 +26,8 @@ package com.envirover.spl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.text.MessageFormat;
 import java.util.Properties;
 
@@ -40,6 +42,8 @@ import org.apache.commons.cli.ParseException;
  * Configuration properties
  */
 public class Config {
+    private final static String CONFIG_PROPERTIES_FILE  = "app.properties"; 
+    
     // Configuration properties
     private final static String PROP_QUEUE_SIZE         = "queue.size";
     private final static String PROP_HTTP_PORT          = "http.port";
@@ -92,12 +96,12 @@ public class Config {
 
         Properties props = new Properties();
 
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
         InputStream in = null;
         try {
-            in = loader.getResourceAsStream("app.properties");
-            props.load(in);
+            ClassLoader loader = Config.class.getClassLoader();
+            in = loader.getResourceAsStream(CONFIG_PROPERTIES_FILE);
+            if (in != null)
+              props.load(in);
         } finally {
             if (in != null) {
                 in.close();

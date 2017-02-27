@@ -13,6 +13,7 @@
 	<modules>
 		<module>MAVLink</module>
 		<module>SPL</module>
+		<module>distribution</module>
 	</modules>
 
 	<properties>
@@ -35,4 +36,5 @@
 		<system>GitHub</system>
 		<url>http://github.com/envirover/SPLGroundControl</url>
 	</issueManagement>
+
 </project>
