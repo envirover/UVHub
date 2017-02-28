@@ -49,6 +49,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -65,6 +69,15 @@ public class SPLGroungControlTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        //Configure log4j
+        ConsoleAppender console = new ConsoleAppender(); 
+        String PATTERN = "%d [%p|%c|%C{1}] %m%n";
+        console.setLayout(new PatternLayout(PATTERN)); 
+        console.setThreshold(Level.DEBUG);
+        console.activateOptions();
+
+        Logger.getRootLogger().addAppender(console);
+
         System.out.println("SETUP: Starting SPLGroundControl application...");
         config.init(args);
 

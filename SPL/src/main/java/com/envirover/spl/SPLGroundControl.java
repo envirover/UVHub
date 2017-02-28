@@ -29,6 +29,7 @@ import java.net.InetSocketAddress;
 import java.util.Scanner;
 
 import com.envirover.mavlink.MAVLinkChannel;
+import com.envirover.mavlink.MAVLinkHandler;
 import com.envirover.mavlink.MAVLinkMessageQueue;
 import com.envirover.mavlink.MAVLinkSocket;
 import com.envirover.rockblock.RockBlockClient;
@@ -49,18 +50,13 @@ public class SPLGroundControl {
             if (!config.init(args))
                 return;
 
-            MAVLinkMessageQueue messageQueue = new MAVLinkMessageQueue(config.getQueueSize());
+            MAVLinkMessageQueue moMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
+            MAVLinkMessageQueue mtMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
 
             String ip = InetAddress.getLocalHost().getHostAddress();
             System.out.printf("Starting RockBLOCK HTTP message handler on http://%s:%d%s...",
                               ip, config.getHttpPort(), config.getHttpContext());
             System.out.println();
-
-            HttpServer server = HttpServer.create(new InetSocketAddress(config.getHttpPort()), 0);
-            server.createContext(config.getHttpContext(), 
-                                 new RockBlockHttpHandler(messageQueue, config.getRockBlockIMEI()));
-            server.setExecutor(null);
-            server.start();
 
             MAVLinkChannel socket = new MAVLinkSocket(config.getMAVLinkPort());
 
@@ -69,13 +65,24 @@ public class SPLGroundControl {
                                                             config.getRockBlockPassword(),
                                                             config.getRockBlockURL());
 
+            HttpServer server = HttpServer.create(new InetSocketAddress(config.getHttpPort()), 0);
+            server.createContext(config.getHttpContext(), 
+                                 new RockBlockHttpHandler(moMessageQueue, config.getRockBlockIMEI()));
+            server.setExecutor(null);
+            server.start();
+
             // Start pump for mobile-originated messages
-            MOMessagePump moMsgPump = new MOMessagePump(messageQueue, socket);
+            MOMessagePump moMsgPump = new MOMessagePump(moMessageQueue, socket);
             Thread moMsgPumpThread = new Thread(moMsgPump);
             moMsgPumpThread.start();
 
+            // Start handler for mobile-terminated messages
+            MAVLinkHandler mtHandler = new MAVLinkHandler(socket, mtMessageQueue);
+            Thread mtHandlerThread = new Thread(mtHandler);
+            mtHandlerThread.start();
+
             // Start pump for mobile-terminated messages
-            MTMessagePump mtMsgPump = new MTMessagePump(socket, rockblock);
+            MTMessagePump mtMsgPump = new MTMessagePump(mtMessageQueue, rockblock);
             Thread mtMsgPumpThread = new Thread(mtMsgPump);
             mtMsgPumpThread.start();
 
@@ -95,6 +102,7 @@ public class SPLGroundControl {
             scanner.close();
             server.stop(0);
             moMsgPumpThread.interrupt();
+            mtMsgPumpThread.interrupt();
             mtMsgPumpThread.interrupt();
 
             Thread.sleep(1000);
