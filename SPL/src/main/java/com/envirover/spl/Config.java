@@ -26,8 +26,6 @@ package com.envirover.spl;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.text.MessageFormat;
 import java.util.Properties;
 
@@ -90,8 +88,7 @@ public class Config {
 
         if (cmd.hasOption(CLI_OPTION_HELP)) {
             HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp( "spl", options );
-            return false;
+            formatter.printHelp("spl", options);
         }
 
         Properties props = new Properties();

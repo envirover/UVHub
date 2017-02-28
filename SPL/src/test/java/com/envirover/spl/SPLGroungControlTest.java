@@ -62,10 +62,9 @@ import com.MAVLink.Parser;
 import com.MAVLink.common.msg_high_latency;
 
 public class SPLGroungControlTest {
-    private static String[] args = {"-i", "1234567890", "-u", "user", "-p", "password"};
+    private static final String[] args = {"-i", "1234567890", "-u", "user", "-p", "password"};
     private static final Config config = new Config();
-    private static Thread theAppThread;
-    private final Parser parser = new Parser();
+    private static final SPLDaemon daemon = new SPLDaemon();
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -81,19 +80,14 @@ public class SPLGroungControlTest {
         System.out.println("SETUP: Starting SPLGroundControl application...");
         config.init(args);
 
-        theAppThread = new Thread(new Runnable() {
-            public void run() {
-                SPLGroundControl.main(args);
-            }
-        });
-        theAppThread.start();
-
-        Thread.sleep(1000);
+        daemon.init(new SPLGroundControl.SPLDaemonContext(args));
+        daemon.start();
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        theAppThread.interrupt();
+        daemon.stop();
+        daemon.destroy();
     }
 
     //Test receiving MO messages from RockBLOCK
@@ -121,6 +115,7 @@ public class SPLGroungControlTest {
                                       config.getMAVLinkPort());
                     System.out.println();
 
+                    Parser parser = new Parser();
                     DataInputStream in = new DataInputStream(client.getInputStream());
                     while (true) {
                         MAVLinkPacket packet;
