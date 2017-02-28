@@ -49,6 +49,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -58,29 +62,32 @@ import com.MAVLink.Parser;
 import com.MAVLink.common.msg_high_latency;
 
 public class SPLGroungControlTest {
-    private static String[] args = {"-i", "1234567890", "-u", "user", "-p", "password"};
+    private static final String[] args = {"-i", "1234567890", "-u", "user", "-p", "password"};
     private static final Config config = new Config();
-    private static Thread theAppThread;
-    private final Parser parser = new Parser();
+    private static final SPLDaemon daemon = new SPLDaemon();
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        //Configure log4j
+        ConsoleAppender console = new ConsoleAppender(); 
+        String PATTERN = "%d [%p|%c|%C{1}] %m%n";
+        console.setLayout(new PatternLayout(PATTERN)); 
+        console.setThreshold(Level.DEBUG);
+        console.activateOptions();
+
+        Logger.getRootLogger().addAppender(console);
+
         System.out.println("SETUP: Starting SPLGroundControl application...");
         config.init(args);
 
-        theAppThread = new Thread(new Runnable() {
-            public void run() {
-                SPLGroundControl.main(args);
-            }
-        });
-        theAppThread.start();
-
-        Thread.sleep(1000);
+        daemon.init(new SPLGroundControl.SPLDaemonContext(args));
+        daemon.start();
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        theAppThread.interrupt();
+        daemon.stop();
+        daemon.destroy();
     }
 
     //Test receiving MO messages from RockBLOCK
@@ -108,6 +115,7 @@ public class SPLGroungControlTest {
                                       config.getMAVLinkPort());
                     System.out.println();
 
+                    Parser parser = new Parser();
                     DataInputStream in = new DataInputStream(client.getInputStream());
                     while (true) {
                         MAVLinkPacket packet;

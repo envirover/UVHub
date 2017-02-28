@@ -30,9 +30,6 @@ import java.text.MessageFormat;
 import org.apache.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
-import com.MAVLink.common.msg_heartbeat;
-import com.MAVLink.common.msg_param_request_list;
-import com.MAVLink.common.msg_request_data_stream;
 import com.envirover.mavlink.MAVLinkChannel;
 
 /*
@@ -64,11 +61,6 @@ public class MTMessagePump implements Runnable {
 
                 if (packet != null) {
                     logger.debug(MessageFormat.format("MT message received (msgid = {0}).", packet.msgid));
-
-                    //TODO: filter out high frequency messages
-                    if (packet.msgid != msg_heartbeat.MAVLINK_MSG_ID_HEARTBEAT &&
-                        packet.msgid != msg_param_request_list.MAVLINK_MSG_ID_PARAM_REQUEST_LIST &&
-                        packet.msgid != msg_request_data_stream.MAVLINK_MSG_ID_REQUEST_DATA_STREAM)
                     dst.sendMessage(packet);
                 }
 
