@@ -29,6 +29,9 @@ import java.util.Scanner;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonController;
 
+/**
+ * The main application class. 
+ */
 public class SPLGroundControl {
 
     public static void main(String[] args) {

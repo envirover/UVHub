@@ -1,7 +1,7 @@
 /*
 This file is part of SPLGroundControl application.
 
-SPLGroundControl is a ground control proxy station for ArduPilot rovers with
+SPLGroundControl is a MAVLink proxy server for ArduPilot rovers with
 RockBLOCK satellite communication.
 
 See http://www.rock7mobile.com/downloads/RockBLOCK-Web-Services-User-Guide.pdf
@@ -42,15 +42,17 @@ import com.MAVLink.common.msg_vfr_hud;
 import com.MAVLink.enums.MAV_MODE_FLAG;
 import com.envirover.mavlink.MAVLinkChannel;
 
-/*
- * Message pump for mobile-originated messages receives MAVLink messages
- * from the specified source channel and sends them to the specified socket
- * if client is listening on the socket.
+/**
+ * Mobile-originated (MO) message pump receives MAVLink messages from the 
+ * specified source channel and forwards them to the specified destination
+ * channel.
  * 
+ * Messages of HIGH_LATENCY type are not forwarded by stored in memory. 
+ * Heartbeats and high-frequency messages such as SYS_STATUS, GPS_RAW_INT, ATTITUDE, 
+ * GLOBAL_POSITION_INT, MISSION_CURRENT, NAV_CONTROLLER_OUTPUT, and VFR_HUD are 
+ * derived form the HIGH_LATENCY message and periodically sent to the destination channel.
  */
 class MOMessagePump implements Runnable {
-
-    private final static int HEARTBEAT_INTERVAL = 1000;
 
     private final static Logger logger = Logger.getLogger(MOMessagePump.class);
 
@@ -58,12 +60,21 @@ class MOMessagePump implements Runnable {
 
     private final MAVLinkChannel src;
     private final MAVLinkChannel dst;
+    private final Integer heartbeatInterval;
 
     private int seq = 0;
 
-    public MOMessagePump(MAVLinkChannel src, MAVLinkChannel dst) {
+    /**
+     * Constructs MOMessagePump instance. 
+     * 
+     * @param src source channel
+     * @param dst destination channel
+     * @param heartbeatInterval heartbeat interval in milliseconds
+     */
+    public MOMessagePump(MAVLinkChannel src, MAVLinkChannel dst, Integer heartbeatInterval) {
         this.src = src;
         this.dst = dst;
+        this.heartbeatInterval = heartbeatInterval;
     }
 
     @Override
@@ -93,7 +104,7 @@ class MOMessagePump implements Runnable {
                 dst.sendMessage(pack(getNavControllerOutputMsg()));
                 dst.sendMessage(pack(getVfrHudMsg()));
 
-                Thread.sleep(HEARTBEAT_INTERVAL);
+                Thread.sleep(heartbeatInterval);
             } catch (IOException ex) {
                 logger.error(ex.getMessage());
             } catch (InterruptedException e) {

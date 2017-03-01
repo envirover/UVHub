@@ -149,7 +149,7 @@ public class SPLGroungControlTest {
         URIBuilder builder = new URIBuilder();
         builder.setScheme("http");
         builder.setHost(InetAddress.getLocalHost().getHostAddress());
-        builder.setPort(config.getHttpPort());
+        builder.setPort(config.getRockblockPort());
         builder.setPath(config.getHttpContext());
 
         URI uri = builder.build();

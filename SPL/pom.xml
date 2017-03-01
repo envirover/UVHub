@@ -13,13 +13,7 @@
 	<packaging>jar</packaging>
 
 	<name>SPL</name>
-	<description>MAVLink Proxy for RockBLOCK Web Services</description>
-
-	<properties>
-		<maven.compiler.source>1.7</maven.compiler.source>
-		<maven.compiler.target>1.7</maven.compiler.target>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
+	<description>MAVLink proxy server for ArduPilot rovers with RockBLOCK satellite communication</description>
 
 	<dependencies>
 		<dependency>

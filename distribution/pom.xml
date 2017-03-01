@@ -15,6 +15,7 @@
 	<packaging>pom</packaging>
 
 	<name>SPL Distribution</name>
+	<description>Distribution assembly build</description>
 
 	<dependencies>
 		<dependency>
@@ -42,7 +43,7 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
-						    <finalName>spl-${project.version}</finalName>
+							<finalName>spl-${project.version}</finalName>
 							<descriptors>
 								<descriptor>src/assembly/spl.xml</descriptor>
 							</descriptors>
@@ -52,4 +53,5 @@
 			</plugin>
 		</plugins>
 	</build>
+
 </project>

@@ -14,6 +14,10 @@ import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
 
 
+/**
+ * MAVLinkChannel implementation used to sends/receives messages to/from server sockets.
+ *
+ */
 public class MAVLinkSocket implements MAVLinkChannel {
 
     private final static Logger logger = Logger.getLogger(MAVLinkSocket.class);
@@ -24,10 +28,22 @@ public class MAVLinkSocket implements MAVLinkChannel {
     private DataInputStream in = null;
     private DataOutputStream out = null;
 
+    /**
+     * Constructs instance of MAVLinkSocket.
+     * 
+     * @param port server socket port number
+     * @throws IOException
+     */
     public MAVLinkSocket(int port) throws IOException {
         socket = new ServerSocket(port);
     }
 
+    /**
+     * Listens for a connection to be made to the socket and accepts it.
+     * The method blocks until a connection is made.
+     * 
+     * @throws IOException
+     */
     public synchronized void connect() throws IOException {
         if (!isConnected()) {
             System.out.printf("Waiting for MAVLink client connection on tcp://%s:%d...",
@@ -42,6 +58,11 @@ public class MAVLinkSocket implements MAVLinkChannel {
         }
     }
 
+    /**
+     * Returns true if the socket is connected to a client.
+     * 
+     * @return true if the socket is connected to a client.
+     */
     public synchronized boolean isConnected() {
         return !socket.isClosed() && connection != null && connection.isConnected();
     }
@@ -55,16 +76,14 @@ public class MAVLinkSocket implements MAVLinkChannel {
         connect();
 
         try {
-//            if (isConnected()) {
-                do {
-                    try {
-                        int c = in.readUnsignedByte();
-                        packet = parser.mavlink_parse_char(c);
-                    } catch(java.io.EOFException ex) {
-                        return null;
-                    }
-                } while (packet == null);
-//            }
+            do {
+                try {
+                    int c = in.readUnsignedByte();
+                    packet = parser.mavlink_parse_char(c);
+                } catch(java.io.EOFException ex) {
+                    return null;
+                }
+            } while (packet == null);
         } catch (SocketException ex) {
             logger.info("MAVLink client disconnected.");
             closeConnection();

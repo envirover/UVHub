@@ -22,7 +22,7 @@ public class MAVLinkHandler implements Runnable {
     private final MAVLinkChannel dst;
 
     /**
-     * Constructor
+     * Constructs instance of MAVLinkHandler.
      * 
      * @param src source message channel, such as MAVLinkSocket.
      * @param dst destination message channel, such as MAVLinkMessageQueue.

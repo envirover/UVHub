@@ -29,11 +29,20 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.MAVLink.MAVLinkPacket;
 
+/**
+ * MAVLink message queue channel.
+ *
+ */
 public class MAVLinkMessageQueue implements MAVLinkChannel {
 
     private final ConcurrentLinkedQueue<MAVLinkPacket> queue = new ConcurrentLinkedQueue<MAVLinkPacket>(); 
     private final int maxQueueSize;
 
+    /**
+     * Constructs instance of MAVLinkMessageQueue.
+     * 
+     * @param size maximum queue size
+     */
     public MAVLinkMessageQueue(int size) {
         this.maxQueueSize = size;
     }
