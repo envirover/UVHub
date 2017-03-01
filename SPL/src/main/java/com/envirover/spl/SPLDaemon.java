@@ -41,28 +41,29 @@ public class SPLDaemon implements Daemon {
         if (!config.init(context.getArguments()))
             throw new DaemonInitException("Invalid configuration.");
 
+        //Init mobile-originated pipeline
+        MAVLinkChannel socket = new MAVLinkSocket(config.getMAVLinkPort());
+
         MAVLinkMessageQueue moMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
+
+        server = HttpServer.create(new InetSocketAddress(config.getRockblockPort()), 0);
+        server.createContext(config.getHttpContext(), 
+                             new RockBlockHttpHandler(moMessageQueue, config.getRockBlockIMEI()));
+        server.setExecutor(null);
+
+        MOMessagePump moMsgPump = new MOMessagePump(moMessageQueue, socket, config.getHeartbeatInterval());
+        moMsgPumpThread = new Thread(moMsgPump, "mo-message-pump");
+
+        //Init mobile-terminated pipeline
         MAVLinkMessageQueue mtMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
 
-        MAVLinkChannel socket = new MAVLinkSocket(config.getMAVLinkPort());
+        MAVLinkHandler mtHandler = new MAVLinkHandler(socket, mtMessageQueue);
+        mtHandlerThread = new Thread(mtHandler, "mt-handler");
 
         RockBlockClient rockblock = new RockBlockClient(config.getRockBlockIMEI(),
                                                         config.getRockBlockUsername(),
                                                         config.getRockBlockPassword(),
                                                         config.getRockBlockURL());
-
-        server = HttpServer.create(new InetSocketAddress(config.getHttpPort()), 0);
-        server.createContext(config.getHttpContext(), 
-                             new RockBlockHttpHandler(moMessageQueue, config.getRockBlockIMEI()));
-        server.setExecutor(null);
-
-        // Pump for mobile-originated messages
-        MOMessagePump moMsgPump = new MOMessagePump(moMessageQueue, socket);
-        moMsgPumpThread = new Thread(moMsgPump, "mo-message-pump");
-
-        // Handler for mobile-terminated messages
-        MAVLinkHandler mtHandler = new MAVLinkHandler(socket, mtMessageQueue);
-        mtHandlerThread = new Thread(mtHandler, "mt-handler");
 
         // Pump for mobile-terminated messages
         MTMessagePump mtMsgPump = new MTMessagePump(mtMessageQueue, rockblock);
@@ -73,7 +74,7 @@ public class SPLDaemon implements Daemon {
     public void start() throws Exception {
         String ip = InetAddress.getLocalHost().getHostAddress();
         System.out.printf("Starting RockBLOCK HTTP message handler on http://%s:%d%s...",
-                          ip, config.getHttpPort(), config.getHttpContext());
+                          ip, config.getRockblockPort(), config.getHttpContext());
         System.out.println();
 
         server.start();

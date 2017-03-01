@@ -22,6 +22,10 @@ import org.apache.log4j.Logger;
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
 
+/**
+ * Client class for RockBLOCK Web Services API.
+ *
+ */
 public class RockBlockClient implements MAVLinkChannel {
     // HTTP POST request parameters
 
@@ -43,6 +47,14 @@ public class RockBlockClient implements MAVLinkChannel {
     private final String password; 
     private final String serviceURL;
 
+    /**
+     * Constructs instance of RockBlockClient
+     * 
+     * @param imei The unique IMEI of RockBLOCK
+     * @param username Rock 7 Core username
+     * @param password Rock 7 Core password
+     * @param serviceURL RockBLOCK Web Services URL
+     */
     public RockBlockClient(String imei, String username, String password, String serviceURL) {
         this.imei = imei;
         this.username = username;
@@ -50,6 +62,11 @@ public class RockBlockClient implements MAVLinkChannel {
         this.serviceURL = serviceURL;
     }
 
+    /**
+     * Sends MAVLink packet to RockBLOCK.
+     * 
+     * @param packet MAVLink packet to send.
+     */
     public void sendMessage(MAVLinkPacket packet) throws ClientProtocolException, IOException {
         if (packet == null)
             return;
@@ -96,4 +113,5 @@ public class RockBlockClient implements MAVLinkChannel {
     @Override
     public void close() {
     }
+
 }

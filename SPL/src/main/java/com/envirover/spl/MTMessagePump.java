@@ -32,8 +32,9 @@ import org.apache.log4j.Logger;
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
 
-/*
- * Mobile-terminated message pump.
+/**
+ * Mobile-terminated message pump receives MAVLink messages from the specified 
+ * source channel and forwards them to the specified destination channel. 
  */
 public class MTMessagePump implements Runnable {
 
@@ -42,7 +43,9 @@ public class MTMessagePump implements Runnable {
     private final MAVLinkChannel src;
     private final MAVLinkChannel dst;
 
-    /*
+    /**
+     * Constructs instance of MTMessagePump
+     * 
      * @param src source messages channel
      * @param dst destination messages channel
      */

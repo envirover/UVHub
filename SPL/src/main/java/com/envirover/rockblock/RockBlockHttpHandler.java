@@ -46,6 +46,10 @@ import com.envirover.mavlink.MAVLinkChannel;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
+/**
+ * Handles HTTP requests with messages sent by RockBLOCK.
+ *
+ */
 @SuppressWarnings("restriction")
 public class RockBlockHttpHandler implements HttpHandler {
 
@@ -55,9 +59,10 @@ public class RockBlockHttpHandler implements HttpHandler {
     private final String imei;
 
     /**
-     * Constructor
+     * Constructs instance of RockBlockHttpHandler.
      * 
      * @param queue MAVLink message queue
+     * @param imei RockBLOCK imei
      */
     public RockBlockHttpHandler(MAVLinkChannel queue, String imei) {
         this.queue = queue;
@@ -173,4 +178,5 @@ public class RockBlockHttpHandler implements HttpHandler {
                                  iridiumLongitude, iridiumCep, data);
         }
     }
+
 }
