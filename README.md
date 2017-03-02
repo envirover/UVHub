@@ -27,11 +27,11 @@ It is recommended to configure SPLGroundControl to run as a service (for windows
 
 For testing purpose SPLGroundControl could be started by running $SPL_HOME/bin/spl.sh (Linux) or $SPL_HOME/bin/spl.bat (Windows).
 
-Once SPLGroundControl is started you can connect to it from ground control station client using TCP connection on port 5760. For example, MAVPoxy ground control could be connected this way: 
+Once SPLGroundControl is started, you can connect to it from ground control station client using TCP connection on port 5760. For example, MAVPoxy ground control could be connected this way: 
 
 ``mavproxy.py --master=tcp:<IP>:5760 --mav10``
 
-Currently SPLGroundControl supports one GC client connection at a time.
+Currently SPLGroundControl supports one GCS client connection at a time.
 
 
 
