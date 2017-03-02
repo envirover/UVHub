@@ -23,7 +23,7 @@ Set rockblock.imei, rockblock.username, and rockblock.password properties in $SP
 
 Determine the public IP address of the machine (http://checkip.amazonaws.com/) and configure your RockBLOCK message delivery destinations at https://core.rock7.com to deliver messages to `http://<IP>:8080/mo` URL.
 
-It is recommended to configure SPLGroundControl to run as a service (for windows platforms use [procrun](https://commons.apache.org/proper/commons-daemon/procrun.html), for Linux platforms use [jsvc](https://commons.apache.org/proper/commons-daemon/jsvc.html)). 
+It is recommended to configure SPLGroundControl to run as a service (for windows platforms use [procrun](https://commons.apache.org/proper/commons-daemon/procrun.html), for Linux platforms use [jsvc](https://commons.apache.org/proper/commons-daemon/jsvc.html)). The daemon java class is com.envirover.spl.SPLDaemon.
 
 For testing purpose SPLGroundControl could be started by running $SPL_HOME/bin/spl.sh (Linux) or $SPL_HOME/bin/spl.bat (Windows).
 
