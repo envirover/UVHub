@@ -65,7 +65,6 @@ public class SPLDaemon implements Daemon {
                                                         config.getRockBlockPassword(),
                                                         config.getRockBlockURL());
 
-        // Pump for mobile-terminated messages
         MTMessagePump mtMsgPump = new MTMessagePump(mtMessageQueue, rockblock);
         mtMsgPumpThread = new Thread(mtMsgPump, "mt-message-pump");
     }
