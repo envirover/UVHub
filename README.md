@@ -15,7 +15,7 @@ In the MT piplene, MAVLink handler receives messages from the socket, filters ou
 
 The machine that runs SPLGroundControl must be accessible from the Internet. Port 8080 must be accessible from RockBLOCK services, and port 5760 must be accessible from the ground control station client machines.
 
-SPLGroundControl requires Java SE 7 run.
+SPLGroundControl requires Java SE 7 to run.
 
 Download distribution assembly archive from [releases](https://github.com/envirover/SPLGroundControl/releases) page, or download the source code and build it by running ``mvn package``. Extract the archive into the local directory and set environmental variable SPL_HOME to the directory path.
 
