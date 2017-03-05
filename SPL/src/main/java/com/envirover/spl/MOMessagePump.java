@@ -39,7 +39,7 @@ import com.MAVLink.common.msg_mission_current;
 import com.MAVLink.common.msg_nav_controller_output;
 import com.MAVLink.common.msg_sys_status;
 import com.MAVLink.common.msg_vfr_hud;
-import com.MAVLink.enums.MAV_MODE_FLAG;
+import com.MAVLink.enums.MAV_TYPE;
 import com.envirover.mavlink.MAVLinkChannel;
 
 /**
@@ -119,7 +119,8 @@ class MOMessagePump implements Runnable {
         msg_heartbeat msg = new msg_heartbeat();
         msg.sysid = msgHighLatency.sysid;
         msg.compid = msgHighLatency.compid;
-        msg.base_mode = MAV_MODE_FLAG.MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
+        msg.base_mode = 0;//MAV_MODE_FLAG.MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
+        msg.type = MAV_TYPE.MAV_TYPE_GROUND_ROVER;
         return msg;
     }
 
