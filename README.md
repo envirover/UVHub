@@ -3,7 +3,7 @@
 
 # SPLGroundControl
 
-SPLGroundControl is a MAVLink proxy server for ArduPilot rovers over [RockBLOCK](http://www.rock7mobile.com/products-rockblock) Iridium satellite communication system. It is designed to work with [SPLRadioRoom](https://github.com/envirover/SPLRadioRoom) field application, providing a two way communication channel between ArduPilot based rovers and MAVLink ground control stations such as MAVProxy, Mission Planer. or QGroundControl.
+SPLGroundControl is a MAVLink proxy server for ArduPilot rovers over [RockBLOCK](http://www.rock7mobile.com/products-rockblock) Iridium satellite communication system. It is designed to work with [SPLRadioRoom](https://github.com/envirover/SPLRadioRoom) field application, providing a two way communication channel between ArduPilot based rovers and MAVLink ground control stations such as MAVProxy, Mission Planer, or QGroundControl.
 
 SPLGroundControl consists of two message pipelines: mobile-originated (MO) pipeline and mobile-terminated (MT) piplene. 
 
@@ -17,7 +17,7 @@ The machine that runs SPLGroundControl must be accessible from the Internet. Por
 
 SPLGroundControl requires Java SE 7 to run.
 
-Download distribution assembly archive from [releases](https://github.com/envirover/SPLGroundControl/releases) page, or download the source code and build it by running ``mvn package``. Extract the archive into the local directory and set environmental variable SPL_HOME to the directory path.
+Download a distribution assembly archive from [releases](https://github.com/envirover/SPLGroundControl/releases) page, or download the source code and build it by running ``mvn package``. Extract the archive into the local directory and set environmental variable SPL_HOME to the directory path.
 
 Set rockblock.imei, rockblock.username, and rockblock.password properties in $SPL_HOME/conf/app.properties file to your RockBLOCK IMEI, Rock 7 Core username, and password respectively.
 
@@ -27,7 +27,7 @@ It is recommended to configure SPLGroundControl to run as a service (for windows
 
 For testing purpose SPLGroundControl could be started by running $SPL_HOME/bin/spl.sh (Linux) or $SPL_HOME/bin/spl.bat (Windows).
 
-Once SPLGroundControl is started, you can connect to it from ground control station client using TCP connection on port 5760. For example, MAVPoxy ground control could be connected this way: 
+Once SPLGroundControl is started, you can connect to it from a ground control station client using TCP connection on port 5760. For example, MAVPoxy ground control could be connected this way: 
 
 ``mavproxy.py --master=tcp:<IP>:5760 --mav10``
 
