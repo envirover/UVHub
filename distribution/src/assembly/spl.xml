@@ -35,6 +35,7 @@
 		<fileSet>
 			<directory>${project.basedir}/../bin</directory>
 			<outputDirectory>bin</outputDirectory>
+			<lineEnding>windows</lineEnding>
 			<includes>
 				<include>*</include>
 			</includes>
@@ -42,6 +43,7 @@
 		<fileSet>
 			<directory>${project.basedir}/../conf</directory>
 			<outputDirectory>conf</outputDirectory>
+			<lineEnding>windows</lineEnding>
 			<includes>
 				<include>*</include>
 			</includes>
