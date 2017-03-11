@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
 	<id>bin</id>
 	<formats>
-	    <format>zip</format>
+		<format>zip</format>
 		<format>tar.gz</format>
 	</formats>
 	<includeBaseDirectory>false</includeBaseDirectory>
@@ -38,7 +38,15 @@
 			<outputDirectory>bin</outputDirectory>
 			<lineEnding>windows</lineEnding>
 			<includes>
-				<include>*</include>
+				<include>*.bat</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>${project.basedir}/../bin</directory>
+			<outputDirectory>bin</outputDirectory>
+			<lineEnding>unix</lineEnding>
+			<includes>
+				<include>*.sh</include>
 			</includes>
 		</fileSet>
 		<fileSet>
@@ -49,12 +57,12 @@
 				<include>*</include>
 			</includes>
 		</fileSet>
-        <fileSet>
-            <directory>${project.basedir}/../logs</directory>
-            <outputDirectory>logs</outputDirectory>
-            <includes>
-                <include>*</include>
-            </includes>
-        </fileSet>
+		<fileSet>
+			<directory>${project.basedir}/../logs</directory>
+			<outputDirectory>logs</outputDirectory>
+			<includes>
+				<include>*</include>
+			</includes>
+		</fileSet>
 	</fileSets>
 </assembly>
