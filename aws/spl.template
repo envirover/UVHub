@@ -1,0 +1,121 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Description" : "AWS CloudFormation template for SPL Ground Control MAVLink proxy server for ArduPilot rovers with RockBLOCK satellite communication. This template installs WordPress with a local MySQL database for storage. It demonstrates using the AWS CloudFormation bootstrap scripts to deploy WordPress. **WARNING** This template creates an Amazon EC2 instance. You will be billed for the AWS resources used if you create a stack from this template.",
+
+  "Parameters" : {
+
+    "KeyName": {
+      "Description" : "Name of an existing EC2 KeyPair to enable SSH access to the instances",
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "ConstraintDescription" : "must be the name of an existing EC2 KeyPair."
+    },
+
+    "InstanceType" : {
+      "Description" : "EC2 instance type",
+      "Type" : "String",
+      "Default" : "t2.micro",
+      "AllowedValues" : [ "t2.nano", "t2.micro", "t2.small", "t2.medium"],
+      "ConstraintDescription" : "must be a valid EC2 instance type."
+    },
+
+    "ClientCIDR": {
+      "Description": "CIDR IP address range of MAVLink clients and SSH",
+      "Type": "String",
+      "MinLength": "9",
+      "MaxLength": "18",
+      "Default": "0.0.0.0/0",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+    },
+
+    "RockBlockIMEI" : {
+      "Description" : "Unique IMEI of your RockBLOCK",
+      "Type" : "String"
+    },
+
+    "RockBlockUsername" : {
+      "Description" : "Your Rock 7 Core username",
+      "Type" : "String"
+    },
+
+    "RockBlockPassword" : {
+      "Description" : "Your Rock 7 Core password",
+      "Type" : "String",
+      "NoEcho" : true
+    },
+
+    "SPLArchiveURL" : {
+      "Description" : "URL of SPLGroundControl distribution archive",
+      "Type": "String",
+      "Default" : "https://github.com/envirover/SPLGroundControl/releases/download/1.0-SNAPSHOT/spl-1.0-SNAPSHOT-bin.tar.gz"
+    }
+  },
+
+  "Mappings" : {
+    "AWSRegionArch2AMI" : {
+      "us-west-2" : { "64" : "ami-f173cc91" }
+    }
+  },
+
+  "Resources" : {
+    "SecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Enable HTTP access on port 8080, MAVLink access on port 5760, and SSH access on port 22",
+        "SecurityGroupIngress" : [
+          {"IpProtocol" : "tcp", "FromPort" : "8080", "ToPort" : "8080", "CidrIp" : "0.0.0.0/0"},
+          {"IpProtocol" : "tcp", "FromPort" : "5760", "ToPort" : "5760", "CidrIp" : {"Ref" : "ClientCIDR"}},
+          {"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : {"Ref" : "ClientCIDR"}}
+        ]
+      }
+    },
+
+    "SPLServer": {
+      "Type" : "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" }, "64" ] },
+        "InstanceType"   : { "Ref" : "InstanceType" },
+        "SecurityGroups" : [ {"Ref" : "SecurityGroup"} ],
+        "KeyName"        : { "Ref" : "KeyName" },
+        "Tags": [ {"Key" : "Name", "Value" : {"Ref" : "AWS::StackName"}} ],
+        "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+           "#!/bin/bash\n",
+           "mkdir spl\n",
+           "cd spl\n",
+           "wget --no-cookies --header \"Cookie: gpw_e24=xxx; oraclelicense=accept-securebackup-cookie;\" \"http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jdk-8u101-linux-x64.rpm\" -O /tmp/jdk.rpm\n",
+           "rpm -i /tmp/jdk.rpm\n",
+           "yum install -y jsvc*\n",
+           "which jsvc\n",
+           "wget ", {"Ref" : "SPLArchiveURL"}, " -O spl-bin.tar.gz\n",
+           "tar -xvzf spl-bin.tar.gz\n",
+           "export SPL_HOME=$(pwd)\n",
+           "#$SPL_HOME/bin/spl.sh -i ", {"Ref" : "RockBlockIMEI"}, " -u ", {"Ref" : "RockBlockUsername"}, " -p ", {"Ref" : "RockBlockPassword"}, "\n",
+           "/usr/bin/jsvc -server -cp $SPL_HOME/conf:$SPL_HOME/lib/* -home /usr/java/latest -outfile /var/log/spl.log com.envirover.spl.SPLDaemon -i ", 
+           {"Ref" : "RockBlockIMEI"}, " -u ", {"Ref" : "RockBlockUsername"}, " -p ", {"Ref" : "RockBlockPassword"}, "\n",
+           "/opt/aws/bin/cfn-signal -e $? --stack ", {"Ref" : "AWS::StackName"}, " --region ", { "Ref" : "AWS::Region" }, " --resource SPLServer\n"
+        ]]}}
+      },
+      "CreationPolicy" : {
+        "ResourceSignal" : {
+          "Timeout" : "PT10M"
+        }
+      }
+    }
+  },
+
+  "Outputs" : {
+    "BockBLOCKHandlerURL" : {
+      "Value" : { "Fn::Join" : ["", ["http://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ]}, ":8080/mo" ]]},
+      "Description" : "HTTP handler URL for mobile-originated RockBLOCK messages"
+    },
+    "MAVLinkClientURL" : {
+      "Value" : { "Fn::Join" : ["", ["tcp://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ]}, ":5760" ]]},
+      "Description" : "MAVLink client TCP/IP connection URL"
+    },
+    "MAVProxyCMD" : {
+      "Value" : { "Fn::Join" : ["", ["mavproxy.py --master tcp:", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ]}, ":5760 --mav10" ]]},
+      "Description" : "Sample MAVProxy command line"
+    }
+  }
+}
