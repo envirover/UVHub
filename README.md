@@ -11,6 +11,8 @@ In the MO pipeline, RockBLOCK HTTP handler receives MAVLink messages from HTTP p
 
 In the MT piplene, MAVLink handler receives messages from the socket, filters out HEARTBEAT, PARAM\_REQUEST\_LIST, and REQUEST\_DATA\_STREAM messages, and pushes other messages to MT message queue. MT message pump receives messages from the queue and sends them to RockBLOCK Web Services.
 
+![SPL System Architecture](https://s3-us-west-2.amazonaws.com/envirover/images/Satellite+Proxy+Link+(SPL).jpg)
+
 ## Installation and use
 
 The machine that runs SPLGroundControl must be accessible from the Internet. Port 8080 must be accessible from RockBLOCK services, and port 5760 must be accessible from the ground control station client machines.

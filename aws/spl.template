@@ -31,18 +31,24 @@
 
     "RockBlockIMEI" : {
       "Description" : "Unique IMEI of your RockBLOCK",
-      "Type" : "String"
+      "Type" : "String",
+      "AllowedPattern" : "\\d{15}",
+      "ConstraintDescription" : "RockBLOCK IMEI must be a 15 digit number"
     },
 
     "RockBlockUsername" : {
       "Description" : "Your Rock 7 Core username",
-      "Type" : "String"
+      "Type" : "String",
+      "AllowedPattern" : "^(?!\\s*$).+",
+      "ConstraintDescription" : "RockBLOCK username is required"
     },
 
     "RockBlockPassword" : {
       "Description" : "Your Rock 7 Core password",
       "Type" : "String",
-      "NoEcho" : true
+      "NoEcho" : true,
+      "AllowedPattern" : "^(?!\\s*$).+",
+      "ConstraintDescription" : "RockBLOCK password is required"
     },
 
     "SPLArchiveURL" : {
@@ -53,8 +59,20 @@
   },
 
   "Mappings" : {
-    "AWSRegionArch2AMI" : {
-      "us-west-2" : { "64" : "ami-f173cc91" }
+    "RegionMap" : {
+      "us-east-1" : {"AMI" : "ami-0b33d91d"},
+      "us-east-2" : {"AMI" : "ami-c55673a0"},
+      "us-west-1" : {"AMI" : "ami-165a0876"},
+      "us-west-2" : {"AMI" : "ami-f173cc91"},
+      "eu-west-1" : {"AMI" : "ami-70edb016"},
+      "eu-west-2" : {"AMI" : "ami-f1949e95"},
+      "eu-central-1" : {"AMI" : "ami-af0fc0c0"},
+      "ap-southeast-1" : {"AMI" : "ami-dc9339bf"},
+      "ap-northeast-2" : {"AMI" : "ami-dac312b4"},
+      "ap-northeast-1" : {"AMI" : "ami-56d4ad31"},
+      "ap-southeast-2" : {"AMI" : "ami-1c47407f"},
+      "ap-south-1" : {"AMI" : "ami-f9daac96"},
+      "a-east-1" : {"AMI" : "ami-80086dec"}
     }
   },
 
@@ -74,7 +92,7 @@
     "SPLServer": {
       "Type" : "AWS::EC2::Instance",
       "Properties": {
-        "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" }, "64" ] },
+        "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "AMI" ] },
         "InstanceType"   : { "Ref" : "InstanceType" },
         "SecurityGroups" : [ {"Ref" : "SecurityGroup"} ],
         "KeyName"        : { "Ref" : "KeyName" },
@@ -105,7 +123,7 @@
   },
 
   "Outputs" : {
-    "BockBLOCKHandlerURL" : {
+    "RockBLOCKHandlerURL" : {
       "Value" : { "Fn::Join" : ["", ["http://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ]}, ":8080/mo" ]]},
       "Description" : "HTTP handler URL for mobile-originated RockBLOCK messages"
     },
