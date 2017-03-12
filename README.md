@@ -11,7 +11,7 @@ In the MO pipeline, RockBLOCK HTTP handler receives MAVLink messages from HTTP p
 
 In the MT piplene, MAVLink handler receives messages from the socket, filters out HEARTBEAT, PARAM\_REQUEST\_LIST, and REQUEST\_DATA\_STREAM messages, and pushes other messages to MT message queue. MT message pump receives messages from the queue and sends them to RockBLOCK Web Services.
 
-![SPL System Architecture](https://s3-us-west-2.amazonaws.com/envirover/images/Satellite+Proxy+Link+(SPL).jpg)
+![SPL System Architecture](https://s3-us-west-2.amazonaws.com/envirover/images/spl.jpg)
 
 ## Installation and use
 
