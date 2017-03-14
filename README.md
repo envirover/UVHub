@@ -5,11 +5,11 @@
 
 SPLGroundControl is a MAVLink proxy server for ArduPilot rovers over [RockBLOCK](http://www.rock7mobile.com/products-rockblock) Iridium satellite communication system. It is designed to work with [SPLRadioRoom](https://github.com/envirover/SPLRadioRoom) field application, providing a two way communication channel between ArduPilot based rovers and MAVLink ground control stations such as MAVProxy, Mission Planer, or QGroundControl.
 
-SPLGroundControl consists of two message pipelines: mobile-originated (MO) pipeline and mobile-terminated (MT) piplene. 
+SPLGroundControl consists of two message pipelines: mobile-originated (MO) pipeline and mobile-terminated (MT) pipeline.
 
 In the MO pipeline, RockBLOCK HTTP handler receives MAVLink messages from HTTP port (POSTed there by RockBLOCK services) and pushes them to MO message queue. MO message pump receives messages from the queue and forwards them to MAVLink socket, if a client is connected to the socket. HIGH\_LATENCY type MAVLink messages are not forwarded directly, instead they are split into multiple high-frequency messages of types SYS\_STATUS, GPS\_RAW\_INT, ATTITUDE, GLOBAL\_POSITION\_INT, MISSION\_CURRENT, NAV\_CONTROLLER\_OUTPUT, and VFR\_HUD and periodically sent to the socket along with HEARTBEAT messages.
 
-In the MT piplene, MAVLink handler receives messages from the socket, filters out HEARTBEAT, PARAM\_REQUEST\_LIST, and REQUEST\_DATA\_STREAM messages, and pushes other messages to MT message queue. MT message pump receives messages from the queue and sends them to RockBLOCK Web Services.
+In the MT pipeline, MAVLink handler receives messages from the socket, filters out HEARTBEAT, PARAM\_REQUEST\_LIST, and REQUEST\_DATA\_STREAM messages, and pushes other messages to MT message queue. MT message pump receives messages from the queue and sends them to RockBLOCK Web Services.
 
 ![SPL System Architecture](https://s3-us-west-2.amazonaws.com/envirover/images/spl.jpg)
 
