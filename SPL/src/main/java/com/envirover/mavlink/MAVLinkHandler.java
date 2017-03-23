@@ -24,6 +24,7 @@ import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_request_data_stream;
 import com.MAVLink.common.msg_set_home_position;
 import com.MAVLink.common.msg_set_mode;
+import com.MAVLink.enums.MAV_CMD;
 
 /**
  * Receives MAVLink message packets from a source channel, such as MAVLinkSocket,
@@ -56,8 +57,9 @@ public class MAVLinkHandler implements Runnable {
             try {
                 MAVLinkPacket packet = src.receiveMessage();
 
-                if (filter(packet))
+                if (filter(packet)) {
                     dst.sendMessage(packet);
+                }
 
                 Thread.sleep(10);
             } catch (IOException e) {
@@ -85,7 +87,8 @@ public class MAVLinkHandler implements Runnable {
                packet.msgid == msg_mission_request_int.MAVLINK_MSG_ID_MISSION_REQUEST_INT ||
                packet.msgid == msg_mission_item_int.MAVLINK_MSG_ID_MISSION_ITEM_INT ||
                packet.msgid == msg_command_int.MAVLINK_MSG_ID_COMMAND_INT ||
-               packet.msgid == msg_command_long.MAVLINK_MSG_ID_COMMAND_LONG ||
+              (packet.msgid == msg_command_long.MAVLINK_MSG_ID_COMMAND_LONG && 
+               ((msg_command_long)packet.unpack()).command != MAV_CMD.MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES) ||
                packet.msgid == msg_set_home_position.MAVLINK_MSG_ID_SET_HOME_POSITION);
     }
     

@@ -14,6 +14,7 @@ import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
 import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_attitude;
+import com.MAVLink.common.msg_command_long;
 import com.MAVLink.common.msg_global_position_int;
 import com.MAVLink.common.msg_gps_raw_int;
 import com.MAVLink.common.msg_heartbeat;
@@ -250,6 +251,13 @@ public class MAVLinkSocket implements MAVLinkChannel {
                 msg_request_data_stream msg = (msg_request_data_stream)packet.unpack();
                 logger.debug(MessageFormat.format("{0} REQUEST_DATA_STREAM: compid={1}, sysid={2}, req_message_rate={3}, req_stream_id={4}, start_stop={5}, target_system={6}, target_component={7}", 
                        dir, msg.compid, msg.sysid, msg.req_message_rate, msg.req_stream_id, msg.start_stop, msg.target_system, msg.target_component));
+                break;
+            }
+            case msg_command_long.MAVLINK_MSG_ID_COMMAND_LONG:
+            {
+                msg_command_long msg = (msg_command_long)packet.unpack();
+                logger.debug(MessageFormat.format("{0} COMMAND_LONG: compid={1}, sysid={2}, command={3}, confirmation={4}, param1={5}, param2={6}, param3={7}, param4={8}, param5={9}, param6={10}, param7={11}", 
+                       dir, msg.compid, msg.sysid, msg.command, msg.confirmation, msg.param1, msg.param2, msg.param3, msg.param4, msg.param5, msg.param6, msg.param7));
                 break;
             }
             default:
