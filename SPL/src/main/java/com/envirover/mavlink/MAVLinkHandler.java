@@ -5,11 +5,11 @@ import java.io.IOException;
 import org.apache.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
-import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_command_int;
 import com.MAVLink.common.msg_command_long;
-import com.MAVLink.common.msg_heartbeat;
+import com.MAVLink.common.msg_mission_ack;
 import com.MAVLink.common.msg_mission_clear_all;
+import com.MAVLink.common.msg_mission_count;
 import com.MAVLink.common.msg_mission_current;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_mission_item_int;
@@ -19,12 +19,11 @@ import com.MAVLink.common.msg_mission_request_list;
 import com.MAVLink.common.msg_mission_request_partial_list;
 import com.MAVLink.common.msg_mission_set_current;
 import com.MAVLink.common.msg_mission_write_partial_list;
-import com.MAVLink.common.msg_param_request_list;
 import com.MAVLink.common.msg_param_set;
-import com.MAVLink.common.msg_request_data_stream;
 import com.MAVLink.common.msg_set_home_position;
 import com.MAVLink.common.msg_set_mode;
 import com.MAVLink.enums.MAV_CMD;
+import com.MAVLink.enums.MAV_MISSION_RESULT;
 
 /**
  * Receives MAVLink message packets from a source channel, such as MAVLinkSocket,
@@ -37,6 +36,7 @@ public class MAVLinkHandler implements Runnable {
 
     private final MAVLinkChannel src;
     private final MAVLinkChannel dst;
+    private int missionCount = 0;
 
     /**
      * Constructs instance of MAVLinkHandler.
@@ -58,6 +58,7 @@ public class MAVLinkHandler implements Runnable {
                 MAVLinkPacket packet = src.receiveMessage();
 
                 if (filter(packet)) {
+                    handleMissionWrite(packet);
                     dst.sendMessage(packet);
                 }
 
@@ -67,6 +68,40 @@ public class MAVLinkHandler implements Runnable {
             } catch (InterruptedException e) {
                 logger.debug("MAVLinkHandler interrupted.");
                 return;
+            }
+        }
+    }
+    
+    private void handleMissionWrite(MAVLinkPacket packet) throws IOException {
+        if (packet.msgid == msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT) {
+            msg_mission_count msg = (msg_mission_count)(packet.unpack());
+            missionCount = msg.count;
+            msg_mission_request mission_request = new msg_mission_request();
+            mission_request.seq = 0;
+            mission_request.sysid = msg.target_system;
+            mission_request.compid = msg.target_component;
+            mission_request.target_system = (short)packet.sysid;
+            mission_request.target_component = (short)packet.compid;
+            src.sendMessage(mission_request.pack());
+        } else if (packet.msgid == msg_mission_item.MAVLINK_MSG_ID_MISSION_ITEM) {
+            msg_mission_item msg = (msg_mission_item)(packet.unpack());
+            if (msg.seq + 1 < missionCount) {
+                msg_mission_request mission_request = new msg_mission_request();
+                mission_request.seq = msg.seq + 1;
+                mission_request.sysid = msg.target_system;
+                mission_request.compid = msg.target_component;
+                mission_request.target_system = (short)packet.sysid;
+                mission_request.target_component = (short)packet.compid;
+                src.sendMessage(mission_request.pack());
+            } else {
+                msg_mission_ack mission_ack = new msg_mission_ack();
+                mission_ack.type = MAV_MISSION_RESULT.MAV_MISSION_ACCEPTED;
+                mission_ack.sysid = msg.target_system;
+                mission_ack.compid = msg.target_component;
+                mission_ack.target_system = (short)packet.sysid;
+                mission_ack.target_component = (short)packet.compid;
+                src.sendMessage(mission_ack.pack());
+                missionCount = 0;
             }
         }
     }
@@ -83,6 +118,7 @@ public class MAVLinkHandler implements Runnable {
                packet.msgid == msg_mission_set_current.MAVLINK_MSG_ID_MISSION_SET_CURRENT ||
                packet.msgid == msg_mission_current.MAVLINK_MSG_ID_MISSION_CURRENT ||
                packet.msgid == msg_mission_request_list.MAVLINK_MSG_ID_MISSION_REQUEST_LIST ||
+               packet.msgid == msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT ||
                packet.msgid == msg_mission_clear_all.MAVLINK_MSG_ID_MISSION_CLEAR_ALL ||
                packet.msgid == msg_mission_request_int.MAVLINK_MSG_ID_MISSION_REQUEST_INT ||
                packet.msgid == msg_mission_item_int.MAVLINK_MSG_ID_MISSION_ITEM_INT ||
@@ -91,6 +127,7 @@ public class MAVLinkHandler implements Runnable {
                ((msg_command_long)packet.unpack()).command != MAV_CMD.MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES) ||
                packet.msgid == msg_set_home_position.MAVLINK_MSG_ID_SET_HOME_POSITION);
     }
+    
     
     /* (blacklist filter)
     // Filter out high frequency messages 
