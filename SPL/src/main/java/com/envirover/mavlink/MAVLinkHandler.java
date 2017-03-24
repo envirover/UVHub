@@ -5,10 +5,8 @@ import java.io.IOException;
 import org.apache.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
-import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_command_int;
 import com.MAVLink.common.msg_command_long;
-import com.MAVLink.common.msg_heartbeat;
 import com.MAVLink.common.msg_mission_ack;
 import com.MAVLink.common.msg_mission_clear_all;
 import com.MAVLink.common.msg_mission_count;
@@ -21,13 +19,10 @@ import com.MAVLink.common.msg_mission_request_list;
 import com.MAVLink.common.msg_mission_request_partial_list;
 import com.MAVLink.common.msg_mission_set_current;
 import com.MAVLink.common.msg_mission_write_partial_list;
-import com.MAVLink.common.msg_param_request_list;
 import com.MAVLink.common.msg_param_set;
-import com.MAVLink.common.msg_request_data_stream;
 import com.MAVLink.common.msg_set_home_position;
 import com.MAVLink.common.msg_set_mode;
 import com.MAVLink.enums.MAV_CMD;
-import com.MAVLink.enums.MAV_COMPONENT;
 import com.MAVLink.enums.MAV_MISSION_RESULT;
 
 /**
