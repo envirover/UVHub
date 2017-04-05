@@ -1,19 +1,19 @@
-
 /*
-This file is part of Rock7MAVLink.
+This file is part of SPLGroundControl application.
 
-Rock7MAVLink is MAVLink Proxy for RockBLOCK Web Services.
+SPLGroundControl is a MAVLink proxy server for ArduPilot rovers with
+RockBLOCK satellite communication.
 
 See http://www.rock7mobile.com/downloads/RockBLOCK-Web-Services-User-Guide.pdf
 
 Copyright (C) 2017 Envirover
 
-Rock7MAVLink is free software: you can redistribute it and/or modify
+SPLGroundControl is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-Rock7MAVLink is distributed in the hope that it will be useful,
+SPLGroundControl is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
