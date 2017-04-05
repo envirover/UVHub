@@ -14,10 +14,13 @@ import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
 import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_attitude;
+import com.MAVLink.common.msg_command_ack;
+import com.MAVLink.common.msg_command_int;
 import com.MAVLink.common.msg_command_long;
 import com.MAVLink.common.msg_global_position_int;
 import com.MAVLink.common.msg_gps_raw_int;
 import com.MAVLink.common.msg_heartbeat;
+import com.MAVLink.common.msg_mission_ack;
 import com.MAVLink.common.msg_mission_current;
 import com.MAVLink.common.msg_nav_controller_output;
 import com.MAVLink.common.msg_param_request_list;
@@ -221,6 +224,12 @@ public class MAVLinkSocket implements MAVLinkChannel {
                        dir, msg.compid, msg.sysid, msg.seq));
                 break;
             }
+            case msg_mission_ack.MAVLINK_MSG_ID_MISSION_ACK:
+            {
+                msg_mission_ack msg = (msg_mission_ack)packet.unpack();
+                logger.debug(MessageFormat.format("{0} ATTITUDE: compid={1}, sysid={2}, target_system={3}, target_component={4}, type={5}",
+                        dir, msg.compid, msg.sysid, msg.target_system, msg.target_component, msg.type));
+            }
             case msg_nav_controller_output.MAVLINK_MSG_ID_NAV_CONTROLLER_OUTPUT:
             {
                 msg_nav_controller_output msg = (msg_nav_controller_output)packet.unpack();
@@ -259,6 +268,19 @@ public class MAVLinkSocket implements MAVLinkChannel {
                 logger.debug(MessageFormat.format("{0} COMMAND_LONG: compid={1}, sysid={2}, command={3}, confirmation={4}, param1={5}, param2={6}, param3={7}, param4={8}, param5={9}, param6={10}, param7={11}", 
                        dir, msg.compid, msg.sysid, msg.command, msg.confirmation, msg.param1, msg.param2, msg.param3, msg.param4, msg.param5, msg.param6, msg.param7));
                 break;
+            }
+            case msg_command_int.MAVLINK_MSG_ID_COMMAND_INT:
+            {
+                msg_command_int msg = (msg_command_int)packet.unpack();
+                logger.debug(MessageFormat.format("{0} COMMAND_LONG: compid={1}, sysid={2}, command={3}, frame={4}, current={5}, autocontinue={6}, param1={7}, param2={8}, param3={9}, param4={10}, x={11}, y={12}, z={13}",
+                       dir, msg.compid, msg.sysid, msg.command, msg.frame, msg.current, msg.autocontinue, msg.param1, msg.param2, msg.param3, msg.param4, msg.x, msg.y, msg.z));
+                break;
+            }
+            case msg_command_ack.MAVLINK_MSG_ID_COMMAND_ACK:
+            {
+                msg_command_ack msg = (msg_command_ack)packet.unpack();
+                logger.debug(MessageFormat.format("{0} COMMAND_ACK: compid={1}, sysid={2}, command={3}, result={4}",
+                       dir, msg.compid, msg.sysid, msg.command, msg.result));
             }
             default:
             {
