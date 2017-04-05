@@ -236,7 +236,7 @@ public class MAVLinkSocket implements MAVLinkChannel {
             case msg_global_position_int.MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
             {
                 msg_global_position_int msg = (msg_global_position_int)packet.unpack();
-                logger.debug(MessageFormat.format("{0} ATTITUDE: compid={1}, sysid={2}, " +
+                logger.debug(MessageFormat.format("{0} GLOBAL_POSITION_INT: compid={1}, sysid={2}, " +
                        "alt={3}, hdg={4}, lat={5}, lon={6}, relative_alt={7}, time_boot_ms={8}, vx={9}, vy={10}, vz={11}",
                        dir, msg.compid, msg.sysid, msg.alt, msg.hdg, msg.lat, msg.lon, msg.relative_alt, msg.time_boot_ms, msg.vx, msg.vy, msg.vz));
                 break;
@@ -244,20 +244,20 @@ public class MAVLinkSocket implements MAVLinkChannel {
             case msg_mission_current.MAVLINK_MSG_ID_MISSION_CURRENT:
             {
                 msg_mission_current msg = (msg_mission_current)packet.unpack();
-                logger.debug(MessageFormat.format("{0} ATTITUDE: compid={1}, sysid={2}, seq={3}",
+                logger.debug(MessageFormat.format("{0} MISSION_CURRENT: compid={1}, sysid={2}, seq={3}",
                        dir, msg.compid, msg.sysid, msg.seq));
                 break;
             }
             case msg_mission_ack.MAVLINK_MSG_ID_MISSION_ACK:
             {
                 msg_mission_ack msg = (msg_mission_ack)packet.unpack();
-                logger.debug(MessageFormat.format("{0} ATTITUDE: compid={1}, sysid={2}, target_system={3}, target_component={4}, type={5}",
+                logger.debug(MessageFormat.format("{0} MISSION_ACK: compid={1}, sysid={2}, target_system={3}, target_component={4}, type={5}",
                         dir, msg.compid, msg.sysid, msg.target_system, msg.target_component, msg.type));
             }
             case msg_nav_controller_output.MAVLINK_MSG_ID_NAV_CONTROLLER_OUTPUT:
             {
                 msg_nav_controller_output msg = (msg_nav_controller_output)packet.unpack();
-                logger.debug(MessageFormat.format("{0} ATTITUDE: compid={1}, sysid={2}, alt_error={3}, " +
+                logger.debug(MessageFormat.format("{0} NAV_CONTROLLER_OUTPUT: compid={1}, sysid={2}, alt_error={3}, " +
                        "aspd_error={4}, nav_bearing={5}, nav_pitch={6}, nav_roll={7}, terget_bearing={8}, wp_dist={9}, xtrack_error={10}",
                        dir, msg.compid, msg.sysid, msg.alt_error, msg.aspd_error, msg.nav_bearing,
                        msg.nav_pitch, msg.nav_roll, msg.target_bearing, msg.wp_dist, msg.xtrack_error));
@@ -266,7 +266,7 @@ public class MAVLinkSocket implements MAVLinkChannel {
             case msg_vfr_hud.MAVLINK_MSG_ID_VFR_HUD:
             {
                 msg_vfr_hud msg = (msg_vfr_hud)packet.unpack();
-                logger.debug(MessageFormat.format("{0} ATTITUDE: compid={1}, sysid={2}, airspeed={3}," +
+                logger.debug(MessageFormat.format("{0} VFR_HUD: compid={1}, sysid={2}, airspeed={3}," +
                        "alt={4}, climb={5}, groundspeed={6}, heading={7}, throttle={8}",
                        dir, msg.compid, msg.sysid, msg.airspeed, msg.alt, msg.climb, msg.groundspeed,
                        msg.heading, msg.throttle));
@@ -296,7 +296,7 @@ public class MAVLinkSocket implements MAVLinkChannel {
             case msg_command_int.MAVLINK_MSG_ID_COMMAND_INT:
             {
                 msg_command_int msg = (msg_command_int)packet.unpack();
-                logger.debug(MessageFormat.format("{0} COMMAND_LONG: compid={1}, sysid={2}, command={3}, frame={4}, current={5}, autocontinue={6}, param1={7}, param2={8}, param3={9}, param4={10}, x={11}, y={12}, z={13}",
+                logger.debug(MessageFormat.format("{0} COMMAND_INT: compid={1}, sysid={2}, command={3}, frame={4}, current={5}, autocontinue={6}, param1={7}, param2={8}, param3={9}, param4={10}, x={11}, y={12}, z={13}",
                        dir, msg.compid, msg.sysid, msg.command, msg.frame, msg.current, msg.autocontinue, msg.param1, msg.param2, msg.param3, msg.param4, msg.x, msg.y, msg.z));
                 break;
             }
