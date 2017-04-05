@@ -1,3 +1,27 @@
+/*
+This file is part of SPLGroundControl application.
+
+SPLGroundControl is a MAVLink proxy server for ArduPilot rovers with
+RockBLOCK satellite communication.
+
+See http://www.rock7mobile.com/downloads/RockBLOCK-Web-Services-User-Guide.pdf
+
+Copyright (C) 2017 Envirover
+
+SPLGroundControl is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+SPLGroundControl is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Rock7MAVLink.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package com.envirover.mavlink;
 
 import java.io.IOException;
@@ -5,6 +29,7 @@ import java.io.IOException;
 import org.apache.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
+import com.MAVLink.common.msg_command_ack;
 import com.MAVLink.common.msg_command_int;
 import com.MAVLink.common.msg_command_long;
 import com.MAVLink.common.msg_mission_ack;
@@ -24,6 +49,7 @@ import com.MAVLink.common.msg_set_home_position;
 import com.MAVLink.common.msg_set_mode;
 import com.MAVLink.enums.MAV_CMD;
 import com.MAVLink.enums.MAV_MISSION_RESULT;
+import com.MAVLink.enums.MAV_RESULT;
 
 /**
  * Receives MAVLink message packets from a source channel, such as MAVLinkSocket,
@@ -59,6 +85,8 @@ public class MAVLinkHandler implements Runnable {
 
                 if (filter(packet)) {
                     handleMissionWrite(packet);
+                    handleCommand(packet);
+
                     dst.sendMessage(packet);
                 }
 
@@ -103,6 +131,32 @@ public class MAVLinkHandler implements Runnable {
                 src.sendMessage(mission_ack.pack());
                 missionCount = 0;
             }
+        }
+    }
+
+    /**
+     * Immediately return COMMAND_ACK for COMMAND_LONG and and COMMAND_INT.
+     * 
+     * @param packet
+     * @throws IOException
+     */
+    private void handleCommand(MAVLinkPacket packet) throws IOException {
+        if (packet.msgid == msg_command_long.MAVLINK_MSG_ID_COMMAND_LONG) {
+            msg_command_long msg = (msg_command_long)packet.unpack();
+            msg_command_ack command_ack = new msg_command_ack();
+            command_ack.command = msg.command;
+            command_ack.result = MAV_RESULT.MAV_RESULT_ACCEPTED;
+            command_ack.sysid = msg.target_system;
+            command_ack.compid = msg.target_component;
+            src.sendMessage(command_ack.pack());
+        } else if (packet.msgid == msg_command_int.MAVLINK_MSG_ID_COMMAND_INT) {
+            msg_command_int msg = (msg_command_int)packet.unpack();
+            msg_command_ack command_ack = new msg_command_ack();
+            command_ack.command = msg.command;
+            command_ack.result = MAV_RESULT.MAV_RESULT_ACCEPTED;
+            command_ack.sysid = msg.target_system;
+            command_ack.compid = msg.target_component;
+            src.sendMessage(command_ack.pack());
         }
     }
 
