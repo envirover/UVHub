@@ -25,20 +25,24 @@ along with Rock7MAVLink.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.spl;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 
 import org.apache.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_attitude;
+import com.MAVLink.common.msg_command_ack;
 import com.MAVLink.common.msg_global_position_int;
 import com.MAVLink.common.msg_gps_raw_int;
 import com.MAVLink.common.msg_heartbeat;
 import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_mission_current;
 import com.MAVLink.common.msg_nav_controller_output;
+import com.MAVLink.common.msg_statustext;
 import com.MAVLink.common.msg_sys_status;
 import com.MAVLink.common.msg_vfr_hud;
+import com.MAVLink.enums.MAV_SEVERITY;
 import com.MAVLink.enums.MAV_TYPE;
 import com.envirover.mavlink.MAVLinkChannel;
 
@@ -86,10 +90,22 @@ class MOMessagePump implements Runnable {
                 MAVLinkPacket packet;
 
                 while ((packet = src.receiveMessage()) != null) {
-                    dst.sendMessage(packet);
-
                     if (packet.msgid == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
                         msgHighLatency.unpack(packet.payload);
+                    } else if (packet.msgid == msg_command_ack.MAVLINK_MSG_ID_COMMAND_ACK) {
+                        //Replace COMMAND_ACK by STATUSTEXT message
+                        msg_command_ack ack = (msg_command_ack)packet.unpack();
+
+                        String text = MessageFormat.format("ACK: comand={0}, result={1}",
+                                                           ack.command, ack.result);
+
+                        msg_statustext msg = new msg_statustext();
+                        msg.compid = packet.compid;
+                        msg.sysid = packet.sysid;
+                        msg.severity = MAV_SEVERITY.MAV_SEVERITY_INFO;
+                        msg.text = text.getBytes();
+
+                        dst.sendMessage(pack(msg));
                     } else {
                         dst.sendMessage(packet);
                     }

@@ -1181,7 +1181,7 @@ public class MAVLinkLogger {
         case msg_statustext.MAVLINK_MSG_ID_STATUSTEXT: {
             msg_statustext msg = (msg_statustext) packet.unpack();
             logger.log(priority, MessageFormat.format("{0} STATUSTEXT: compid={1}, sysid={2}, severity={3}, text={4}",
-                    dir, msg.compid, msg.sysid, msg.severity, msg.text));
+                    dir, msg.compid, msg.sysid, msg.severity, new String(msg.text)));
             break;
         }
         case msg_debug.MAVLINK_MSG_ID_DEBUG: {
