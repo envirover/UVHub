@@ -38,11 +38,13 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
 import com.envirover.mavlink.MAVLinkChannel;
+import com.envirover.mavlink.MAVLinkLogger;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -86,7 +88,7 @@ public class RockBlockHttpHandler implements HttpHandler {
             MAVLinkPacket packet = message.getPacket();
 
             if (packet != null) {
-                logger.info(MessageFormat.format("MO message received (msgid={0})", packet.msgid));
+                MAVLinkLogger.log(Level.INFO, "MO", packet);
 
                 if (message.imei.equalsIgnoreCase(imei))
                     queue.sendMessage(packet);

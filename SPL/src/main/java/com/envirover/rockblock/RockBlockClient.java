@@ -26,7 +26,6 @@ package com.envirover.rockblock;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,10 +40,12 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
+import com.envirover.mavlink.MAVLinkLogger;
 
 /**
  * Client class for RockBLOCK Web Services API.
@@ -61,8 +62,6 @@ public class RockBlockClient implements MAVLinkChannel {
     private final static String PARAM_PASSWORD = "password";
     // Hex-encoded message.
     private final static String PARAM_DATA = "data"; 
-
-    private final static Logger logger = Logger.getLogger(RockBlockClient.class);
 
     private final HttpClient httpclient = HttpClients.createDefault();
 
@@ -126,7 +125,7 @@ public class RockBlockClient implements MAVLinkChannel {
             throw new IOException(String.format("Failed to post message to RockBLOCK API. %s", responseString));
         }
 
-        logger.info(MessageFormat.format("MT message sent (msgid={0})", packet.msgid));
+        MAVLinkLogger.log(Level.INFO, "MT", packet);
     }
 
     @Override
