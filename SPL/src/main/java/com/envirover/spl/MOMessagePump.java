@@ -79,6 +79,8 @@ class MOMessagePump implements Runnable {
         this.src = src;
         this.dst = dst;
         this.heartbeatInterval = heartbeatInterval;
+        msgHighLatency.sysid = 1;
+        msgHighLatency.compid = 1;
     }
 
     @Override
