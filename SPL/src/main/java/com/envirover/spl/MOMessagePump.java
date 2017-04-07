@@ -137,7 +137,7 @@ class MOMessagePump implements Runnable {
         msg_heartbeat msg = new msg_heartbeat();
         msg.sysid = msgHighLatency.sysid;
         msg.compid = msgHighLatency.compid;
-        msg.base_mode = 0;//MAV_MODE_FLAG.MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
+        msg.base_mode = msgHighLatency.base_mode;
         msg.type = MAV_TYPE.MAV_TYPE_GROUND_ROVER;
         return msg;
     }
