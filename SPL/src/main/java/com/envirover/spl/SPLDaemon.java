@@ -30,6 +30,7 @@ import java.net.InetSocketAddress;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
+import org.apache.log4j.Logger;
 
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkHandler;
@@ -45,6 +46,8 @@ import com.sun.net.httpserver.HttpServer;
 @SuppressWarnings("restriction")
 public class SPLDaemon implements Daemon {
 
+    private final static Logger logger = Logger.getLogger(SPLDaemon.class);
+    
     private final Config config = new Config();
     private MAVLinkChannel socket = null;
     private HttpServer server = null;
@@ -105,6 +108,8 @@ public class SPLDaemon implements Daemon {
         mtHandlerThread.start();
         mtMsgPumpThread.start();
         Thread.sleep(1000);
+
+        logger.info("SPL Ground Control server started.");
     }
 
     @Override
@@ -121,6 +126,8 @@ public class SPLDaemon implements Daemon {
         server.stop(0);
 
         Thread.sleep(1000);
+
+        logger.info("SPL Ground Control server stopped.");
     }
 
 }
