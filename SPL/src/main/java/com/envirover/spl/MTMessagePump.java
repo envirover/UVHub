@@ -63,7 +63,6 @@ public class MTMessagePump implements Runnable {
                 MAVLinkPacket packet = src.receiveMessage();
 
                 if (packet != null) {
-                    logger.debug(MessageFormat.format("MT message received (msgid = {0}).", packet.msgid));
                     dst.sendMessage(packet);
                 }
 

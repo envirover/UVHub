@@ -1191,7 +1191,11 @@ public class MAVLinkLogger {
                             msg.compid, msg.sysid, msg.time_boot_ms, msg.ind, msg.value));
             break;
         }
+        default: {
+            logger.log(priority, MessageFormat.format("{0} msgid={1}: compid={2}, sysid={3}",
+                                                      dir, packet.msgid, packet.compid, packet.sysid));
         }
+      }
     }
 
 }

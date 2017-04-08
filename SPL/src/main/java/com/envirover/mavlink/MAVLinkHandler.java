@@ -84,6 +84,8 @@ public class MAVLinkHandler implements Runnable {
                 MAVLinkPacket packet = src.receiveMessage();
 
                 if (filter(packet)) {
+                    MAVLinkShadow.getInstance().updateDesiredState(packet);
+
                     handleMissionWrite(packet);
                     handleCommand(packet);
 
