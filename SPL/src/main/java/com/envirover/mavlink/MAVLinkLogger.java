@@ -108,7 +108,7 @@ public class MAVLinkLogger {
             logger.log(priority,
                     MessageFormat.format(
                             "{0} PARAM_REQUEST_READ: compid={1}, sysid={2}, target_system={3}, target_component={4}, param_id={5}, param_index={6}",
-                            dir, msg.compid, msg.sysid, msg.target_system, msg.target_component, msg.param_id,
+                            dir, msg.compid, msg.sysid, msg.target_system, msg.target_component, msg.getParam_Id(),
                             msg.param_index));
             break;
         }
@@ -125,7 +125,7 @@ public class MAVLinkLogger {
             logger.log(priority,
                     MessageFormat.format(
                             "{0} PARAM_VALUE: compid={1}, sysid={2}, param_id={3}, param_value={4}, param_type={5}, param_count={6}, param_index={7}",
-                            dir, msg.compid, msg.sysid, msg.param_id, msg.param_value, msg.param_type, msg.param_count,
+                            dir, msg.compid, msg.sysid, msg.getParam_Id(), msg.param_value, msg.param_type, msg.param_count,
                             msg.param_index));
             break;
         }
@@ -134,7 +134,7 @@ public class MAVLinkLogger {
             logger.log(priority,
                     MessageFormat.format(
                             "{0} PARAM_SET: compid={1}, sysid={2}, target_system={3}, target_component={4}, param_id={5}, param_value={6}, param_type={7}",
-                            dir, msg.compid, msg.sysid, msg.target_system, msg.target_component, msg.param_id,
+                            dir, msg.compid, msg.sysid, msg.target_system, msg.target_component, msg.getParam_Id(),
                             msg.param_value, msg.param_type));
             break;
         }
@@ -360,7 +360,7 @@ public class MAVLinkLogger {
             logger.log(priority,
                     MessageFormat.format(
                             "{0} PARAM_MAP_RC: compid={1}, sysid={2}, target_system={3}, target_component={4}, param_id={5}, param_index={6}, parameter_rc_channel_index={7}, param_value0={8}, scale={9}, param_value_min={10}, param_value_max={11}",
-                            dir, msg.compid, msg.sysid, msg.target_system, msg.target_component, msg.param_id,
+                            dir, msg.compid, msg.sysid, msg.target_system, msg.target_component, msg.getParam_Id(),
                             msg.param_index, msg.parameter_rc_channel_index, msg.param_value0, msg.scale,
                             msg.param_value_min, msg.param_value_max));
             break;

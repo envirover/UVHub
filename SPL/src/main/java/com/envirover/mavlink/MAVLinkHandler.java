@@ -44,6 +44,8 @@ import com.MAVLink.common.msg_mission_request_list;
 import com.MAVLink.common.msg_mission_request_partial_list;
 import com.MAVLink.common.msg_mission_set_current;
 import com.MAVLink.common.msg_mission_write_partial_list;
+import com.MAVLink.common.msg_param_request_list;
+import com.MAVLink.common.msg_param_request_read;
 import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_set_home_position;
 import com.MAVLink.common.msg_set_mode;
@@ -83,12 +85,13 @@ public class MAVLinkHandler implements Runnable {
             try {
                 MAVLinkPacket packet = src.receiveMessage();
 
+                handleParams(packet);
+                handleMissionWrite(packet);
+                handleCommand(packet);
+
+                MAVLinkShadow.getInstance().updateDesiredState(packet);
+
                 if (filter(packet)) {
-                    MAVLinkShadow.getInstance().updateDesiredState(packet);
-
-                    handleMissionWrite(packet);
-                    handleCommand(packet);
-
                     dst.sendMessage(packet);
                 }
 
@@ -101,7 +104,24 @@ public class MAVLinkHandler implements Runnable {
             }
         }
     }
-    
+
+    private void handleParams(MAVLinkPacket packet) throws IOException, InterruptedException {
+        MAVLinkShadow shadow = MAVLinkShadow.getInstance();
+
+        if (packet.msgid == msg_param_request_list.MAVLINK_MSG_ID_PARAM_REQUEST_LIST) {
+            shadow.reportParams(src);
+        } else if (packet.msgid == msg_param_request_read.MAVLINK_MSG_ID_PARAM_REQUEST_READ) {
+            msg_param_request_read msg = (msg_param_request_read)packet.unpack();
+            MAVLinkPacket value = shadow.getParamValue(msg.getParam_Id(), msg.param_index);
+            src.sendMessage(value);
+        } else if (packet.msgid == msg_param_set.MAVLINK_MSG_ID_PARAM_SET) {
+            msg_param_set msg = (msg_param_set)packet.unpack();
+            shadow.setParamValue(msg.getParam_Id(), msg.param_value);
+            MAVLinkPacket value = shadow.getParamValue(msg.getParam_Id(), (short)-1);
+            src.sendMessage(value);
+        }
+    }
+
     private void handleMissionWrite(MAVLinkPacket packet) throws IOException {
         if (packet.msgid == msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT) {
             msg_mission_count msg = (msg_mission_count)(packet.unpack());

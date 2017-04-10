@@ -84,7 +84,7 @@ class MOMessagePump implements Runnable {
                     }
                 }
 
-                shadow.report(dst);
+                shadow.reportState(dst);
 
                 Thread.sleep(heartbeatInterval);
             } catch (IOException ex) {

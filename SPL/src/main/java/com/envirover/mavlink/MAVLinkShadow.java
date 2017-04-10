@@ -24,8 +24,13 @@ along with Rock7MAVLink.  If not, see <http://www.gnu.org/licenses/>.
 
 package com.envirover.mavlink;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
@@ -37,9 +42,11 @@ import com.MAVLink.common.msg_heartbeat;
 import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_mission_current;
 import com.MAVLink.common.msg_nav_controller_output;
+import com.MAVLink.common.msg_param_value;
 import com.MAVLink.common.msg_statustext;
 import com.MAVLink.common.msg_sys_status;
 import com.MAVLink.common.msg_vfr_hud;
+import com.MAVLink.enums.MAV_PARAM_TYPE;
 import com.MAVLink.enums.MAV_SEVERITY;
 import com.MAVLink.enums.MAV_TYPE;
 
@@ -56,6 +63,8 @@ public class MAVLinkShadow {
     private static MAVLinkShadow instance = null;
 
     private final msg_high_latency msgHighLatency = new msg_high_latency();
+    private LinkedHashMap<String, Float> params = new LinkedHashMap<String, Float>();
+
     private int seq = 0;
 
     protected MAVLinkShadow() {
@@ -69,7 +78,50 @@ public class MAVLinkShadow {
         }
 
         return instance;
-     }
+    }
+
+    public void loadParams(InputStream stream) throws IOException {
+        if (stream == null) {
+            throw new IOException("Invalid parameters stream.");
+        }
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+        String str;
+        while ((str = reader.readLine()) != null) {
+            if (str.length() > 17) {
+                String name = str.substring(0, 16).trim();
+                Float value = Float.valueOf(str.substring(17).trim());
+                params.put(name, value);
+            }
+        }
+    }
+
+    /**
+     * Returns PARAM_VALUE message for the specified parameter.
+     *   
+     * @param paramid Onboard parameter id, terminated by NULL if the length is less than 16 human-readable chars and WITHOUT null termination (NULL) byte if the length is exactly 16 chars - applications have to provide 16+1 bytes storage if the ID is stored as string
+     * @param paramIndex Parameter index. Send -1 to use the paramId field as identifier, else the paramId will be ignored
+     */
+    public MAVLinkPacket getParamValue(String paramId, short paramIndex) {
+        msg_param_value msg = new msg_param_value();
+        if (paramIndex >= 0) {
+            msg.param_index = paramIndex;
+            paramId = new ArrayList<String>(params.keySet()).get(paramIndex);
+        } else {
+            msg.param_index = new ArrayList<String>(params.keySet()).indexOf(paramId);
+        }
+ 
+        msg.setParam_Id(paramId);
+        msg.param_value = params.get(paramId);
+        msg.param_count = params.size();
+        msg.param_type = MAV_PARAM_TYPE.MAV_PARAM_TYPE_REAL32;
+
+        return pack(msg);
+    }
+
+    public void setParamValue(String paramId, Float value) {
+        params.put(paramId, value);
+    }
 
     public void updateReportedState(MAVLinkPacket packet) {
         if (packet.msgid == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
@@ -88,7 +140,7 @@ public class MAVLinkShadow {
      * @param dst destination channel
      * @throws IOException if a message sending failed
      */
-    public void report(MAVLinkChannel dst) throws IOException {
+    public void reportState(MAVLinkChannel dst) throws IOException {
         dst.sendMessage(getHeartbeatMsg());
         dst.sendMessage(getSysStatusMsg());
         dst.sendMessage(getGpsRawIntMsg());
@@ -97,6 +149,13 @@ public class MAVLinkShadow {
         dst.sendMessage(getMissionCurrentMsg());
         dst.sendMessage(getNavControllerOutputMsg());
         dst.sendMessage(getVfrHudMsg());
+    }
+
+    public void reportParams(MAVLinkChannel dst) throws IOException, InterruptedException {
+        for (String paramId : params.keySet()) {
+            dst.sendMessage(getParamValue(paramId, (short)-1));
+            Thread.sleep(10);
+        }
     }
 
     public void sendCommandAck(MAVLinkPacket packet, MAVLinkChannel dst) throws IOException {
