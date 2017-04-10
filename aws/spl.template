@@ -46,6 +46,11 @@
       "Description" : "URL of SPLGroundControl distribution archive",
       "Type" : "String",
       "Default" : "https://github.com/envirover/SPLGroundControl/releases/download/1.0-SNAPSHOT/spl-1.0-SNAPSHOT-bin.tar.gz"
+    },
+    "MAVParametersURL" : {
+      "Description" : "URL of default.params file with initial on-board parameters values.",
+      "Type" : "String",
+      "Default" : "https://github.com/envirover/SPLGroundControl/releases/download/1.0-SNAPSHOT/default.params"
     }
   },
   "Mappings" : {
@@ -171,6 +176,7 @@
             "wget ", { "Ref" : "SPLArchiveURL" }, " -O spl-bin.tar.gz\n",
             "tar -xvzf spl-bin.tar.gz\n", 
             "export SPL_HOME=$(pwd)\n",
+            "wget ", { "Ref" : "MAVParametersURL" }, "-O conf/default.params\n",
             "/opt/aws/bin/cfn-init -s ", { "Ref" : "AWS::StackId" }, " -r SPLServer ", " --region ", { "Ref" : "AWS::Region" }, " || error_exit 'Failed to run cfn-init'\n",
             "service awslogs start\n",
             "wget --no-cookies --header \"Cookie: gpw_e24=xxx; oraclelicense=accept-securebackup-cookie;\" \"http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jdk-8u101-linux-x64.rpm\" -O /tmp/jdk.rpm\n", 

@@ -47,7 +47,7 @@ import com.sun.net.httpserver.HttpServer;
  */
 @SuppressWarnings("restriction")
 public class SPLDaemon implements Daemon {
-    private final static String MAV_PARM_FILE = "mav.parm";
+    private final static String DEFAULT_PARAMS_FILE = "default.params";
 
     private final static Logger logger = Logger.getLogger(SPLDaemon.class);
     
@@ -72,12 +72,12 @@ public class SPLDaemon implements Daemon {
             throw new DaemonInitException("Invalid configuration.");
 
         ClassLoader loader = SPLDaemon.class.getClassLoader();
-        InputStream params = loader.getResourceAsStream(MAV_PARM_FILE);
+        InputStream params = loader.getResourceAsStream(DEFAULT_PARAMS_FILE);
         if (params != null) {
             MAVLinkShadow.getInstance().loadParams(params);
             params.close();
         } else {
-            logger.warn("File 'mav.parm' with default parameters values not found.");
+            logger.warn("File 'default.params' with initial parameters values not found.");
         }
 
         //Init mobile-originated pipeline

@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
@@ -46,7 +45,6 @@ import com.MAVLink.common.msg_param_value;
 import com.MAVLink.common.msg_statustext;
 import com.MAVLink.common.msg_sys_status;
 import com.MAVLink.common.msg_vfr_hud;
-import com.MAVLink.enums.MAV_PARAM_TYPE;
 import com.MAVLink.enums.MAV_SEVERITY;
 import com.MAVLink.enums.MAV_TYPE;
 
@@ -63,7 +61,7 @@ public class MAVLinkShadow {
     private static MAVLinkShadow instance = null;
 
     private final msg_high_latency msgHighLatency = new msg_high_latency();
-    private LinkedHashMap<String, Float> params = new LinkedHashMap<String, Float>();
+    private ArrayList<msg_param_value> params = new ArrayList<msg_param_value>();
 
     private int seq = 0;
 
@@ -87,12 +85,26 @@ public class MAVLinkShadow {
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
         String str;
+        int index = 0;
         while ((str = reader.readLine()) != null) {
-            if (str.length() > 17) {
-                String name = str.substring(0, 16).trim();
-                Float value = Float.valueOf(str.substring(17).trim());
-                params.put(name, value);
+            if (!str.isEmpty() && !str.startsWith("#")) {
+                String[] tokens = str.split("\t");
+                if (tokens.length >= 5) { 
+                    msg_param_value param = new msg_param_value();
+                    param.sysid = Integer.valueOf(tokens[0]);
+                    param.compid = Integer.valueOf(tokens[1]);
+                    param.setParam_Id(tokens[2].trim());
+                    param.param_index = index; 
+                    param.param_value = Float.valueOf(tokens[3]);
+                    param.param_type = Short.valueOf(tokens[4]);
+                    params.add(index, param);
+                    index++;
+                }
             }
+        }
+
+        for (int i = 0; i < index; i++) {
+            params.get(i).param_count = index;
         }
     }
 
@@ -101,26 +113,28 @@ public class MAVLinkShadow {
      *   
      * @param paramid Onboard parameter id, terminated by NULL if the length is less than 16 human-readable chars and WITHOUT null termination (NULL) byte if the length is exactly 16 chars - applications have to provide 16+1 bytes storage if the ID is stored as string
      * @param paramIndex Parameter index. Send -1 to use the paramId field as identifier, else the paramId will be ignored
+     * @return MAVLink packet with parameter value or null, if the parameter was not found.
      */
     public MAVLinkPacket getParamValue(String paramId, short paramIndex) {
-        msg_param_value msg = new msg_param_value();
         if (paramIndex >= 0) {
-            msg.param_index = paramIndex;
-            paramId = new ArrayList<String>(params.keySet()).get(paramIndex);
-        } else {
-            msg.param_index = new ArrayList<String>(params.keySet()).indexOf(paramId);
+            return pack(params.get(paramIndex));
         }
- 
-        msg.setParam_Id(paramId);
-        msg.param_value = params.get(paramId);
-        msg.param_count = params.size();
-        msg.param_type = MAV_PARAM_TYPE.MAV_PARAM_TYPE_REAL32;
 
-        return pack(msg);
+        for (msg_param_value param : params) {
+            if (param.getParam_Id().equalsIgnoreCase(paramId.trim()))
+                return pack(param);
+        }
+
+        return null;
     }
 
     public void setParamValue(String paramId, Float value) {
-        params.put(paramId, value);
+        for (msg_param_value param : params) {
+            if (param.getParam_Id().equalsIgnoreCase(paramId.trim())) {
+                param.param_value = value;
+                break;
+            }
+        }
     }
 
     public void updateReportedState(MAVLinkPacket packet) {
@@ -152,8 +166,8 @@ public class MAVLinkShadow {
     }
 
     public void reportParams(MAVLinkChannel dst) throws IOException, InterruptedException {
-        for (String paramId : params.keySet()) {
-            dst.sendMessage(getParamValue(paramId, (short)-1));
+        for (msg_param_value param : params) {
+            dst.sendMessage(pack(param));
             Thread.sleep(10);
         }
     }
