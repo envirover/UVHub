@@ -24,6 +24,7 @@ along with Rock7MAVLink.  If not, see <http://www.gnu.org/licenses/>.
 
 package com.envirover.spl;
 
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
@@ -35,6 +36,7 @@ import org.apache.log4j.Logger;
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkHandler;
 import com.envirover.mavlink.MAVLinkMessageQueue;
+import com.envirover.mavlink.MAVLinkShadow;
 import com.envirover.mavlink.MAVLinkSocket;
 import com.envirover.rockblock.RockBlockClient;
 import com.envirover.rockblock.RockBlockHttpHandler;
@@ -45,6 +47,7 @@ import com.sun.net.httpserver.HttpServer;
  */
 @SuppressWarnings("restriction")
 public class SPLDaemon implements Daemon {
+    private final static String MAV_PARM_FILE = "mav.parm";
 
     private final static Logger logger = Logger.getLogger(SPLDaemon.class);
     
@@ -67,6 +70,15 @@ public class SPLDaemon implements Daemon {
     public void init(DaemonContext context) throws DaemonInitException, Exception {
         if (!config.init(context.getArguments()))
             throw new DaemonInitException("Invalid configuration.");
+
+        ClassLoader loader = SPLDaemon.class.getClassLoader();
+        InputStream params = loader.getResourceAsStream(MAV_PARM_FILE);
+        if (params != null) {
+            MAVLinkShadow.getInstance().loadParams(params);
+            params.close();
+        } else {
+            logger.warn("File 'mav.parm' with default parameters values not found.");
+        }
 
         //Init mobile-originated pipeline
         MAVLinkChannel socket = new MAVLinkSocket(config.getMAVLinkPort());

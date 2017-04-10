@@ -25,7 +25,6 @@ along with Rock7MAVLink.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.spl;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 
 import org.apache.log4j.Logger;
 
