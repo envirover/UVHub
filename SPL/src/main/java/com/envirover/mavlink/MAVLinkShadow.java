@@ -181,7 +181,7 @@ public class MAVLinkShadow {
 
         msg_statustext msg = new msg_statustext();
         msg.severity = MAV_SEVERITY.MAV_SEVERITY_INFO;
-        msg.text = text.getBytes();
+        msg.setText(text);
 
         dst.sendMessage(pack(msg));
     }
