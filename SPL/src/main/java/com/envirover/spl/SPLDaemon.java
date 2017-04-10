@@ -73,8 +73,12 @@ public class SPLDaemon implements Daemon {
 
         ClassLoader loader = SPLDaemon.class.getClassLoader();
         InputStream params = loader.getResourceAsStream(MAV_PARM_FILE);
-        MAVLinkShadow.getInstance().loadParams(params);
-        params.close();
+        if (params != null) {
+            MAVLinkShadow.getInstance().loadParams(params);
+            params.close();
+        } else {
+            logger.warn("File 'mav.parm' with default parameters values not found.");
+        }
 
         //Init mobile-originated pipeline
         MAVLinkChannel socket = new MAVLinkSocket(config.getMAVLinkPort());
