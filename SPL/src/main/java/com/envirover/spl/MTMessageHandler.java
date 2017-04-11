@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License
 along with Rock7MAVLink.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.envirover.mavlink;
+package com.envirover.spl;
 
 import java.io.IOException;
 
@@ -52,15 +52,17 @@ import com.MAVLink.common.msg_set_mode;
 import com.MAVLink.enums.MAV_CMD;
 import com.MAVLink.enums.MAV_MISSION_RESULT;
 import com.MAVLink.enums.MAV_RESULT;
+import com.envirover.mavlink.MAVLinkChannel;
+import com.envirover.mavlink.MAVLinkShadow;
 
 /**
  * Receives MAVLink message packets from a source channel, such as MAVLinkSocket,
  * filters out high frequency messages, and sends the packets to the destination
  * channel, such as MAVLinkMessageQueue.
  */
-public class MAVLinkHandler implements Runnable {
+public class MTMessageHandler implements Runnable {
 
-    private final static Logger logger = Logger.getLogger(MAVLinkHandler.class);
+    private final static Logger logger = Logger.getLogger(MTMessageHandler.class);
 
     private final MAVLinkChannel src;
     private final MAVLinkChannel dst;
@@ -72,7 +74,7 @@ public class MAVLinkHandler implements Runnable {
      * @param src source message channel, such as MAVLinkSocket.
      * @param dst destination message channel, such as MAVLinkMessageQueue.
      */
-    public MAVLinkHandler(MAVLinkChannel src, MAVLinkChannel dst) {
+    public MTMessageHandler(MAVLinkChannel src, MAVLinkChannel dst) {
         this.src = src;
         this.dst = dst;
     }
@@ -106,6 +108,10 @@ public class MAVLinkHandler implements Runnable {
     }
 
     private void handleParams(MAVLinkPacket packet) throws IOException, InterruptedException {
+        if (packet == null) {
+            return;
+        }
+
         MAVLinkShadow shadow = MAVLinkShadow.getInstance();
 
         if (packet.msgid == msg_param_request_list.MAVLINK_MSG_ID_PARAM_REQUEST_LIST) {
@@ -123,6 +129,10 @@ public class MAVLinkHandler implements Runnable {
     }
 
     private void handleMissionWrite(MAVLinkPacket packet) throws IOException {
+        if (packet == null) {
+            return;
+        }
+
         if (packet.msgid == msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT) {
             msg_mission_count msg = (msg_mission_count)(packet.unpack());
             missionCount = msg.count;
@@ -163,6 +173,10 @@ public class MAVLinkHandler implements Runnable {
      * @throws IOException
      */
     private void handleCommand(MAVLinkPacket packet) throws IOException {
+        if (packet == null) {
+            return;
+        }
+
         if (packet.msgid == msg_command_long.MAVLINK_MSG_ID_COMMAND_LONG) {
             msg_command_long msg = (msg_command_long)packet.unpack();
             msg_command_ack command_ack = new msg_command_ack();
