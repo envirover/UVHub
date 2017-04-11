@@ -27,6 +27,8 @@ package com.envirover.spl;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
@@ -34,7 +36,6 @@ import org.apache.commons.daemon.DaemonInitException;
 import org.apache.log4j.Logger;
 
 import com.envirover.mavlink.MAVLinkChannel;
-import com.envirover.mavlink.MAVLinkHandler;
 import com.envirover.mavlink.MAVLinkMessageQueue;
 import com.envirover.mavlink.MAVLinkShadow;
 import com.envirover.mavlink.MAVLinkSocket;
@@ -57,6 +58,8 @@ public class SPLDaemon implements Daemon {
     private Thread moMsgPumpThread = null;
     private Thread mtHandlerThread = null;
     private Thread mtMsgPumpThread = null;
+    private Timer  reportStateTimer = null;
+    private TimerTask reportStateTask = null;
 
     @Override
     public void destroy() {
@@ -81,7 +84,7 @@ public class SPLDaemon implements Daemon {
         }
 
         //Init mobile-originated pipeline
-        MAVLinkChannel socket = new MAVLinkSocket(config.getMAVLinkPort());
+        socket = new MAVLinkSocket(config.getMAVLinkPort());
 
         MAVLinkMessageQueue moMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
 
@@ -90,13 +93,13 @@ public class SPLDaemon implements Daemon {
                              new RockBlockHttpHandler(moMessageQueue, config.getRockBlockIMEI()));
         server.setExecutor(null);
 
-        MOMessagePump moMsgPump = new MOMessagePump(moMessageQueue, socket, config.getHeartbeatInterval());
+        MOMessagePump moMsgPump = new MOMessagePump(moMessageQueue, socket);
         moMsgPumpThread = new Thread(moMsgPump, "mo-message-pump");
 
         //Init mobile-terminated pipeline
         MAVLinkMessageQueue mtMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
 
-        MAVLinkHandler mtHandler = new MAVLinkHandler(socket, mtMessageQueue);
+        MTMessageHandler mtHandler = new MTMessageHandler(socket, mtMessageQueue);
         mtHandlerThread = new Thread(mtHandler, "mt-handler");
 
         RockBlockClient rockblock = new RockBlockClient(config.getRockBlockIMEI(),
@@ -106,6 +109,9 @@ public class SPLDaemon implements Daemon {
 
         MTMessagePump mtMsgPump = new MTMessagePump(mtMessageQueue, rockblock);
         mtMsgPumpThread = new Thread(mtMsgPump, "mt-message-pump");
+
+        reportStateTimer = new Timer("report-state-timer", false);
+        reportStateTask = new ReportStateTask(socket);
     }
 
     @Override
@@ -119,6 +125,7 @@ public class SPLDaemon implements Daemon {
         moMsgPumpThread.start();
         mtHandlerThread.start();
         mtMsgPumpThread.start();
+        reportStateTimer.schedule(reportStateTask, 0, config.getHeartbeatInterval());
         Thread.sleep(1000);
 
         logger.info("SPL Ground Control server started.");
@@ -126,6 +133,7 @@ public class SPLDaemon implements Daemon {
 
     @Override
     public void stop() throws Exception {
+        reportStateTimer.cancel();
         mtMsgPumpThread.interrupt();
         mtMsgPumpThread.join(1000);
 

@@ -49,7 +49,6 @@ class MOMessagePump implements Runnable {
 
     private final MAVLinkChannel src;
     private final MAVLinkChannel dst;
-    private final Integer heartbeatInterval;
 
     /**
      * Constructs MOMessagePump instance. 
@@ -58,10 +57,9 @@ class MOMessagePump implements Runnable {
      * @param dst destination channel
      * @param heartbeatInterval heartbeat interval in milliseconds
      */
-    public MOMessagePump(MAVLinkChannel src, MAVLinkChannel dst, Integer heartbeatInterval) {
+    public MOMessagePump(MAVLinkChannel src, MAVLinkChannel dst) {
         this.src = src;
         this.dst = dst;
-        this.heartbeatInterval = heartbeatInterval;
     }
 
     @Override
@@ -84,9 +82,7 @@ class MOMessagePump implements Runnable {
                     }
                 }
 
-                shadow.reportState(dst);
-
-                Thread.sleep(heartbeatInterval);
+                Thread.sleep(10);
             } catch (IOException ex) {
                 logger.error(ex.getMessage());
             } catch (InterruptedException e) {
