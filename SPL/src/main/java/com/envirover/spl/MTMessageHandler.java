@@ -201,16 +201,16 @@ public class MTMessageHandler implements Runnable {
         return packet != null &&
               (packet.msgid == msg_set_mode.MAVLINK_MSG_ID_SET_MODE || 
                packet.msgid == msg_param_set.MAVLINK_MSG_ID_PARAM_SET ||
-               packet.msgid == msg_mission_request_partial_list.MAVLINK_MSG_ID_MISSION_REQUEST_PARTIAL_LIST ||
+               //packet.msgid == msg_mission_request_partial_list.MAVLINK_MSG_ID_MISSION_REQUEST_PARTIAL_LIST ||
                packet.msgid == msg_mission_write_partial_list.MAVLINK_MSG_ID_MISSION_WRITE_PARTIAL_LIST ||
                packet.msgid == msg_mission_item.MAVLINK_MSG_ID_MISSION_ITEM ||
-               packet.msgid == msg_mission_request.MAVLINK_MSG_ID_MISSION_REQUEST ||
+               //packet.msgid == msg_mission_request.MAVLINK_MSG_ID_MISSION_REQUEST ||
                packet.msgid == msg_mission_set_current.MAVLINK_MSG_ID_MISSION_SET_CURRENT ||
                packet.msgid == msg_mission_current.MAVLINK_MSG_ID_MISSION_CURRENT ||
-               packet.msgid == msg_mission_request_list.MAVLINK_MSG_ID_MISSION_REQUEST_LIST ||
-               packet.msgid == msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT ||
+               //packet.msgid == msg_mission_request_list.MAVLINK_MSG_ID_MISSION_REQUEST_LIST ||
+               //packet.msgid == msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT ||
                packet.msgid == msg_mission_clear_all.MAVLINK_MSG_ID_MISSION_CLEAR_ALL ||
-               packet.msgid == msg_mission_request_int.MAVLINK_MSG_ID_MISSION_REQUEST_INT ||
+               //packet.msgid == msg_mission_request_int.MAVLINK_MSG_ID_MISSION_REQUEST_INT ||
                packet.msgid == msg_mission_item_int.MAVLINK_MSG_ID_MISSION_ITEM_INT ||
                packet.msgid == msg_command_int.MAVLINK_MSG_ID_COMMAND_INT ||
               (packet.msgid == msg_command_long.MAVLINK_MSG_ID_COMMAND_LONG && 
