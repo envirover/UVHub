@@ -39,9 +39,7 @@ import com.MAVLink.common.msg_mission_current;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_mission_item_int;
 import com.MAVLink.common.msg_mission_request;
-import com.MAVLink.common.msg_mission_request_int;
 import com.MAVLink.common.msg_mission_request_list;
-import com.MAVLink.common.msg_mission_request_partial_list;
 import com.MAVLink.common.msg_mission_set_current;
 import com.MAVLink.common.msg_mission_write_partial_list;
 import com.MAVLink.common.msg_param_request_list;
@@ -66,7 +64,6 @@ public class MTMessageHandler implements Runnable {
 
     private final MAVLinkChannel src;
     private final MAVLinkChannel dst;
-    private int missionCount = 0;
 
     /**
      * Constructs instance of MAVLinkHandler.
@@ -88,7 +85,7 @@ public class MTMessageHandler implements Runnable {
                 MAVLinkPacket packet = src.receiveMessage();
 
                 handleParams(packet);
-                handleMissionWrite(packet);
+                handleMissions(packet);
                 handleCommand(packet);
 
                 MAVLinkShadow.getInstance().updateDesiredState(packet);
@@ -114,55 +111,73 @@ public class MTMessageHandler implements Runnable {
 
         MAVLinkShadow shadow = MAVLinkShadow.getInstance();
 
-        if (packet.msgid == msg_param_request_list.MAVLINK_MSG_ID_PARAM_REQUEST_LIST) {
+        switch (packet.msgid) {
+        case msg_param_request_list.MAVLINK_MSG_ID_PARAM_REQUEST_LIST:
             shadow.reportParams(src);
-        } else if (packet.msgid == msg_param_request_read.MAVLINK_MSG_ID_PARAM_REQUEST_READ) {
-            msg_param_request_read msg = (msg_param_request_read)packet.unpack();
-            MAVLinkPacket value = shadow.getParamValue(msg.getParam_Id(), msg.param_index);
-            src.sendMessage(value);
-        } else if (packet.msgid == msg_param_set.MAVLINK_MSG_ID_PARAM_SET) {
-            msg_param_set msg = (msg_param_set)packet.unpack();
-            shadow.setParamValue(msg.getParam_Id(), msg.param_value);
-            MAVLinkPacket value = shadow.getParamValue(msg.getParam_Id(), (short)-1);
-            src.sendMessage(value);
+            break;
+        case msg_param_request_read.MAVLINK_MSG_ID_PARAM_REQUEST_READ:
+            msg_param_request_read request = (msg_param_request_read)packet.unpack();
+            src.sendMessage(shadow.getParamValue(request.getParam_Id(), request.param_index));
+            break;
+        case msg_param_set.MAVLINK_MSG_ID_PARAM_SET:
+            msg_param_set paramSet = (msg_param_set)packet.unpack();
+            shadow.setParamValue(paramSet.getParam_Id(), paramSet.param_value);
+            src.sendMessage(shadow.getParamValue(paramSet.getParam_Id(), (short)-1));
+            break;
         }
     }
 
-    private void handleMissionWrite(MAVLinkPacket packet) throws IOException {
+    private void handleMissions(MAVLinkPacket packet) throws IOException {
         if (packet == null) {
             return;
         }
 
-        if (packet.msgid == msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT) {
+        MAVLinkShadow shadow = MAVLinkShadow.getInstance();
+
+        switch(packet.msgid) {
+        case msg_mission_request_list.MAVLINK_MSG_ID_MISSION_REQUEST_LIST:
+            msg_mission_count count = new msg_mission_count();
+            count.count = shadow.getMissionCount();
+            count.target_system = (short)packet.sysid;
+            count.target_component = (short)packet.compid;
+            src.sendMessage(count.pack());
+            break;
+        case msg_mission_request.MAVLINK_MSG_ID_MISSION_REQUEST:
+            msg_mission_request request = (msg_mission_request)packet.unpack();
+            src.sendMessage(shadow.getMissionItem(request.seq));
+            break;
+        case msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT:
             msg_mission_count msg = (msg_mission_count)(packet.unpack());
-            missionCount = msg.count;
-            msg_mission_request mission_request = new msg_mission_request();
-            mission_request.seq = 0;
-            mission_request.sysid = msg.target_system;
-            mission_request.compid = msg.target_component;
-            mission_request.target_system = (short)packet.sysid;
-            mission_request.target_component = (short)packet.compid;
-            src.sendMessage(mission_request.pack());
-        } else if (packet.msgid == msg_mission_item.MAVLINK_MSG_ID_MISSION_ITEM) {
-            msg_mission_item msg = (msg_mission_item)(packet.unpack());
-            if (msg.seq + 1 < missionCount) {
+            shadow.setMissionCount(msg.count);
+            request = new msg_mission_request();
+            request.seq = 0;
+            request.sysid = msg.target_system;
+            request.compid = msg.target_component;
+            request.target_system = (short)packet.sysid;
+            request.target_component = (short)packet.compid;
+            src.sendMessage(request.pack());
+            break;
+        case msg_mission_item.MAVLINK_MSG_ID_MISSION_ITEM:
+            msg_mission_item mission = (msg_mission_item)(packet.unpack());
+            shadow.setMissionItem(mission);
+            if (mission.seq + 1 < shadow.getMissionCount()) {
                 msg_mission_request mission_request = new msg_mission_request();
-                mission_request.seq = msg.seq + 1;
-                mission_request.sysid = msg.target_system;
-                mission_request.compid = msg.target_component;
+                mission_request.seq = mission.seq + 1;
+                mission_request.sysid = mission.target_system;
+                mission_request.compid = mission.target_component;
                 mission_request.target_system = (short)packet.sysid;
                 mission_request.target_component = (short)packet.compid;
                 src.sendMessage(mission_request.pack());
             } else {
                 msg_mission_ack mission_ack = new msg_mission_ack();
                 mission_ack.type = MAV_MISSION_RESULT.MAV_MISSION_ACCEPTED;
-                mission_ack.sysid = msg.target_system;
-                mission_ack.compid = msg.target_component;
+                mission_ack.sysid = mission.target_system;
+                mission_ack.compid = mission.target_component;
                 mission_ack.target_system = (short)packet.sysid;
                 mission_ack.target_component = (short)packet.compid;
                 src.sendMessage(mission_ack.pack());
-                missionCount = 0;
             }
+            break;
         }
     }
 
@@ -208,7 +223,7 @@ public class MTMessageHandler implements Runnable {
                packet.msgid == msg_mission_set_current.MAVLINK_MSG_ID_MISSION_SET_CURRENT ||
                packet.msgid == msg_mission_current.MAVLINK_MSG_ID_MISSION_CURRENT ||
                //packet.msgid == msg_mission_request_list.MAVLINK_MSG_ID_MISSION_REQUEST_LIST ||
-               //packet.msgid == msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT ||
+               packet.msgid == msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT ||
                packet.msgid == msg_mission_clear_all.MAVLINK_MSG_ID_MISSION_CLEAR_ALL ||
                //packet.msgid == msg_mission_request_int.MAVLINK_MSG_ID_MISSION_REQUEST_INT ||
                packet.msgid == msg_mission_item_int.MAVLINK_MSG_ID_MISSION_ITEM_INT ||

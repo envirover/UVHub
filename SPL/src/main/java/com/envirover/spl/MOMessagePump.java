@@ -38,10 +38,7 @@ import com.envirover.mavlink.MAVLinkShadow;
  * specified source channel and forwards them to the specified destination
  * channel.
  * 
- * Messages of HIGH_LATENCY type are not forwarded by stored in memory. 
- * Heartbeats and high-frequency messages such as SYS_STATUS, GPS_RAW_INT, ATTITUDE, 
- * GLOBAL_POSITION_INT, MISSION_CURRENT, NAV_CONTROLLER_OUTPUT, and VFR_HUD are 
- * derived form the HIGH_LATENCY message and periodically sent to the destination channel.
+ * Messages of HIGH_LATENCY type are not forwarded but stored in memory. 
  */
 class MOMessagePump implements Runnable {
 
@@ -66,21 +63,11 @@ class MOMessagePump implements Runnable {
     public void run() {
         logger.debug("MOMessagePump started.");
 
-        MAVLinkShadow shadow = MAVLinkShadow.getInstance();
-
         while (true) {
             try {
-                MAVLinkPacket packet;
+                MAVLinkPacket packet = src.receiveMessage();
 
-                while ((packet = src.receiveMessage()) != null) {
-                    shadow.updateReportedState(packet);
-
-                    if (packet.msgid == msg_command_ack.MAVLINK_MSG_ID_COMMAND_ACK) {
-                        shadow.sendCommandAck(packet, dst);
-                    } else {
-                        dst.sendMessage(packet);
-                    }
-                }
+                handleMessage(packet);
 
                 Thread.sleep(10);
             } catch (IOException ex) {
@@ -90,6 +77,22 @@ class MOMessagePump implements Runnable {
                 logger.debug("MOMessagePump interrupted.");
                 return;
             }
+        }
+    }
+
+    private void handleMessage(MAVLinkPacket packet) throws IOException {
+        if (packet == null) {
+            return;
+        }
+
+        MAVLinkShadow shadow = MAVLinkShadow.getInstance();
+
+        shadow.updateReportedState(packet);
+
+        if (packet.msgid == msg_command_ack.MAVLINK_MSG_ID_COMMAND_ACK) {
+            shadow.sendCommandAck(packet, dst);
+        } else {
+            dst.sendMessage(packet);
         }
     }
 
