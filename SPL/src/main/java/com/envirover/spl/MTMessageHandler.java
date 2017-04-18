@@ -146,6 +146,9 @@ public class MTMessageHandler implements Runnable {
             msg_mission_request request = (msg_mission_request)packet.unpack();
             src.sendMessage(shadow.getMissionItem(request.seq));
             break;
+        case msg_mission_clear_all.MAVLINK_MSG_ID_MISSION_CLEAR_ALL:
+            shadow.setMissionCount(0);
+            break;
         case msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT:
             msg_mission_count msg = (msg_mission_count)(packet.unpack());
             shadow.setMissionCount(msg.count);

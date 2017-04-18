@@ -64,6 +64,7 @@ public class MAVLinkShadow {
     private final msg_high_latency msgHighLatency = new msg_high_latency();
     private ArrayList<msg_param_value> params = new ArrayList<msg_param_value>();
     private ArrayList<msg_mission_item> missions = new ArrayList<msg_mission_item>();
+    private int missionCount = 0;
 
     private int seq = 0;
 
@@ -140,10 +141,11 @@ public class MAVLinkShadow {
     }
     
     public int getMissionCount() {
-        return missions.size();
+        return missionCount;
     }
 
     public void setMissionCount(int count) {
+        missionCount = count;
         missions = new ArrayList<msg_mission_item>(count);
     }
 
