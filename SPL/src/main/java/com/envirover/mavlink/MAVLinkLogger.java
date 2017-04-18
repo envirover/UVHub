@@ -32,6 +32,12 @@ import org.apache.log4j.Priority;
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.common.*;
 
+/**
+ * Decodes and logs MAVLink messages to Log4j logger.
+ * 
+ * @author pavel
+ *
+ */
 public class MAVLinkLogger {
 
     private final static Logger logger = Logger.getLogger(MAVLinkSocket.class);

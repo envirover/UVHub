@@ -33,14 +33,18 @@ import com.envirover.mavlink.MAVLinkShadow;
 /**
  * Sends heartbeats and status messages to the specified channel.  
  * 
+ * Heartbeats and high-frequency messages such as SYS_STATUS, GPS_RAW_INT, ATTITUDE, 
+ * GLOBAL_POSITION_INT, MISSION_CURRENT, NAV_CONTROLLER_OUTPUT, and VFR_HUD are 
+ * derived form the HIGH_LATENCY message and sent to the destination channel.
+
  * @author pavel
  *
  */
-public class ReportStateTask extends TimerTask {
+public class HeartbeatTask extends TimerTask {
 
     private final MAVLinkChannel dst;
 
-    public ReportStateTask(MAVLinkChannel dst) {
+    public HeartbeatTask(MAVLinkChannel dst) {
         this.dst = dst;
     }
 

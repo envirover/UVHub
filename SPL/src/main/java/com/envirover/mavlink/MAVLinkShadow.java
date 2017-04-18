@@ -40,6 +40,7 @@ import com.MAVLink.common.msg_gps_raw_int;
 import com.MAVLink.common.msg_heartbeat;
 import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_mission_current;
+import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_nav_controller_output;
 import com.MAVLink.common.msg_param_value;
 import com.MAVLink.common.msg_statustext;
@@ -62,6 +63,8 @@ public class MAVLinkShadow {
 
     private final msg_high_latency msgHighLatency = new msg_high_latency();
     private ArrayList<msg_param_value> params = new ArrayList<msg_param_value>();
+    private ArrayList<msg_mission_item> missions = new ArrayList<msg_mission_item>();
+    private int missionCount = 0;
 
     private int seq = 0;
 
@@ -136,6 +139,28 @@ public class MAVLinkShadow {
             }
         }
     }
+    
+    public int getMissionCount() {
+        return missionCount;
+    }
+
+    public void setMissionCount(int count) {
+        missionCount = count;
+        missions = new ArrayList<msg_mission_item>(count);
+    }
+
+    public void setMissionItem(msg_mission_item mission) {
+        if (mission.seq >= missions.size()) {
+            missions.add(mission.seq, mission); 
+        } else {
+            missions.set(mission.seq, mission);
+        }
+    }
+
+    public MAVLinkPacket getMissionItem(int index) {
+        msg_mission_item mission  = missions.get(index);
+        return mission != null ? pack(mission) : null;
+    }
 
     public void updateReportedState(MAVLinkPacket packet) {
         if (packet.msgid == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
@@ -148,8 +173,8 @@ public class MAVLinkShadow {
     }
 
     /**
-     * Sends heartbeat and other status messages split 
-     * from the HIGH_LATENCY message the specified client channel.
+     * Sends heartbeat and other status messages derived 
+     * from HIGH_LATENCY message to the specified client channel.
      *
      * @param dst destination channel
      * @throws IOException if a message sending failed
