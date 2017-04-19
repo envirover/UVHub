@@ -46,7 +46,9 @@ import com.MAVLink.common.msg_param_value;
 import com.MAVLink.common.msg_statustext;
 import com.MAVLink.common.msg_sys_status;
 import com.MAVLink.common.msg_vfr_hud;
+import com.MAVLink.enums.MAV_AUTOPILOT;
 import com.MAVLink.enums.MAV_SEVERITY;
+import com.MAVLink.enums.MAV_STATE;
 import com.MAVLink.enums.MAV_TYPE;
 
 /**
@@ -118,14 +120,14 @@ public class MAVLinkShadow {
      * @param paramIndex Parameter index. Send -1 to use the paramId field as identifier, else the paramId will be ignored
      * @return MAVLink packet with parameter value or null, if the parameter was not found.
      */
-    public MAVLinkPacket getParamValue(String paramId, short paramIndex) {
+    public msg_param_value getParamValue(String paramId, short paramIndex) {
         if (paramIndex >= 0) {
-            return pack(params.get(paramIndex));
+            return params.get(paramIndex);
         }
 
         for (msg_param_value param : params) {
             if (param.getParam_Id().equalsIgnoreCase(paramId.trim()))
-                return pack(param);
+                return param;
         }
 
         return null;
@@ -157,9 +159,8 @@ public class MAVLinkShadow {
         }
     }
 
-    public MAVLinkPacket getMissionItem(int index) {
-        msg_mission_item mission  = missions.get(index);
-        return mission != null ? pack(mission) : null;
+    public msg_mission_item getMissionItem(int index) {
+        return missions.get(index);
     }
 
     public void updateReportedState(MAVLinkPacket packet) {
@@ -222,6 +223,9 @@ public class MAVLinkShadow {
     private MAVLinkPacket getHeartbeatMsg() {
         msg_heartbeat msg = new msg_heartbeat();
         msg.base_mode = msgHighLatency.base_mode;
+        msg.custom_mode = msgHighLatency.custom_mode;
+        msg.system_status = MAV_STATE.MAV_STATE_ACTIVE;
+        msg.autopilot = MAV_AUTOPILOT.MAV_AUTOPILOT_GENERIC;
         msg.type = MAV_TYPE.MAV_TYPE_GROUND_ROVER;
         return pack(msg);
     }
@@ -229,6 +233,7 @@ public class MAVLinkShadow {
     private MAVLinkPacket getSysStatusMsg() {
         msg_sys_status msg = new msg_sys_status();
         msg.battery_remaining = (byte)msgHighLatency.battery_remaining;
+        msg.current_battery = 0;
         return pack(msg);
     }
 
