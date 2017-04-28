@@ -47,6 +47,7 @@ import com.MAVLink.common.msg_statustext;
 import com.MAVLink.common.msg_sys_status;
 import com.MAVLink.common.msg_vfr_hud;
 import com.MAVLink.enums.MAV_AUTOPILOT;
+import com.MAVLink.enums.MAV_PARAM_TYPE;
 import com.MAVLink.enums.MAV_SEVERITY;
 import com.MAVLink.enums.MAV_STATE;
 import com.MAVLink.enums.MAV_TYPE;
@@ -60,6 +61,9 @@ import com.MAVLink.enums.MAV_TYPE;
  * 
  */
 public class MAVLinkShadow {
+
+    private static String HL_REPORT_PERIOD_PARAM = "HL_REPORT_PERIOD";
+    private static float  DEFAULT_HL_REPORT_PERIOD = 300.0F;
 
     private static MAVLinkShadow instance = null;
 
@@ -107,6 +111,17 @@ public class MAVLinkShadow {
                 }
             }
         }
+
+        // Add HL_REPORT_PERIOD parameter
+        msg_param_value param = new msg_param_value();
+        param.sysid = 1;
+        param.compid = 190;
+        param.setParam_Id(HL_REPORT_PERIOD_PARAM);
+        param.param_index = index; 
+        param.param_value = DEFAULT_HL_REPORT_PERIOD;
+        param.param_type = MAV_PARAM_TYPE.MAV_PARAM_TYPE_REAL32;
+        params.add(index, param);
+        index++;
 
         for (int i = 0; i < index; i++) {
             params.get(i).param_count = index;
