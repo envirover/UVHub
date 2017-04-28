@@ -65,7 +65,7 @@ public class MTMessagePump implements Runnable {
                     dst.sendMessage(packet);
                 }
 
-                Thread.sleep(10);
+                Thread.sleep(1000);
             } catch(IOException ex) {
                 logger.error(ex.getMessage());
             } catch (InterruptedException e) {
