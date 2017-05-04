@@ -264,7 +264,7 @@ public class MAVLinkShadow {
 
     private MAVLinkPacket getAttitudeMsg() {
         msg_attitude msg = new msg_attitude();
-        msg.yaw = msgHighLatency.heading / 100;
+        msg.yaw = (float)(msgHighLatency.heading * Math.PI / 18000.0);
         msg.pitch = (float)(msgHighLatency.pitch * Math.PI / 18000.0);
         msg.roll = (float)(msgHighLatency.roll * Math.PI / 18000.0);
         return pack(msg);
