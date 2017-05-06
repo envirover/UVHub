@@ -95,6 +95,7 @@ public class MAVLinkShadow {
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
         String str;
         int index = 0;
+        boolean hlReportPeriodParamFound = false;
         while ((str = reader.readLine()) != null) {
             if (!str.isEmpty() && !str.startsWith("#")) {
                 String[] tokens = str.split("\t");
@@ -108,21 +109,27 @@ public class MAVLinkShadow {
                     param.param_type = Short.valueOf(tokens[4]);
                     params.add(index, param);
                     index++;
+                    if (HL_REPORT_PERIOD_PARAM.equals(param.getParam_Id())) {
+                        hlReportPeriodParamFound = true;
+                    }
                 }
             }
         }
 
-        // Add HL_REPORT_PERIOD parameter
-        msg_param_value param = new msg_param_value();
-        param.sysid = 1;
-        param.compid = 190;
-        param.setParam_Id(HL_REPORT_PERIOD_PARAM);
-        param.param_index = index; 
-        param.param_value = DEFAULT_HL_REPORT_PERIOD;
-        param.param_type = MAV_PARAM_TYPE.MAV_PARAM_TYPE_REAL32;
-        params.add(index, param);
-        index++;
+        if (!hlReportPeriodParamFound) {
+            // Add HL_REPORT_PERIOD parameter
+            msg_param_value param = new msg_param_value();
+            param.sysid = 1;
+            param.compid = 190;
+            param.setParam_Id(HL_REPORT_PERIOD_PARAM);
+            param.param_index = index; 
+            param.param_value = DEFAULT_HL_REPORT_PERIOD;
+            param.param_type = MAV_PARAM_TYPE.MAV_PARAM_TYPE_REAL32;
+            params.add(index, param);
+            index++;
+        }
 
+        // Set param_count for all the parameters.
         for (int i = 0; i < index; i++) {
             params.get(i).param_count = index;
         }
@@ -240,7 +247,7 @@ public class MAVLinkShadow {
         msg.base_mode = msgHighLatency.base_mode;
         msg.custom_mode = msgHighLatency.custom_mode;
         msg.system_status = MAV_STATE.MAV_STATE_ACTIVE;
-        msg.autopilot = MAV_AUTOPILOT.MAV_AUTOPILOT_GENERIC;
+        msg.autopilot = MAV_AUTOPILOT.MAV_AUTOPILOT_ARDUPILOTMEGA;
         msg.type = MAV_TYPE.MAV_TYPE_GROUND_ROVER;
         return pack(msg);
     }
@@ -264,9 +271,9 @@ public class MAVLinkShadow {
 
     private MAVLinkPacket getAttitudeMsg() {
         msg_attitude msg = new msg_attitude();
-        msg.yaw = (float)(msgHighLatency.heading * Math.PI / 18000.0);
-        msg.pitch = (float)(msgHighLatency.pitch * Math.PI / 18000.0);
-        msg.roll = (float)(msgHighLatency.roll * Math.PI / 18000.0);
+        msg.yaw = (float)Math.toRadians(msgHighLatency.heading / 100.0);
+        msg.pitch = (float)Math.toRadians(msgHighLatency.pitch / 100.0);
+        msg.roll = (float)Math.toRadians(msgHighLatency.roll / 100.0);
         return pack(msg);
     }
 
