@@ -250,7 +250,7 @@ public class MTMessageHandler implements Runnable {
     private void sendToSource(MAVLinkMessage msg) throws IOException {
         MAVLinkPacket packet = msg.pack();
         packet.sysid = msg.sysid;
-        packet.compid = msg.compid;
+        packet.compid = 1;//msg.compid;
         src.sendMessage(packet);
     }
 
