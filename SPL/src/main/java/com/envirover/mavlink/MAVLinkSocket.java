@@ -47,6 +47,8 @@ public class MAVLinkSocket implements MAVLinkChannel {
     private final static Logger logger = Logger.getLogger(MAVLinkSocket.class);
 
     private final ServerSocket socket;
+    private final Object sendLock = new Object();
+    private final Object receiveLock = new Object(); 
 
     private Socket connection = null;
     private DataInputStream in = null;
@@ -99,18 +101,20 @@ public class MAVLinkSocket implements MAVLinkChannel {
 
         connect();
 
-        try {
-            do {
-                try {
-                    int c = in.readUnsignedByte();
-                    packet = parser.mavlink_parse_char(c);
-                } catch(java.io.EOFException ex) {
-                    return null;
-                }
-            } while (packet == null);
-        } catch (SocketException ex) {
-            logger.info("MAVLink client disconnected.");
-            closeConnection();
+        synchronized(receiveLock) {
+            try {
+                do {
+                    try {
+                        int c = in.readUnsignedByte();
+                        packet = parser.mavlink_parse_char(c);
+                    } catch(java.io.EOFException ex) {
+                        return null;
+                    }
+                } while (packet == null);
+            } catch (SocketException ex) {
+                logger.info("MAVLink client disconnected.");
+                closeConnection();
+            }
         }
 
         MAVLinkLogger.log(Level.DEBUG, "<<", packet);
@@ -125,22 +129,25 @@ public class MAVLinkSocket implements MAVLinkChannel {
 
         connect();
 
-        try {
-            if (isConnected()) {
-                byte[] data = packet.encodePacket();
-                out.write(data);
-                out.flush();
+        if (isConnected()) {
+            synchronized(sendLock) {
+                try {
+                    byte[] data = packet.encodePacket();
 
-                MAVLinkLogger.log(Level.DEBUG, ">>", packet);
+                    out.write(data);
+                    out.flush();
+
+                    MAVLinkLogger.log(Level.DEBUG, ">>", packet);
+                } catch (SocketException ex) {
+                    logger.info("MAVLink client disconnected.");
+                    closeConnection();
+                }
             }
-        } catch (SocketException ex) {
-            logger.info("MAVLink client disconnected.");
-            closeConnection();
         }
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
         closeConnection();
 
         try {
