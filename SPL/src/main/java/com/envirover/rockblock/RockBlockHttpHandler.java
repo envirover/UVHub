@@ -85,15 +85,18 @@ public class RockBlockHttpHandler implements HttpHandler {
 
             logger.debug(message);
 
-            MAVLinkPacket packet = message.getPacket();
-
-            if (packet != null) {
-                MAVLinkLogger.log(Level.INFO, "MO", packet);
-
-                if (message.imei.equalsIgnoreCase(imei))
+            if (message.imei.equalsIgnoreCase(imei)) {
+                MAVLinkPacket packet = message.getPacket();
+    
+                if (packet != null) {
+                    MAVLinkLogger.log(Level.INFO, "MO", packet);
+    
                     queue.sendMessage(packet);
-                else
-                    logger.warn(MessageFormat.format("Invalid IMEI ''{0}''.", message.imei));
+                } else {
+                    logger.warn(MessageFormat.format("Invalid MAVLink message ''{0}''.", message.toString()));
+                }
+            } else {
+                logger.warn(MessageFormat.format("Invalid IMEI ''{0}''.", message.imei));
             }
 
             //Send response

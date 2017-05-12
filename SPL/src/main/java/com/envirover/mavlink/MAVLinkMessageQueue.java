@@ -27,6 +27,8 @@ package com.envirover.mavlink;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.apache.log4j.Logger;
+
 import com.MAVLink.MAVLinkPacket;
 
 /**
@@ -35,6 +37,8 @@ import com.MAVLink.MAVLinkPacket;
  */
 public class MAVLinkMessageQueue implements MAVLinkChannel {
 
+    private final static Logger logger = Logger.getLogger(MAVLinkMessageQueue.class);
+    
     private final ConcurrentLinkedQueue<MAVLinkPacket> queue = new ConcurrentLinkedQueue<MAVLinkPacket>(); 
     private final int maxQueueSize;
 
@@ -55,7 +59,7 @@ public class MAVLinkMessageQueue implements MAVLinkChannel {
     @Override
     public synchronized void sendMessage(MAVLinkPacket packet) throws IOException {
         if (queue.size() >= maxQueueSize) {
-            queue.poll();
+            logger.warn("MAVLink message queue is longer than MaxQueueSize.");
         }
 
         queue.add(packet);
