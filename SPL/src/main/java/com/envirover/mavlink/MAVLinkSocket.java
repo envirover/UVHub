@@ -111,7 +111,7 @@ public class MAVLinkSocket implements MAVLinkChannel {
                         return null;
                     }
                 } while (packet == null);
-            } catch (SocketException ex) {
+            } catch (Exception ex) {
                 logger.info("MAVLink client disconnected.");
                 closeConnection();
             }
@@ -138,7 +138,7 @@ public class MAVLinkSocket implements MAVLinkChannel {
                     out.flush();
 
                     MAVLinkLogger.log(Level.DEBUG, ">>", packet);
-                } catch (SocketException ex) {
+                } catch (Exception ex) {
                     logger.info("MAVLink client disconnected.");
                     closeConnection();
                 }
