@@ -85,7 +85,9 @@ public class RockBlockHttpHandler implements HttpHandler {
 
             logger.debug(message);
 
-            if (message.imei.equalsIgnoreCase(imei)) {
+            if (message.data == null || message.data.isEmpty()) {
+                logger.info(MessageFormat.format("Empty MO message received ''{0}''.", message.toString()));
+            } else if (message.imei.equalsIgnoreCase(imei)) {
                 MAVLinkPacket packet = message.getPacket();
     
                 if (packet != null) {

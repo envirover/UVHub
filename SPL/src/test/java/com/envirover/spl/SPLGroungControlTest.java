@@ -37,6 +37,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -244,6 +245,21 @@ public class SPLGroungControlTest {
         }
     }
 
+    @Test
+    public void testMessageParser() throws DecoderException {
+        //MAVLinkPacket packet = getPacket("fe030201012fff00016472");
+        MAVLinkPacket packet = getPacket("fe28010101ea04000000242c4f14d4f32cbac1fe78fe527d6829d301d4e5010081001700000000090400000000018099");
+
+        int[] MAVLINK_MESSAGE_CRCS = {50, 124, 137, 0, 237, 217, 104, 119, 0, 0, 0, 89, 0, 0, 0, 0, 0, 0, 0, 0, 214, 159, 220, 168, 24, 23, 170, 144, 67, 115, 39, 246, 185, 104, 237, 244, 222, 212, 9, 254, 230, 28, 28, 132, 221, 232, 11, 153, 41, 39, 78, 196, 0, 0, 15, 3, 0, 0, 0, 0, 0, 167, 183, 119, 191, 118, 148, 21, 0, 243, 124, 0, 0, 38, 20, 158, 152, 143, 0, 0, 0, 106, 49, 22, 143, 140, 5, 150, 0, 231, 183, 63, 54, 47, 0, 0, 0, 0, 0, 0, 175, 102, 158, 208, 56, 93, 138, 108, 32, 185, 84, 34, 174, 124, 237, 4, 76, 128, 56, 116, 134, 237, 203, 250, 87, 203, 220, 25, 226, 46, 29, 223, 85, 6, 229, 203, 1, 195, 109, 168, 181, 47, 72, 131, 127, 0, 103, 154, 178, 200, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 163, 105, 151, 35, 150, 0, 0, 0, 0, 0, 0, 90, 104, 85, 95, 130, 184, 81, 8, 204, 49, 170, 44, 83, 46, 0};
+        
+        System.out.println(MAVLINK_MESSAGE_CRCS[47]);
+        
+        if (packet == null) {
+            fail("MAVLink message parse failed.");
+        }
+    }
+    
+
     private MAVLinkPacket getSamplePacket() {
         msg_high_latency msg = new msg_high_latency();
         msg.latitude = 523867;
@@ -251,5 +267,16 @@ public class SPLGroungControlTest {
         msg.sysid = 1;
         msg.compid = 2;
         return msg.pack();
+    }
+
+    private MAVLinkPacket getPacket(String data) throws DecoderException {
+        Parser parser = new Parser();
+        MAVLinkPacket packet = null;
+
+        for (byte b : Hex.decodeHex(data.toCharArray())) {
+            packet = parser.mavlink_parse_char(b & 0xFF);
+        }
+
+        return packet;
     }
 }
