@@ -125,7 +125,7 @@ public class MTMessageHandler implements Runnable {
             }
             case msg_param_set.MAVLINK_MSG_ID_PARAM_SET: {
                 msg_param_set paramSet = (msg_param_set)packet.unpack();
-                shadow.setParamValue(paramSet.getParam_Id(), paramSet.param_value);
+                //shadow.setParamValue(paramSet.getParam_Id(), paramSet.param_value);
                 sendToSource(shadow.getParamValue(paramSet.getParam_Id(), (short)-1));
                 break;
             }
@@ -143,7 +143,7 @@ public class MTMessageHandler implements Runnable {
             case msg_mission_request_list.MAVLINK_MSG_ID_MISSION_REQUEST_LIST: {
                 msg_mission_request_list msg = (msg_mission_request_list)packet.unpack();
                 msg_mission_count count = new msg_mission_count();
-                count.count = shadow.getMissionCount();
+                count.count = shadow.getReportedMissionCount();
                 count.sysid = msg.target_system;
                 count.compid = msg.target_component;
                 count.target_system = (short) packet.sysid;
@@ -153,14 +153,14 @@ public class MTMessageHandler implements Runnable {
             }
             case msg_mission_request.MAVLINK_MSG_ID_MISSION_REQUEST: {
                 msg_mission_request msg = (msg_mission_request)packet.unpack();
-                msg_mission_item mission = shadow.getMissionItem(msg.seq);
+                msg_mission_item mission = shadow.getReportedMissionItem(msg.seq);
                 mission.sysid = msg.target_system;
                 mission.compid = msg.target_component;
                 sendToSource(mission);
                 break;
             }
             case msg_mission_clear_all.MAVLINK_MSG_ID_MISSION_CLEAR_ALL: {
-                shadow.setMissionCount(0);
+                shadow.setDesiredMissionCount(0);
                 break;
             }
             case msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT: {
@@ -174,7 +174,7 @@ public class MTMessageHandler implements Runnable {
                     mission_ack.target_component = (short) packet.compid;
                     sendToSource(mission_ack);                	
                 } else {
-	                shadow.setMissionCount(msg.count);
+	                shadow.setDesiredMissionCount(msg.count);
 	                msg_mission_request request = new msg_mission_request();
 	                request.seq = 0;
 	                request.sysid = msg.target_system;
@@ -188,7 +188,7 @@ public class MTMessageHandler implements Runnable {
             case msg_mission_item.MAVLINK_MSG_ID_MISSION_ITEM: {
                 msg_mission_item msg = (msg_mission_item)packet.unpack();
                 shadow.setMissionItem(msg);
-                if (msg.seq + 1 < shadow.getMissionCount()) {
+                if (msg.seq + 1 < shadow.getDesiredMissionCount()) {
                     msg_mission_request mission_request = new msg_mission_request();
                     mission_request.seq = msg.seq + 1;
                     mission_request.sysid = msg.target_system;
