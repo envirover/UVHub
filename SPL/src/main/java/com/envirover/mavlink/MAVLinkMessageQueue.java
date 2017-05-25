@@ -59,6 +59,7 @@ public class MAVLinkMessageQueue implements MAVLinkChannel {
     @Override
     public synchronized void sendMessage(MAVLinkPacket packet) throws IOException {
         if (queue.size() >= maxQueueSize) {
+        	queue.poll();
             logger.warn("MAVLink message queue is longer than MaxQueueSize.");
         }
 

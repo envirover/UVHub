@@ -80,7 +80,7 @@ public class MTMessageHandler implements Runnable {
 
     @Override
     public void run() {
-        logger.debug("MAVLinkHandler started.");
+        logger.debug("MTMessageHandler started.");
 
         while (true) {
             try {
