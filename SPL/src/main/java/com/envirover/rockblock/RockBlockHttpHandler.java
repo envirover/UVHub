@@ -57,17 +57,17 @@ public class RockBlockHttpHandler implements HttpHandler {
 
     private final static Logger logger = Logger.getLogger(RockBlockHttpHandler.class);
 
-    private final MAVLinkChannel queue;
+    private final MAVLinkChannel dst;
     private final String imei;
 
     /**
      * Constructs instance of RockBlockHttpHandler.
      * 
-     * @param queue MAVLink message queue
+     * @param dst MAVLink message handler
      * @param imei RockBLOCK imei
      */
-    public RockBlockHttpHandler(MAVLinkChannel queue, String imei) {
-        this.queue = queue;
+    public RockBlockHttpHandler(MAVLinkChannel dst, String imei) {
+        this.dst = dst;
         this.imei = imei;
     }
 
@@ -93,7 +93,7 @@ public class RockBlockHttpHandler implements HttpHandler {
                 if (packet != null) {
                     MAVLinkLogger.log(Level.INFO, "MO", packet);
     
-                    queue.sendMessage(packet);
+                    dst.sendMessage(packet);
                 } else {
                     logger.warn(MessageFormat.format("Invalid MAVLink message ''{0}''.", message.toString()));
                 }

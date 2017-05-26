@@ -44,6 +44,7 @@
 						</goals>
 						<configuration>
 							<finalName>spl-${project.version}</finalName>
+							<tarLongFileMode>posix</tarLongFileMode> 
 							<descriptors>
 								<descriptor>src/assembly/spl.xml</descriptor>
 							</descriptors>

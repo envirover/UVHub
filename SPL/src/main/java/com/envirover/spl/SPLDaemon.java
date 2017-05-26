@@ -87,10 +87,12 @@ public class SPLDaemon implements Daemon {
         socket = new MAVLinkSocket(config.getMAVLinkPort());
 
         MAVLinkMessageQueue moMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
+        
+        MOMessageHandler moHandler = new MOMessageHandler(moMessageQueue);
 
         server = HttpServer.create(new InetSocketAddress(config.getRockblockPort()), 0);
         server.createContext(config.getHttpContext(), 
-                             new RockBlockHttpHandler(moMessageQueue, config.getRockBlockIMEI()));
+                             new RockBlockHttpHandler(moHandler, config.getRockBlockIMEI()));
         server.setExecutor(null);
 
         MOMessagePump moMsgPump = new MOMessagePump(moMessageQueue, socket);

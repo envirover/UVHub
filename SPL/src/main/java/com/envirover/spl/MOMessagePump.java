@@ -29,18 +29,12 @@ import java.io.IOException;
 import org.apache.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
-import com.MAVLink.common.msg_command_ack;
-import com.MAVLink.common.msg_high_latency;
-import com.MAVLink.common.msg_param_value;
 import com.envirover.mavlink.MAVLinkChannel;
-import com.envirover.mavlink.MAVLinkShadow;
 
 /**
  * Mobile-originated (MO) message pump receives MAVLink messages from the 
  * specified source channel and forwards them to the specified destination
- * channel.
- * 
- * Messages of HIGH_LATENCY type are not forwarded but stored in memory. 
+ * channel. 
  */
 class MOMessagePump implements Runnable {
 
@@ -71,7 +65,7 @@ class MOMessagePump implements Runnable {
             try {
                 MAVLinkPacket packet = src.receiveMessage();
 
-                handleMessage(packet);
+                dst.sendMessage(packet);
 
                 Thread.sleep(MO_MESSAGE_PUMP_INTERVAL);
             } catch (IOException ex) {
@@ -81,31 +75,6 @@ class MOMessagePump implements Runnable {
                 logger.debug("MOMessagePump interrupted.");
                 return;
             }
-        }
-    }
-
-    private void handleMessage(MAVLinkPacket packet) throws IOException {
-        if (packet == null) {
-            return;
-        }
-
-        MAVLinkShadow shadow = MAVLinkShadow.getInstance();
-
-        shadow.updateReportedState(packet);
-
-        switch(packet.msgid) {
-            case msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY:
-                // Do not forward HIGH_LATENCY messages
-                break;
-            case msg_command_ack.MAVLINK_MSG_ID_COMMAND_ACK:
-                // Replace the COMMAND_ACK message by STATUS_TEXT message.
-                shadow.sendCommandAck(packet, dst);
-                break;
-            case msg_param_value.MAVLINK_MSG_ID_PARAM_VALUE:
-                //TODO: Update the actual param value in MAVLinkShadow.
-                break;
-            default:
-                dst.sendMessage(packet);
         }
     }
 

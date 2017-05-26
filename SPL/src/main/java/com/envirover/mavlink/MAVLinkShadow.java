@@ -28,13 +28,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_attitude;
-import com.MAVLink.common.msg_command_ack;
 import com.MAVLink.common.msg_global_position_int;
 import com.MAVLink.common.msg_gps_raw_int;
 import com.MAVLink.common.msg_heartbeat;
@@ -43,12 +41,10 @@ import com.MAVLink.common.msg_mission_current;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_nav_controller_output;
 import com.MAVLink.common.msg_param_value;
-import com.MAVLink.common.msg_statustext;
 import com.MAVLink.common.msg_sys_status;
 import com.MAVLink.common.msg_vfr_hud;
 import com.MAVLink.enums.MAV_AUTOPILOT;
 import com.MAVLink.enums.MAV_PARAM_TYPE;
-import com.MAVLink.enums.MAV_SEVERITY;
 import com.MAVLink.enums.MAV_STATE;
 import com.MAVLink.enums.MAV_TYPE;
 
@@ -69,8 +65,9 @@ public class MAVLinkShadow {
 
     private final msg_high_latency msgHighLatency = new msg_high_latency();
     private ArrayList<msg_param_value> params = new ArrayList<msg_param_value>();
-    private ArrayList<msg_mission_item> missions = new ArrayList<msg_mission_item>();
-    private int missionCount = 0;
+    private ArrayList<msg_mission_item> reportedMissions = new ArrayList<msg_mission_item>();
+    private ArrayList<msg_mission_item> desiredMissions = new ArrayList<msg_mission_item>();    
+    private int desiredMissionCount = 0;
 
     private int seq = 0;
 
@@ -164,25 +161,33 @@ public class MAVLinkShadow {
         }
     }
     
-    public int getMissionCount() {
-        return missionCount;
+    public int getDesiredMissionCount() {
+        return desiredMissionCount;
     }
 
-    public void setMissionCount(int count) {
-        missionCount = count;
-        missions = new ArrayList<msg_mission_item>(count);
+    public void setDesiredMissionCount(int count) {
+        desiredMissionCount = count;
+        desiredMissions = new ArrayList<msg_mission_item>(count);
     }
 
     public void setMissionItem(msg_mission_item mission) {
-        if (mission.seq >= missions.size()) {
-            missions.add(mission.seq, mission); 
+        if (mission.seq >= desiredMissions.size()) {
+            desiredMissions.add(mission.seq, mission); 
         } else {
-            missions.set(mission.seq, mission);
+            desiredMissions.set(mission.seq, mission);
         }
     }
 
-    public msg_mission_item getMissionItem(int index) {
-        return missions.get(index);
+    public int getReportedMissionCount() {
+    	return reportedMissions.size();
+    }
+    
+    public msg_mission_item getReportedMissionItem(int index) {
+        return reportedMissions.get(index);
+    }
+    
+    public void missionAccepted() {
+    	reportedMissions = desiredMissions;
     }
 
     public void updateReportedState(MAVLinkPacket packet) {
@@ -218,20 +223,6 @@ public class MAVLinkShadow {
             dst.sendMessage(pack(param));
             Thread.sleep(10);
         }
-    }
-
-    public void sendCommandAck(MAVLinkPacket packet, MAVLinkChannel dst) throws IOException {
-        //Replace COMMAND_ACK by STATUSTEXT message
-        msg_command_ack ack = (msg_command_ack)packet.unpack();
-
-        String text = MessageFormat.format("ACK: comand={0}, result={1}",
-                                           ack.command, ack.result);
-
-        msg_statustext msg = new msg_statustext();
-        msg.severity = MAV_SEVERITY.MAV_SEVERITY_INFO;
-        msg.setText(text);
-
-        dst.sendMessage(pack(msg));
     }
 
     private MAVLinkPacket pack(MAVLinkMessage msg) {
