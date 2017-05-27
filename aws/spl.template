@@ -176,13 +176,12 @@
             "wget ", { "Ref" : "SPLArchiveURL" }, " -O spl-bin.tar.gz\n",
             "tar -xvzf spl-bin.tar.gz\n", 
             "export SPL_HOME=$(pwd)\n",
-            "wget ", { "Ref" : "MAVParametersURL" }, "-O conf/default.params\n",
+            "export JAVA_HOME=/usr/lib/jvm/jre\n",
+            "wget ", { "Ref" : "MAVParametersURL" }, " -O conf/default.params\n",
             "/opt/aws/bin/cfn-init -s ", { "Ref" : "AWS::StackId" }, " -r SPLServer ", " --region ", { "Ref" : "AWS::Region" }, " || error_exit 'Failed to run cfn-init'\n",
             "service awslogs start\n",
-            "wget --no-cookies --header \"Cookie: gpw_e24=xxx; oraclelicense=accept-securebackup-cookie;\" \"http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jdk-8u101-linux-x64.rpm\" -O /tmp/jdk.rpm\n", 
-            "rpm -i /tmp/jdk.rpm\n", 
             "yum install -y jsvc*\n", 
-            "/usr/bin/jsvc -server -cp $SPL_HOME/conf:$SPL_HOME/lib/* -home /usr/java/latest com.envirover.spl.SPLDaemon -i ", { "Ref" : "RockBlockIMEI" }, " -u ", { "Ref" : "RockBlockUsername" }, " -p ", { "Ref" : "RockBlockPassword" }, "\n",
+            "/usr/bin/jsvc -server -cp $SPL_HOME/conf:$SPL_HOME/lib/* -pidfile $SPL_HOME/jsvc.pid -home $JAVA_HOME com.envirover.spl.SPLDaemon -i ", { "Ref" : "RockBlockIMEI" }, " -u ", { "Ref" : "RockBlockUsername" }, " -p ", { "Ref" : "RockBlockPassword" }, "\n",
             "/opt/aws/bin/cfn-signal -e $? --stack ", { "Ref" : "AWS::StackName" }, " --region ", { "Ref" : "AWS::Region" }, " --resource SPLServer\n" ] ]
           }
         }
