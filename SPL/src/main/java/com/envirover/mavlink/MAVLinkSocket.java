@@ -29,6 +29,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.MessageFormat;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -53,6 +54,8 @@ public class MAVLinkSocket implements MAVLinkChannel {
     private DataInputStream in = null;
     private DataOutputStream out = null;
 
+    private int seq = 0;
+
     /**
      * Constructs instance of MAVLinkSocket.
      * 
@@ -71,15 +74,15 @@ public class MAVLinkSocket implements MAVLinkChannel {
      */
     public synchronized void connect() throws IOException {
         if (!isConnected()) {
-            System.out.printf("Waiting for MAVLink client connection on tcp://%s:%d...",
-                    socket.getInetAddress().getHostAddress(), socket.getLocalPort());
-            System.out.println();
+            //System.out.printf("Waiting for MAVLink client connection on tcp://%s:%d...",
+            //        socket.getInetAddress().getHostAddress(), socket.getLocalPort());
+            //System.out.println();
 
             connection = socket.accept();
             in = new DataInputStream(connection.getInputStream());
             out = new DataOutputStream(connection.getOutputStream());
 
-            logger.info("MAVLink client connected.");
+            logger.info(MessageFormat.format("MAVLink client '{0}' connected.", connection.getInetAddress()));
         }
     }
 
@@ -110,13 +113,13 @@ public class MAVLinkSocket implements MAVLinkChannel {
                         return null;
                     }
                 } while (packet == null);
-            } catch (Exception ex) {
-                logger.info("MAVLink client disconnected.");
+
+                MAVLinkLogger.log(Level.DEBUG, "<<", packet);
+            } catch (IOException ex) {
+                logger.warn("Failed to receive MAVLink message from socket. " + ex.getMessage());
                 closeConnection();
             }
         }
-
-        MAVLinkLogger.log(Level.DEBUG, "<<", packet);
 
         return packet;
     }
@@ -131,14 +134,16 @@ public class MAVLinkSocket implements MAVLinkChannel {
         if (isConnected()) {
             synchronized(sendLock) {
                 try {
+                    packet.seq = seq++;
+
                     byte[] data = packet.encodePacket();
 
                     out.write(data);
                     out.flush();
 
                     MAVLinkLogger.log(Level.DEBUG, ">>", packet);
-                } catch (Exception ex) {
-                    logger.info("MAVLink client disconnected.");
+                } catch (IOException ex) {
+                    logger.warn("Failed to send MAVLink message to socket. " + ex.getMessage());
                     closeConnection();
                 }
             }
@@ -183,6 +188,8 @@ public class MAVLinkSocket implements MAVLinkChannel {
                 e.printStackTrace();
             }
         }
+
+        logger.info("MAVLink client disconnected.");
     }
 
 }

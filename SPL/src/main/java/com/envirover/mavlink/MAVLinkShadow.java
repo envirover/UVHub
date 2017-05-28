@@ -29,24 +29,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.MAVLink.MAVLinkPacket;
-import com.MAVLink.Messages.MAVLinkMessage;
-import com.MAVLink.common.msg_attitude;
-import com.MAVLink.common.msg_global_position_int;
-import com.MAVLink.common.msg_gps_raw_int;
-import com.MAVLink.common.msg_heartbeat;
 import com.MAVLink.common.msg_high_latency;
-import com.MAVLink.common.msg_mission_current;
 import com.MAVLink.common.msg_mission_item;
-import com.MAVLink.common.msg_nav_controller_output;
 import com.MAVLink.common.msg_param_value;
-import com.MAVLink.common.msg_sys_status;
-import com.MAVLink.common.msg_vfr_hud;
-import com.MAVLink.enums.MAV_AUTOPILOT;
 import com.MAVLink.enums.MAV_PARAM_TYPE;
-import com.MAVLink.enums.MAV_STATE;
-import com.MAVLink.enums.MAV_TYPE;
 
 /**
  * Keeps the reported and the desired states of the vehicle.
@@ -57,6 +46,9 @@ import com.MAVLink.enums.MAV_TYPE;
  * 
  */
 public class MAVLinkShadow {
+
+    private static int SYS_ID = 1;
+    private static int COMP_ID = 1;
 
     private static String HL_REPORT_PERIOD_PARAM = "HL_REPORT_PERIOD";
     private static float  DEFAULT_HL_REPORT_PERIOD = 300.0F;
@@ -69,11 +61,9 @@ public class MAVLinkShadow {
     private ArrayList<msg_mission_item> desiredMissions = new ArrayList<msg_mission_item>();    
     private int desiredMissionCount = 0;
 
-    private int seq = 0;
-
     protected MAVLinkShadow() {
-        msgHighLatency.sysid = 1;
-        msgHighLatency.compid = 1;
+        msgHighLatency.sysid = SYS_ID;
+        msgHighLatency.compid = COMP_ID;
     }
 
     public static MAVLinkShadow getInstance() {
@@ -196,109 +186,12 @@ public class MAVLinkShadow {
         }
     }
 
-    public void updateDesiredState(MAVLinkPacket packet) {
-        
+    public msg_high_latency getHighLatencyMessage() {
+        return msgHighLatency;
     }
-
-    /**
-     * Sends heartbeat and other status messages derived 
-     * from HIGH_LATENCY message to the specified client channel.
-     *
-     * @param dst destination channel
-     * @throws IOException if a message sending failed
-     */
-    public void reportState(MAVLinkChannel dst) throws IOException {
-        dst.sendMessage(getHeartbeatMsg());
-        dst.sendMessage(getSysStatusMsg());
-        dst.sendMessage(getGpsRawIntMsg());
-        dst.sendMessage(getAttitudeMsg());
-        dst.sendMessage(getGlobalPositionIntMsg());
-        dst.sendMessage(getMissionCurrentMsg());
-        dst.sendMessage(getNavControllerOutputMsg());
-        dst.sendMessage(getVfrHudMsg());
-    }
-
-    public void reportParams(MAVLinkChannel dst) throws IOException, InterruptedException {
-        for (msg_param_value param : params) {
-            dst.sendMessage(pack(param));
-            Thread.sleep(10);
-        }
-    }
-
-    private MAVLinkPacket pack(MAVLinkMessage msg) {
-        MAVLinkPacket packet = msg.pack();
-        packet.seq = seq++;
-        packet.sysid = msgHighLatency.sysid;
-        packet.compid = msgHighLatency.compid;
-        return packet;
-    }
-
-    private MAVLinkPacket getHeartbeatMsg() {
-        msg_heartbeat msg = new msg_heartbeat();
-        msg.base_mode = msgHighLatency.base_mode;
-        msg.custom_mode = msgHighLatency.custom_mode;
-        msg.system_status = MAV_STATE.MAV_STATE_ACTIVE;
-        msg.autopilot = MAV_AUTOPILOT.MAV_AUTOPILOT_ARDUPILOTMEGA;
-        msg.type = MAV_TYPE.MAV_TYPE_GROUND_ROVER;
-        return pack(msg);
-    }
-
-    private MAVLinkPacket getSysStatusMsg() {
-        msg_sys_status msg = new msg_sys_status();
-        msg.battery_remaining = (byte)msgHighLatency.battery_remaining;
-        msg.current_battery = 0;
-        return pack(msg);
-    }
-
-    private MAVLinkPacket getGpsRawIntMsg() {
-        msg_gps_raw_int msg = new msg_gps_raw_int();
-        msg.fix_type = msgHighLatency.gps_fix_type;
-        msg.satellites_visible = msgHighLatency.gps_nsat;
-        msg.lat = msgHighLatency.latitude;
-        msg.lon = msgHighLatency.longitude;
-        msg.alt = msgHighLatency.altitude_amsl;
-        return pack(msg);
-    }
-
-    private MAVLinkPacket getAttitudeMsg() {
-        msg_attitude msg = new msg_attitude();
-        msg.yaw = (float)Math.toRadians(msgHighLatency.heading / 100.0);
-        msg.pitch = (float)Math.toRadians(msgHighLatency.pitch / 100.0);
-        msg.roll = (float)Math.toRadians(msgHighLatency.roll / 100.0);
-        return pack(msg);
-    }
-
-    private MAVLinkPacket getGlobalPositionIntMsg() {
-        msg_global_position_int msg = new msg_global_position_int();
-        msg.alt = msgHighLatency.altitude_amsl;
-        msg.lat = msgHighLatency.latitude;
-        msg.lon = msgHighLatency.longitude;
-        msg.hdg = msgHighLatency.heading;
-        msg.relative_alt = msgHighLatency.altitude_sp;
-        return pack(msg);
-    }
-
-    private MAVLinkPacket getMissionCurrentMsg() {
-        msg_mission_current msg = new msg_mission_current();
-        msg.seq = msgHighLatency.wp_num;
-        return pack(msg);
-    }
-
-    private MAVLinkPacket getNavControllerOutputMsg() {
-        msg_nav_controller_output msg = new msg_nav_controller_output();
-        msg.nav_bearing = (short)(msgHighLatency.heading_sp / 100);
-        return pack(msg);
-    }
- 
-    private MAVLinkPacket getVfrHudMsg() {
-        msg_vfr_hud msg = new msg_vfr_hud();
-        msg.airspeed = msgHighLatency.airspeed;
-        msg.alt = msgHighLatency.altitude_amsl;
-        msg.climb = msgHighLatency.climb_rate;
-        msg.groundspeed = msgHighLatency.groundspeed;
-        msg.heading = (short)(msgHighLatency.heading / 100);
-        msg.throttle = msgHighLatency.throttle;
-        return pack(msg);
+    
+    public List<msg_param_value> getParams() {
+        return params;
     }
 
 }

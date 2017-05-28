@@ -46,6 +46,7 @@ import com.MAVLink.common.msg_mission_write_partial_list;
 import com.MAVLink.common.msg_param_request_list;
 import com.MAVLink.common.msg_param_request_read;
 import com.MAVLink.common.msg_param_set;
+import com.MAVLink.common.msg_param_value;
 import com.MAVLink.common.msg_set_home_position;
 import com.MAVLink.common.msg_set_mode;
 import com.MAVLink.enums.MAV_CMD;
@@ -90,8 +91,6 @@ public class MTMessageHandler implements Runnable {
                 handleMissions(packet);
                 handleCommand(packet);
 
-                MAVLinkShadow.getInstance().updateDesiredState(packet);
-
                 if (filter(packet)) {
                     dst.sendMessage(packet);
                 }
@@ -115,7 +114,10 @@ public class MTMessageHandler implements Runnable {
 
         switch (packet.msgid) {
             case msg_param_request_list.MAVLINK_MSG_ID_PARAM_REQUEST_LIST: {
-                shadow.reportParams(src);
+                for (msg_param_value param : shadow.getParams()) {
+                    sendToSource(param);
+                    Thread.sleep(10);
+                }
                 break;
             }
             case msg_param_request_read.MAVLINK_MSG_ID_PARAM_REQUEST_READ: {
