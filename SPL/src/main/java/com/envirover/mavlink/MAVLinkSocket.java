@@ -53,6 +53,8 @@ public class MAVLinkSocket implements MAVLinkChannel {
     private DataInputStream in = null;
     private DataOutputStream out = null;
 
+    private int seq = 0;
+
     /**
      * Constructs instance of MAVLinkSocket.
      * 
@@ -131,6 +133,8 @@ public class MAVLinkSocket implements MAVLinkChannel {
         if (isConnected()) {
             synchronized(sendLock) {
                 try {
+                    packet.seq = seq++;
+
                     byte[] data = packet.encodePacket();
 
                     out.write(data);
