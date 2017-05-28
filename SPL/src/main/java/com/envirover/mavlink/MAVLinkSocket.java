@@ -74,9 +74,7 @@ public class MAVLinkSocket implements MAVLinkChannel {
      */
     public synchronized void connect() throws IOException {
         if (!isConnected()) {
-            //System.out.printf("Waiting for MAVLink client connection on tcp://%s:%d...",
-            //        socket.getInetAddress().getHostAddress(), socket.getLocalPort());
-            //System.out.println();
+            logger.info("Waiting for MAVLink client connection...");
 
             connection = socket.accept();
             in = new DataInputStream(connection.getInputStream());
@@ -105,23 +103,30 @@ public class MAVLinkSocket implements MAVLinkChannel {
 
         synchronized(receiveLock) {
             try {
-                do {
+                //The maximum size of MAVLink packet is 261 bytes.
+                for (int i = 0; i < 263 * 2; i++)
+                {
                     try {
                         int c = in.readUnsignedByte();
                         packet = parser.mavlink_parse_char(c);
                     } catch(java.io.EOFException ex) {
                         return null;
                     }
-                } while (packet == null);
 
-                MAVLinkLogger.log(Level.DEBUG, "<<", packet);
+                    if (packet != null) {
+                        MAVLinkLogger.log(Level.DEBUG, "<<", packet);
+                        return packet;
+                    }
+                }
             } catch (IOException ex) {
                 logger.warn("Failed to receive MAVLink message from socket. " + ex.getMessage());
                 closeConnection();
             }
         }
 
-        return packet;
+        logger.warn("Failed to parse MAVLink message.");
+
+        return null;
     }
 
     @Override

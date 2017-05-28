@@ -25,7 +25,9 @@ along with Rock7MAVLink.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.spl;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
@@ -53,6 +55,7 @@ import com.MAVLink.enums.MAV_CMD;
 import com.MAVLink.enums.MAV_MISSION_RESULT;
 import com.MAVLink.enums.MAV_RESULT;
 import com.envirover.mavlink.MAVLinkChannel;
+import com.envirover.mavlink.MAVLinkLogger;
 import com.envirover.mavlink.MAVLinkShadow;
 
 /**
@@ -114,20 +117,28 @@ public class MTMessageHandler implements Runnable {
 
         switch (packet.msgid) {
             case msg_param_request_list.MAVLINK_MSG_ID_PARAM_REQUEST_LIST: {
+                MAVLinkLogger.log(Level.INFO, "<<", packet);
+
                 for (msg_param_value param : shadow.getParams()) {
                     sendToSource(param);
                     Thread.sleep(10);
                 }
+
+                logger.info(MessageFormat.format("{0} on-board parameters sent to the MAVLink client.", shadow.getParams().size()));
                 break;
             }
             case msg_param_request_read.MAVLINK_MSG_ID_PARAM_REQUEST_READ: {
+                MAVLinkLogger.log(Level.INFO, "<<", packet);
+
                 msg_param_request_read request = (msg_param_request_read)packet.unpack();
+                logger.info(MessageFormat.format("Sending value of parameter ''{0}'' to MAVLink client.", request.getParam_Id()));
                 sendToSource(shadow.getParamValue(request.getParam_Id(), request.param_index));
                 break;
             }
             case msg_param_set.MAVLINK_MSG_ID_PARAM_SET: {
+                MAVLinkLogger.log(Level.INFO, "<<", packet);
+
                 msg_param_set paramSet = (msg_param_set)packet.unpack();
-                //shadow.setParamValue(paramSet.getParam_Id(), paramSet.param_value);
                 sendToSource(shadow.getParamValue(paramSet.getParam_Id(), (short)-1));
                 break;
             }
@@ -143,6 +154,7 @@ public class MTMessageHandler implements Runnable {
 
         switch (packet.msgid) {
             case msg_mission_request_list.MAVLINK_MSG_ID_MISSION_REQUEST_LIST: {
+                MAVLinkLogger.log(Level.INFO, "<<", packet);
                 msg_mission_request_list msg = (msg_mission_request_list)packet.unpack();
                 msg_mission_count count = new msg_mission_count();
                 count.count = shadow.getReportedMissionCount();
@@ -154,6 +166,7 @@ public class MTMessageHandler implements Runnable {
                 break;
             }
             case msg_mission_request.MAVLINK_MSG_ID_MISSION_REQUEST: {
+                MAVLinkLogger.log(Level.INFO, "<<", packet);
                 msg_mission_request msg = (msg_mission_request)packet.unpack();
                 msg_mission_item mission = shadow.getReportedMissionItem(msg.seq);
                 mission.sysid = msg.target_system;
@@ -162,10 +175,12 @@ public class MTMessageHandler implements Runnable {
                 break;
             }
             case msg_mission_clear_all.MAVLINK_MSG_ID_MISSION_CLEAR_ALL: {
+                MAVLinkLogger.log(Level.INFO, "<<", packet);
                 shadow.setDesiredMissionCount(0);
                 break;
             }
             case msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT: {
+                MAVLinkLogger.log(Level.INFO, "<<", packet);
                 msg_mission_count msg = (msg_mission_count)packet.unpack();
                 if (msg.count > MAX_MISSION_COUNT) {
                     msg_mission_ack mission_ack = new msg_mission_ack();
@@ -188,6 +203,7 @@ public class MTMessageHandler implements Runnable {
                 break;
             }
             case msg_mission_item.MAVLINK_MSG_ID_MISSION_ITEM: {
+                MAVLinkLogger.log(Level.INFO, "<<", packet);
                 msg_mission_item msg = (msg_mission_item)packet.unpack();
                 shadow.setMissionItem(msg);
                 if (msg.seq + 1 < shadow.getDesiredMissionCount()) {
@@ -224,6 +240,7 @@ public class MTMessageHandler implements Runnable {
         }
 
         if (packet.msgid == msg_command_long.MAVLINK_MSG_ID_COMMAND_LONG) {
+            MAVLinkLogger.log(Level.INFO, "<<", packet);
             msg_command_long msg = (msg_command_long)packet.unpack();
             msg_command_ack command_ack = new msg_command_ack();
             command_ack.command = msg.command;
@@ -232,6 +249,7 @@ public class MTMessageHandler implements Runnable {
             command_ack.compid = msg.target_component;
             src.sendMessage(command_ack.pack());
         } else if (packet.msgid == msg_command_int.MAVLINK_MSG_ID_COMMAND_INT) {
+            MAVLinkLogger.log(Level.INFO, "<<", packet);
             msg_command_int msg = (msg_command_int)packet.unpack();
             msg_command_ack command_ack = new msg_command_ack();
             command_ack.command = msg.command;
