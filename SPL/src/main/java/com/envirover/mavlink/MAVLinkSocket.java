@@ -82,7 +82,7 @@ public class MAVLinkSocket implements MAVLinkChannel {
             in = new DataInputStream(connection.getInputStream());
             out = new DataOutputStream(connection.getOutputStream());
 
-            logger.info(MessageFormat.format("MAVLink client '{0}' connected.", connection.getInetAddress()));
+            logger.info(MessageFormat.format("MAVLink client ''{0}'' connected.", connection.getInetAddress()));
         }
     }
 
