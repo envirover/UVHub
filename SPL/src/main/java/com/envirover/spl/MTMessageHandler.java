@@ -64,7 +64,8 @@ import com.envirover.mavlink.MAVLinkShadow;
  * channel, such as MAVLinkMessageQueue.
  */
 public class MTMessageHandler implements Runnable {
-	private final static int MAX_MISSION_COUNT = 10;
+
+    private final static int MAX_MISSION_COUNT = 10;
 
     private final static Logger logger = Logger.getLogger(MTMessageHandler.class);
 
@@ -99,12 +100,12 @@ public class MTMessageHandler implements Runnable {
                 }
 
                 Thread.sleep(10);
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
             } catch (InterruptedException e) {
-                logger.debug("MAVLinkHandler interrupted.");
+                logger.info("MAVLinkHandler interrupted.");
                 return;
-            }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            } 
         }
     }
 
@@ -281,8 +282,10 @@ public class MTMessageHandler implements Runnable {
     private void sendToSource(MAVLinkMessage msg) throws IOException {
         MAVLinkPacket packet = msg.pack();
         packet.sysid = msg.sysid;
-        packet.compid = 1;//msg.compid;
+        packet.compid = 1;
         src.sendMessage(packet);
+
+        MAVLinkLogger.log(Level.INFO, ">>", packet);
     }
 
 }
