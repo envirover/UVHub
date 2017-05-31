@@ -19,3 +19,13 @@ deploy:
   region: us-west-2
   acl: public_read
   skip_cleanup: true
+deploy:
+  provider: s3
+  access_key_id: $AWS_ACCESS_KEY_ID
+  secret_access_key: $AWS_SECRET_ACCESS_KEY
+  bucket: envirover
+  local_dir: aws
+  upload-dir: spl
+  region: us-west-2
+  acl: public_read
+  skip_cleanup: true
