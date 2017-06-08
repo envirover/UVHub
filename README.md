@@ -3,37 +3,51 @@
 
 # SPLGroundControl
 
-SPLGroundControl is a MAVLink proxy server for ArduPilot rovers over [RockBLOCK](http://www.rock7mobile.com/products-rockblock) Iridium satellite communication system. It is designed to work with [SPLRadioRoom](https://github.com/envirover/SPLRadioRoom) field application, providing a two way communication channel between ArduPilot based rovers and MAVLink ground control stations such as MAVProxy, Mission Planer, or QGroundControl.
-
-SPLGroundControl consists of two message pipelines: mobile-originated (MO) pipeline and mobile-terminated (MT) pipeline.
-
-In the MO pipeline, RockBLOCK HTTP handler receives MAVLink messages from HTTP port (POSTed there by RockBLOCK services) and pushes them to MO message queue. MO message pump receives messages from the queue and forwards them to MAVLink socket, if a client is connected to the socket. HIGH\_LATENCY type MAVLink messages are not forwarded directly, instead they are split into multiple high-frequency messages of types SYS\_STATUS, GPS\_RAW\_INT, ATTITUDE, GLOBAL\_POSITION\_INT, MISSION\_CURRENT, NAV\_CONTROLLER\_OUTPUT, and VFR\_HUD and periodically sent to the socket along with HEARTBEAT messages.
-
-In the MT pipeline, MAVLink handler receives messages from the socket, filters out high-frequency messages, and pushes other messages to MT message queue. MT message pump receives messages from the queue and sends them to RockBLOCK Web Services.
+SPL is communication technology designed to:
+* Track position, attitude, and velocity of your drone anywhere on Earth.
+* Monitor vital signs signs of your drone, such as battery charge, system status, and temperature.
+* Update missions, parameters, and send commands to your drone.</li>
+* Control gymbals, and RC servos connected to AutoPilot.
 
 ![SPL System Architecture](https://s3-us-west-2.amazonaws.com/envirover/images/spl.jpg)
+
+SPLGroundControl is a MAVLink proxy server for ArduPilot drones that uses Iridium sort burst data (ISBD) satellite communication system provided by [RockBLOCK](http://www.rock7mobile.com/products-rockblock) unit. It is designed to work with [SPLRadioRoom](https://github.com/envirover/SPLRadioRoom) field application, providing two way communication channel between ArduPilot based drones and MAVLink ground control stations such as MAVProxy, Mission Planer, or QGroundControl.
 
 ## Installation and use
 
 The machine that runs SPLGroundControl must be accessible from the Internet. Port 8080 must be accessible from RockBLOCK services, and port 5760 must be accessible from the ground control station client machines.
 
-SPLGroundControl requires Java SE 7 to run.
+SPLGroundControl installation instructions for different environments are available on [wiki](https://github.com/envirover/SPLGroundControl/wiki) pages. Probably the easiest way to get started with SPLGroundControl is to [deploy it on Amazon AWS](https://github.com/envirover/SPLGroundControl/wiki/SPLGroundControl-Installation-on-Amazon-AWS).
 
-Download a distribution assembly archive from [releases](https://github.com/envirover/SPLGroundControl/releases) page, or download the source code and build it by running ``mvn package``. Extract the archive into the local directory and set environmental variable SPL_HOME to the directory path.
-
-Set rockblock.imei, rockblock.username, and rockblock.password properties in $SPL_HOME/conf/app.properties file to your RockBLOCK IMEI, Rock 7 Core username, and password respectively.
-
-Determine the public IP address of the machine (http://checkip.amazonaws.com/) and configure your RockBLOCK message delivery destinations at https://core.rock7.com to deliver messages to `http://<IP>:8080/mo` URL.
-
-It is recommended to configure SPLGroundControl to run as a service (for windows platforms use [procrun](https://commons.apache.org/proper/commons-daemon/procrun.html), for Linux platforms use [jsvc](https://commons.apache.org/proper/commons-daemon/jsvc.html)). The daemon java class is com.envirover.spl.SPLDaemon.
-
-For testing purpose SPLGroundControl could be started by running $SPL_HOME/bin/spl.sh (Linux) or $SPL_HOME/bin/spl.bat (Windows).
-
-Once SPLGroundControl is started, you can connect to it from a ground control station client using TCP connection on port 5760. For example, MAVPoxy ground control could be connected this way: 
+Once SPLGroundControl is started, you can connect to it from MAVProxy, Mission Planer, or QGroundControl using TCP connection on port 5760. For example, MAVPoxy ground control could be connected this way: 
 
 ``mavproxy.py --master=tcp:<IP>:5760 --mav10``
 
 Currently SPLGroundControl supports one GCS client connection at a time.
 
+## Issues
 
+Find a bug or want to request a new feature?  Please let us know by submitting an [issue](https://github.com/envirover/SPLGroundControl/issues).
 
+## Contributing
+
+Envirover welcomes contributions from anyone and everyone. Please see our [guidelines for contributing](https://github.com/envirover/SPLGroundControl/blob/master/CONTRIBUTING.md).
+
+Licensing
+---------
+```
+Copyright (C) 2017 Envirover
+
+SPLGroundControl is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+SPLGroundControl is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with SPLGroundControl. If not, see <http://www.gnu.org/licenses/>.
+```
