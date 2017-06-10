@@ -3,10 +3,10 @@
 
 # SPLGroundControl
 
-SPL is communication technology designed to:
-* Track position, attitude, and velocity of your drone anywhere on Earth.
-* Monitor vital signs signs of your drone, such as battery charge, system status, and temperature.
-* Update missions, parameters, and send commands to your drone.</li>
+SPL is a communication technology designed to:
+* Track position, attitude, and velocity of your drone anywhere on Earth;
+* Monitor vital signs signs of your drone, such as battery charge, system status, and temperature;
+* Update missions, parameters, and send commands to your drone;
 * Control gymbals, and RC servos connected to AutoPilot.
 
 ![SPL System Architecture](https://s3-us-west-2.amazonaws.com/envirover/images/Satellite+Proxy+Link+(SPL).jpg)
