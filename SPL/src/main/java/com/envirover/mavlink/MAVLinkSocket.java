@@ -39,7 +39,7 @@ import com.MAVLink.Parser;
 
 
 /**
- * MAVLinkChannel implementation used to sends/receives messages to/from server sockets.
+ * MAVLinkChannel implementation used to send and receive MAVLink messages to/from server socket.
  *
  */
 public class MAVLinkSocket implements MAVLinkChannel {
