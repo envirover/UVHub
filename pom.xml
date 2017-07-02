@@ -15,7 +15,7 @@
 		<module>MAVLink</module>
 		<module>SPL</module>
 		<module>distribution</module>
-           <module>Stream</module>
+        <module>SPLStream</module>
 	</modules>
 
 	<properties>
