@@ -8,7 +8,7 @@ import org.junit.Test;
 //import com.MAVLink.common.msg_high_latency;
 //import com.envirover.spl.stream.DynamoDBStream;
 
-public class RockBlockServiceTest {
+public class DynamoDBInputStreamTest {
 
     @Test
     public void testPostMobileOriginatedMessage() throws ParseException, IOException {

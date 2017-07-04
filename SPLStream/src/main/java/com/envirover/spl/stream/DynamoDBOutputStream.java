@@ -57,6 +57,7 @@ public class DynamoDBOutputStream implements MAVLinkOutputStream {
 
     private static final String ATTR_DEVICE_ID = "DeviceId";
     private static final String ATTR_TIME      = "Time";
+    private static final String ATTR_MSG_ID    = "MsgId";
     private static final String ATTR_MESSAGE   = "Message";
 
     private static final Long READ_CAPACITY    = 5L;
@@ -120,6 +121,7 @@ public class DynamoDBOutputStream implements MAVLinkOutputStream {
         Table table = dynamoDB.getTable(tableName);
 
         table.putItem(new Item().withPrimaryKey(ATTR_DEVICE_ID, deviceId, ATTR_TIME, time.getTime())
+                .withNumber(ATTR_MSG_ID, packet.msgid)
                 .withJSON(ATTR_MESSAGE, toJSON(packet)));
     }
 
