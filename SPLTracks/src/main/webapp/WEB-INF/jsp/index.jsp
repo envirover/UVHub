@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-  <title>Create a FeatureLayer with client side graphics - 4.3</title>
+  <title>SPL Tracker Service Demo</title>
   <style>
     html,
     body,
@@ -38,28 +38,142 @@
       "esri/layers/FeatureLayer",
       "esri/layers/support/Field",
       "esri/geometry/Point",
+      "esri/geometry/Polyline",
       "esri/renderers/SimpleRenderer",
       "esri/symbols/SimpleMarkerSymbol",
+      "esri/symbols/SimpleLineSymbol",
+      "esri/symbols/TextSymbol",
+      "esri/renderers/SimpleRenderer",
       "esri/widgets/Legend",
       "esri/request",
       "dojo/_base/array",
       "dojo/dom",
       "dojo/on",
       "dojo/domReady!"
-    ], function(MapView, Map, FeatureLayer, Field, Point,
-      SimpleRenderer, SimpleMarkerSymbol, Legend, esriRequest,
+    ], function(MapView, Map, FeatureLayer, Field, Point, Polyline,
+      SimpleRenderer, SimpleMarkerSymbol, SimpleLineSymbol, TextSymbol, SimpleRenderer, Legend, esriRequest,
       arrayUtils, dom, on
     ) {
 
-      var lyr, legend;
+      var pointsLayer, legend;
 
       /**************************************************
        * Define the specification for each field to create
        * in the layer
        **************************************************/
 
-      var fields = [
+      var pointFields = [
       {
+        name: "ObjectID",
+        alias: "ObjectID",
+        type: "oid"
+      }, {
+        name: "device_id",
+        alias: "device_id",
+        type: "string"
+      },{
+          name: "time",
+          alias: "time",
+          type: "integer"
+      }, {
+          name: "airspeed",
+          alias: "airspeed",
+          type: "integer"
+      }, {
+          name: "airspeed_sp",
+          alias: "airspeed_sp",
+          type: "integer"
+      }, {
+          name: "altitude_amsl",
+          alias: "altitude_amsl",
+          type: "integer"
+      }, {
+          name: "altitude_sp",
+          alias: "altitude_sp",
+          type: "integer"
+      }, {
+          name: "base_mode",
+          alias: "base_mode",
+          type: "integer"
+      }, {
+          name: "battery_remaining",
+          alias: "battery_remaining",
+          type: "integer"
+      }, {
+          name: "climb_rate",
+          alias: "climb_rate",
+          type: "integer"
+      }, {
+          name: "custom_mode",
+          alias: "custom_mode",
+          type: "integer"
+      }, {
+          name: "failsafe",
+          alias: "failsafe",
+          type: "integer"
+      }, {
+          name: "gps_fix_type",
+          alias: "gps_fix_type",
+          type: "integer"
+      }, {
+          name: "gps_nsat",
+          alias: "gps_nsat",
+          type: "integer"
+      }, {
+          name: "groundspeed",
+          alias: "groundspeed",
+          type: "integer"
+      }, {
+          name: "heading",
+          alias: "heading",
+          type: "double"
+      }, {
+          name: "heading_sp",
+          alias: "heading_sp",
+          type: "integer"
+      }, {
+          name: "landed_state",
+          alias: "landed_state",
+          type: "integer"
+      }, {
+          name: "latitude",
+          alias: "latitude",
+          type: "integer"
+      }, {
+          name: "longitude",
+          alias: "longitude",
+          type: "integer"
+      }, {
+          name: "pitch",
+          alias: "pitch",
+          type: "integer"
+      }, {
+          name: "roll",
+          alias: "roll",
+          type: "integer"
+      }, {
+          name: "temperature",
+          alias: "temperature",
+          type: "integer"
+      }, {
+          name: "temperature_air",
+          alias: "temperature_air",
+          type: "integer"
+      }, {
+          name: "throttle",
+          alias: "throttle",
+          type: "integer"
+      }, {
+          name: "wp_distance",
+          alias: "wp_distance",
+          type: "integer"
+      }, {
+          name: "wp_num",
+          alias: "wp_num",
+          type: "integer"
+      }];
+
+      var lineFields = [{
         name: "ObjectID",
         alias: "ObjectID",
         type: "oid"
@@ -70,8 +184,113 @@
       }];
 
       // Set up popup template for the layer
-      var pTemplate = {
-        title: "{device_id}",
+      var pointsTemplate = {
+        title: "Device {device_id} at {time}",
+        content: [{
+          type: "fields",
+          fieldInfos: [{
+            fieldName: "airspeed",
+            label: "airspeed",
+            visible: true
+          }, {
+              fieldName: "airpeed_sp",
+              label: "airpeed_sp",
+              visible: true
+          }, {
+              fieldName: "altitude_amsl",
+              label: "altitude_amsl",
+              visible: true
+          }, {
+              fieldName: "altitude_sp",
+              label: "altitude_sp",
+              visible: true
+          }, {
+              fieldName: "base_mode",
+              label: "base_mode",
+              visible: true
+          }, {
+              fieldName: "battery_remaining",
+              label: "battery_remaining",
+              visible: true
+          }, {
+              fieldName: "climb_rate",
+              label: "climb_rate",
+              visible: true
+          }, {
+              fieldName: "custom_mode",
+              label: "custom_mode",
+              visible: true
+          }, {
+              fieldName: "failsafe",
+              label: "failsafe",
+              visible: true
+          }, {
+              fieldName: "gps_fix_type",
+              label: "gps_fix_type",
+              visible: true
+          }, {
+              fieldName: "gps_nsat",
+              label: "gps_nsat",
+              visible: true
+          }, {
+              fieldName: "groundspeed",
+              label: "groundspeed",
+              visible: true
+          }, {
+              fieldName: "heading",
+              label: "heading",
+              visible: true
+          }, {
+              fieldName: "heading_sp",
+              label: "heading_sp",
+              visible: true
+          }, {
+              fieldName: "landed_state",
+              label: "landed_state",
+              visible: true
+          }, {
+              fieldName: "latitude",
+              label: "latitude",
+              visible: true
+          }, {
+              fieldName: "longitude",
+              label: "longitude",
+              visible: true
+          }, {
+              fieldName: "pitch",
+              label: "pitch",
+              visible: true
+          }, {
+              fieldName: "roll",
+              label: "roll",
+              visible: true
+          }, {
+              fieldName: "temperature",
+              label: "temperature",
+              visible: true
+          }, {
+              fieldName: "temperature_air",
+              label: "temperature_air",
+              visible: true
+          }, {
+              fieldName: "throttle",
+              label: "throttle",
+              visible: true
+          }, {
+              fieldName: "wp_distance",
+              label: "wp_distance",
+              visible: true
+          }, {
+              fieldName: "wp_num",
+              label: "wp_num",
+              visible: true
+          }]
+        }]
+      };
+
+      // Set up popup template for the layer
+      var linesTemplate = {
+        title: "Device {device_id}",
         content: [{
           type: "fields",
           fieldInfos: [{
@@ -87,14 +306,14 @@
        **************************************************/
 
       var map = new Map({
-        basemap: "gray"
+        basemap: "satellite"
       });
 
       // Create MapView
       var view = new MapView({
         container: "viewDiv",
         map: map,
-        center: [-144.492, 62.771],
+        center: [-117.492, 40.771],
         zoom: 5,
         // customize ui padding for legend placement
         ui: {
@@ -106,98 +325,57 @@
       });
 
       /**************************************************
-       * Define the renderer for symbolizing earthquakes
+       * Define the renderer for symbolizing points
        **************************************************/
 
-      var quakesRenderer = new SimpleRenderer({
-        symbol: new SimpleMarkerSymbol({
-          style: "circle",
-          size: 20,
-          color: [211, 255, 0, 0],
-          outline: {
-            width: 1,
-            color: "#FF0055",
-            style: "solid"
-          }
-        }),
+      var pointsRenderer = new SimpleRenderer({
+        symbol:  new TextSymbol({
+            color: "red",
+            text: "\ue900", // esri-icon-map-pin
+            font: { // autocast as esri/symbols/Font
+              size: 16,
+              family: "CalciteWebCoreIcons"
+            }
+          }),
         visualVariables: [
         {
-          type: "size",
-          field: "time", // earthquake magnitude
-          valueUnit: "unknown",
-          minDataValue: 2,
-          maxDataValue: 7,
-          // Define size of mag 2 quakes based on scale
-          minSize: {
-            type: "size",
-            expression: "view.scale",
-            stops: [
-            {
-              value: 1128,
-              size: 12
-            },
-            {
-              value: 36111,
-              size: 12
-            },
-            {
-              value: 9244649,
-              size: 6
-            },
-            {
-              value: 73957191,
-              size: 4
-            },
-            {
-              value: 591657528,
-              size: 2
-            }]
-          },
-          // Define size of mag 7 quakes based on scale
-          maxSize: {
-            type: "size",
-            expression: "view.scale",
-            stops: [
-            {
-              value: 1128,
-              size: 80
-            },
-            {
-              value: 36111,
-              size: 60
-            },
-            {
-              value: 9244649,
-              size: 50
-            },
-            {
-              value: 73957191,
-              size: 50
-            },
-            {
-              value: 591657528,
-              size: 25
-            }]
-          }
+          type: "rotation",
+          field: "heading", 
+          rotation_type: "geographic"
         }]
       });
 
+      var linesRenderer = new SimpleRenderer({
+        symbol: new SimpleLineSymbol({
+          width: 1,
+          color: [64, 255, 0]
+        })
+      });
+  
       view.then(function() {
-        // Request the earthquake data from USGS when the view resolves
-        getData()
-          .then(createGraphics) // then send it to the createGraphics() method
-          .then(createLayer) // when graphics are created, create the layer
+        getPoints()
+          .then(createPointsGraphics) // then send it to the createPointsGraphics() method
+          .then(createPointsLayer) // when graphics are created, create the layer
           .otherwise(errback);
+        
+        getLines()
+        .then(createLinesGraphics) // then send it to the createPointsGraphics() method
+        .then(createLinesLayer) // when graphics are created, create the layer
+        .otherwise(errback);
       });
 
-      // Request the earthquake data
-      function getData() {
+      // Request the points data
+      function getPoints() {
+        var url = "/spltracks/features?devices=<%=request.getParameter("devices")%>";
 
-        // data downloaded from the USGS at http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/ on 4/4/16
-        // month.geojson represents recorded earthquakes between 03/04/2016 and 04/04/2016
-        // week.geojson represents recorded earthquakes betwen 03/28/2016 and 04/04/2016
+        return esriRequest(url, {
+          responseType: "json"
+        });
+      }
 
-        var url = "http://localhost:8080/spltracks/features?deviceId=300234064280890";
+      // Request the linestring data
+      function getLines() {
+        var url = "/spltracks/features?devices=<%=request.getParameter("devices")%>&type=linestring";
 
         return esriRequest(url, {
           responseType: "json"
@@ -208,7 +386,7 @@
        * Create graphics with returned geojson data
        **************************************************/
 
-      function createGraphics(response) {
+      function createPointsGraphics(response) {
         // raw GeoJSON data
         var geoJson = response.data;
 
@@ -218,6 +396,52 @@
             geometry: new Point({
               x: feature.geometry.coordinates[0],
               y: feature.geometry.coordinates[1]
+            }),
+            // select only the attributes you care about
+            attributes: {
+              ObjectID: i,
+              device_id: feature.properties.device_id,
+              time: feature.properties.time,
+              airspeed: feature.properties.airspeed,
+              airspeed_sp: feature.properties.airspeed_sp,
+              altitude_amsl: feature.properties.altitude_amsl,
+              altitude_sp: feature.properties.altitude_sp,
+              base_mode: feature.properties.base_mode,
+              battery_remaining: feature.properties.battery_remaining,
+              climb_rate: feature.properties.climb_rate,
+              custom_mode: feature.properties.custom_mode,
+              failsafe: feature.properties.failsafe,
+              gpx_fix_type: feature.properties.gps_fix_type,
+              gps_nsat: feature.properties.gps_nsat,
+              groundspeed: feature.properties.groundspeed,
+              heading: feature.properties.heading / 100.0,
+              heading_sp: feature.properties.deading_sp,
+              landed_state: feature.properties.landed_state,
+              latitude: feature.properties.latitude,
+              longitude: feature.properties.longitude,
+              pitch: feature.properties.pitch,
+              roll: feature.properties.roll,
+              temperature: feature.properties.temperature,
+              temperature_air: feature.properties.temperature_air,
+              throttle: feature.properties.throttle,
+              wp_distance: feature.properties.wp_distance,
+              wp_num: feature.properties.wp_num
+            }
+          };
+        });
+      }
+
+      function createLinesGraphics(response) {
+        // raw GeoJSON data
+        var geoJson = response.data;
+
+        // Create an array of Graphics from each GeoJSON feature
+        return arrayUtils.map(geoJson.features, function(feature, i) {
+          return {
+            geometry: new Polyline({
+              hasZ: true,
+              hasM: false,
+              paths: feature.geometry.coordinates
             }),
             // select only the attributes you care about
             attributes: {
@@ -232,24 +456,43 @@
        * Create a FeatureLayer with the array of graphics
        **************************************************/
 
-      function createLayer(graphics) {
+      function createPointsLayer(graphics) {
 
-        lyr = new FeatureLayer({
+        pointsLayer = new FeatureLayer({
           source: graphics, // autocast as an array of esri/Graphic
           // create an instance of esri/layers/support/Field for each field object
-          fields: fields, // This is required when creating a layer from Graphics
+          fields: pointFields, // This is required when creating a layer from Graphics
           objectIdField: "ObjectID", // This must be defined when creating a layer from Graphics
-          renderer: quakesRenderer, // set the visualization on the layer
+          renderer: pointsRenderer, // set the visualization on the layer
           spatialReference: {
             wkid: 4326
           },
           geometryType: "point", // Must be set when creating a layer from Graphics
-          popupTemplate: pTemplate
+          popupTemplate: pointsTemplate
         });
 
-        map.add(lyr);
-        return lyr;
+        map.add(pointsLayer);
+        return pointsLayer;
       }
+
+      function createLinesLayer(graphics) {
+
+          linesLayer = new FeatureLayer({
+            source: graphics, // autocast as an array of esri/Graphic
+            // create an instance of esri/layers/support/Field for each field object
+            fields: lineFields, // This is required when creating a layer from Graphics
+            objectIdField: "ObjectID", // This must be defined when creating a layer from Graphics
+            renderer: linesRenderer, // set the visualization on the layer
+            spatialReference: {
+              wkid: 4326
+            },
+            geometryType: "polyline", // Must be set when creating a layer from Graphics
+            popupTemplate: linesTemplate
+          });
+
+          map.add(linesLayer);
+          return linesLayer;
+        }
 
       /******************************************************************
        * Add layer to layerInfos in the legend
@@ -272,8 +515,7 @@
 <body>
   <div id="viewDiv"></div>
   <div id="infoDiv">
-    <h2>Worldwide Earthquakes</h2>
-    Reported from 03/28/16 to 04/04/16
+    <h2>SPL Tracker Demo</h2>
   </div>
 </body>
 </html>

@@ -1,6 +1,5 @@
 package com.emvirover.geojson;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -12,9 +11,9 @@ public class Feature {
 
     private String type = "Feature";
 
-    private Geometry geometry = new Geometry();
+    private Geometry geometry = null;
 
-    private Map<String, Object> properties = new HashMap<String, Object>();
+    private Map<String, Object> properties = null;
 
     public String getType() {
         return type;
