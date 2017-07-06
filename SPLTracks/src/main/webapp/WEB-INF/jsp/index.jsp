@@ -313,8 +313,8 @@
       var view = new MapView({
         container: "viewDiv",
         map: map,
-        center: [-117.492, 40.771],
-        zoom: 5,
+        center: [-116.5, 33.5],
+        zoom: 9,
         // customize ui padding for legend placement
         ui: {
           padding: {
@@ -330,11 +330,13 @@
 
       var pointsRenderer = new SimpleRenderer({
         symbol:  new TextSymbol({
-            color: "red",
+            color: [256, 0, 256],
             text: "\ue900", // esri-icon-map-pin
+            yoffset: -3,
             font: { // autocast as esri/symbols/Font
               size: 16,
-              family: "CalciteWebCoreIcons"
+              family: "CalciteWebCoreIcons",
+              weight: "bolder"
             }
           }),
         visualVariables: [
@@ -347,21 +349,21 @@
 
       var linesRenderer = new SimpleRenderer({
         symbol: new SimpleLineSymbol({
-          width: 1,
-          color: [64, 255, 0]
+          width: 2,
+          color: [256, 0, 0]
         })
       });
   
       view.then(function() {
+        getLines()
+          .then(createLinesGraphics) // then send it to the createPointsGraphics() method
+          .then(createLinesLayer) // when graphics are created, create the layer
+          .otherwise(errback);
+
         getPoints()
           .then(createPointsGraphics) // then send it to the createPointsGraphics() method
           .then(createPointsLayer) // when graphics are created, create the layer
           .otherwise(errback);
-        
-        getLines()
-        .then(createLinesGraphics) // then send it to the createPointsGraphics() method
-        .then(createLinesLayer) // when graphics are created, create the layer
-        .otherwise(errback);
       });
 
       // Request the points data
