@@ -71,7 +71,8 @@ public class SPLFeatureService {
     @GET
     @Path("/features")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getFeatureCollection(@QueryParam("devices") String devices,
+    public String getFeatureCollection(
+            @DefaultValue("") @QueryParam("devices") String devices,
             @DefaultValue("-1") @QueryParam("startTime") long startTime,
             @DefaultValue("-1") @QueryParam("endTime") long endTime,
             @DefaultValue("point") @QueryParam("type") String type)
@@ -105,7 +106,7 @@ public class SPLFeatureService {
         long minTime = -1;
         long maxTime = -1;
         while ((record = stream.readPacket()) != null) {
-            if (record.getPacket().msgid == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
+            if (record.getMsgId() == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
                 msg_high_latency msg = (msg_high_latency)record.getPacket().unpack();
       
                 if (minTime < 0 || record.getTime().getTime() < minTime) {

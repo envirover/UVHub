@@ -360,11 +360,11 @@
           .then(createLinesLayer) // when graphics are created, create the layer
           .otherwise(errback);
 
+
         getPoints()
           .then(createPointsGraphics) // then send it to the createPointsGraphics() method
           .then(createPointsLayer) // when graphics are created, create the layer
           .otherwise(errback);
-      });
 
       // Request the points data
       function getPoints() {
@@ -399,36 +399,7 @@
               x: feature.geometry.coordinates[0],
               y: feature.geometry.coordinates[1]
             }),
-            // select only the attributes you care about
-            attributes: {
-              ObjectID: i,
-              device_id: feature.properties.device_id,
-              time: feature.properties.time,
-              airspeed: feature.properties.airspeed,
-              airspeed_sp: feature.properties.airspeed_sp,
-              altitude_amsl: feature.properties.altitude_amsl,
-              altitude_sp: feature.properties.altitude_sp,
-              base_mode: feature.properties.base_mode,
-              battery_remaining: feature.properties.battery_remaining,
-              climb_rate: feature.properties.climb_rate,
-              custom_mode: feature.properties.custom_mode,
-              failsafe: feature.properties.failsafe,
-              gpx_fix_type: feature.properties.gps_fix_type,
-              gps_nsat: feature.properties.gps_nsat,
-              groundspeed: feature.properties.groundspeed,
-              heading: feature.properties.heading / 100.0,
-              heading_sp: feature.properties.deading_sp,
-              landed_state: feature.properties.landed_state,
-              latitude: feature.properties.latitude,
-              longitude: feature.properties.longitude,
-              pitch: feature.properties.pitch,
-              roll: feature.properties.roll,
-              temperature: feature.properties.temperature,
-              temperature_air: feature.properties.temperature_air,
-              throttle: feature.properties.throttle,
-              wp_distance: feature.properties.wp_distance,
-              wp_num: feature.properties.wp_num
-            }
+            attributes: feature.properties
           };
         });
       }
@@ -445,11 +416,7 @@
               hasM: false,
               paths: feature.geometry.coordinates
             }),
-            // select only the attributes you care about
-            attributes: {
-              ObjectID: i,
-              device_id: feature.properties.device_id
-            }
+            attributes: feature.properties
           };
         });
       }

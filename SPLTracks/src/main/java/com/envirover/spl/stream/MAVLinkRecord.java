@@ -9,6 +9,8 @@ public class MAVLinkRecord {
     private String deviceId;
 
     private Date time;
+    
+    private Integer msgId; 
 
     private MAVLinkPacket packet;
 
@@ -26,6 +28,14 @@ public class MAVLinkRecord {
 
     public void setTime(Date time) {
         this.time = time;
+    }
+
+    public Integer getMsgId() {
+        return msgId;
+    }
+
+    public void setMsgId(Integer msgId) {
+        this.msgId = msgId;
     }
 
     public MAVLinkPacket getPacket() {
