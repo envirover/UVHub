@@ -394,13 +394,15 @@
 
         // Create an array of Graphics from each GeoJSON feature
         return arrayUtils.map(geoJson.features, function(feature, i) {
-          return {
+          var graphics = {
             geometry: new Point({
               x: feature.geometry.coordinates[0],
               y: feature.geometry.coordinates[1]
             }),
             attributes: feature.properties
           };
+          graphics.attributes.heading /= 100.0; 
+          return graphics;
         });
       }
 
