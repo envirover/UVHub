@@ -360,11 +360,11 @@
           .then(createLinesLayer) // when graphics are created, create the layer
           .otherwise(errback);
 
-
         getPoints()
           .then(createPointsGraphics) // then send it to the createPointsGraphics() method
           .then(createPointsLayer) // when graphics are created, create the layer
           .otherwise(errback);
+      });
 
       // Request the points data
       function getPoints() {
