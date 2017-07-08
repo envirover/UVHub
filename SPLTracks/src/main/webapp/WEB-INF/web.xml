@@ -24,6 +24,10 @@
 			<param-name>com.sun.jersey.config.property.JSPTemplatesBasePath</param-name>
 			<param-value>/WEB-INF/jsp</param-value>
 		</init-param>
+	<init-param>
+		<param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
+		<param-value>true</param-value>
+	</init-param>
 	</filter>
 	<filter-mapping>
 		<filter-name>SPLTracking Web Service</filter-name>

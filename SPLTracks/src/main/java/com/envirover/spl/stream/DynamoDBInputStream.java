@@ -22,7 +22,9 @@ along with SPLStream.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.spl.stream;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -31,7 +33,6 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.ItemCollection;
 import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.RangeKeyCondition;
 import com.amazonaws.services.dynamodbv2.document.Table;
@@ -57,15 +58,10 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
 
     private static String tableName = "MAVLinkMessages";
 
-    private final IteratorSupport<Item, QueryOutcome> iterator;
+    //private final IteratorSupport<Item, QueryOutcome> iterator;
+    Table table ;
 
-    /**
-     * 
-     * @param deviceId
-     * @param startTime
-     * @param endTime
-     */
-    public DynamoDBInputStream(String deviceId, Date startTime, Date endTime) {
+    public DynamoDBInputStream() {
         if (System.getenv(SPL_DYNAMODB_TABLE) != null) {
             tableName = System.getenv(SPL_DYNAMODB_TABLE);
         }
@@ -74,22 +70,7 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
 
         DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
 
-        Table table = dynamoDB.getTable(tableName);
-        
-        RangeKeyCondition timeInterval;
-        if (startTime == null && endTime == null) {
-            timeInterval = null;
-        } else if (startTime == null && endTime != null) {
-            timeInterval = new RangeKeyCondition(ATTR_TIME).le(endTime.getTime());
-        } else if (startTime != null && endTime == null) {
-            timeInterval = new RangeKeyCondition(ATTR_TIME).ge(startTime.getTime());
-        } else {
-            timeInterval = new RangeKeyCondition(ATTR_TIME).between(startTime.getTime(), endTime.getTime());
-        }
-
-        ItemCollection<QueryOutcome> records = table.query(ATTR_DEVICE_ID, deviceId, timeInterval);
-
-        iterator = records.iterator();
+        table = dynamoDB.getTable(tableName);
     }
 
     @Override
@@ -101,8 +82,23 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
     }
 
     @Override
-    public MAVLinkRecord readPacket() throws IOException {
-        if (iterator.hasNext()) {
+    public Iterable<MAVLinkRecord> query(String deviceId, Date startTime, Date endTime) throws IOException {
+        RangeKeyCondition timeInterval;
+        if (startTime == null && endTime == null) {
+            timeInterval = null;
+        } else if (startTime == null && endTime != null) {
+            timeInterval = new RangeKeyCondition(ATTR_TIME).le(endTime.getTime());
+        } else if (startTime != null && endTime == null) {
+            timeInterval = new RangeKeyCondition(ATTR_TIME).ge(startTime.getTime());
+        } else {
+            timeInterval = new RangeKeyCondition(ATTR_TIME).between(startTime.getTime(), endTime.getTime());
+        }
+
+        IteratorSupport<Item, QueryOutcome> iterator = table.query(ATTR_DEVICE_ID, deviceId, timeInterval).iterator();
+
+        List<MAVLinkRecord> records = new ArrayList<MAVLinkRecord>();
+
+        while (iterator.hasNext()) {
             Item item = iterator.next();
 
             MAVLinkRecord record = new MAVLinkRecord();
@@ -119,10 +115,10 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
                 record.setPacket(msg.pack());
             }
 
-            return record;
+            records.add(record);
         }
 
-        return null;
+        return records;
     }
 
 }

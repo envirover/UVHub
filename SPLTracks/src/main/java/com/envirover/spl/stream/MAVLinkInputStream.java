@@ -22,6 +22,7 @@ along with SPLStream.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.spl.stream;
 
 import java.io.IOException;
+import java.util.Date;
 
 /**
  * Input stream of MAVLink records.
@@ -48,6 +49,6 @@ public interface MAVLinkInputStream {
      * @return MAVLinkRecord or null if the end of the stream is reached.
      * @throws IOException
      */
-    MAVLinkRecord readPacket() throws IOException;
+    Iterable<MAVLinkRecord> query(String deviceId, Date startTime, Date endTime) throws IOException;
 
 }
