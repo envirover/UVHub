@@ -22,18 +22,21 @@ package com.envirover.geojson;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class LineString extends Geometry {
+public class LineString implements Geometry {
 
     private final Collection<Collection<Double>> coordinates;
 
     public LineString() {
-        this.type = "LineString";
         this.coordinates = new ArrayList<Collection<Double>>();
     }
 
     public LineString(Collection<Collection<Double>> coordinates) {
-        this.type = "LineString";
         this.coordinates = coordinates;
+    }
+
+    @Override
+    public String getType() {
+        return "LineString";
     }
 
     public Collection<Collection<Double>> getCoordinates() {

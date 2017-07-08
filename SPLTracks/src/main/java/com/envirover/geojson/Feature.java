@@ -28,8 +28,6 @@ import java.util.Map;
  */
 public class Feature {
 
-    private final String type = "Feature";
-
     private final Geometry geometry;
 
     private final Map<String, Object> properties;
@@ -45,7 +43,7 @@ public class Feature {
     }
 
     public String getType() {
-        return type;
+        return "Feature";
     }
 
     public Geometry getGeometry() {

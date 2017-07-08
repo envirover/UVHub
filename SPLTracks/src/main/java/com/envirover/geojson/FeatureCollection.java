@@ -32,8 +32,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class FeatureCollection {
 
-    private final String type = "FeatureCollection";
-
     private final Collection<Feature> features;
 
     public FeatureCollection() {
@@ -45,7 +43,7 @@ public class FeatureCollection {
     }
 
     public String getType() {
-        return type;
+        return "FeatureCollection";
     }
 
     public Collection<Feature> getFeatures() {

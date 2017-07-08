@@ -80,15 +80,17 @@ public class SPLFeatureService {
         String[] deviceIds = devices.split(",");
 
         for (String deviceId : deviceIds) {
-            Iterable<MAVLinkRecord> records = stream.query(
-                    deviceId, 
-                    startTime > 0 ? new Date(startTime) : null,
-                    endTime > 0 ? new Date(endTime) : null);
+            if (!deviceId.isEmpty()) {
+                Iterable<MAVLinkRecord> records = stream.query(
+                        deviceId, 
+                        startTime > 0 ? new Date(startTime) : null,
+                        endTime > 0 ? new Date(endTime) : null);
 
-            if (type.equalsIgnoreCase("point")) {
-                buildPointFeatures(features, records);
-            } else if (type.equalsIgnoreCase("linestring")) {
-                buildLineFeatures(features, deviceId, records);
+                if (type.equalsIgnoreCase("point")) {
+                    buildPointFeatures(features, records);
+                } else if (type.equalsIgnoreCase("linestring")) {
+                    buildLineFeatures(features, deviceId, records);
+                }
             }
         }
 
@@ -114,11 +116,13 @@ public class SPLFeatureService {
                     maxTime = record.getTime().getTime();
                 }
 
-                List<Double> coordinates = new ArrayList<Double>();
-                coordinates.add(msg.longitude / 10000000.0);
-                coordinates.add(msg.latitude / 10000000.0);
-                coordinates.add((double) (msg.altitude_amsl / 1.0));
-                line.getCoordinates().add(coordinates);
+                if (msg.longitude != 0 || msg.latitude != 0) {
+                    List<Double> coordinates = new ArrayList<Double>();
+                    coordinates.add(msg.longitude / 10000000.0);
+                    coordinates.add(msg.latitude / 10000000.0);
+                    coordinates.add((double) (msg.altitude_amsl / 1.0));
+                    line.getCoordinates().add(coordinates);
+                }
             }
         }
 
@@ -138,18 +142,20 @@ public class SPLFeatureService {
         for (MAVLinkRecord record : stream) {
             if (record.getPacket().msgid == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
                 msg_high_latency msg = (msg_high_latency) record.getPacket().unpack();
-   
-                Map<String, Object> properties = new HashMap<String, Object>();
-                properties.put("device_id", record.getDeviceId());
-                properties.put("time", record.getTime().getTime());
-   
-                for (Field field : msg.getClass().getFields()) {
-                    properties.put(field.getName(), field.get(msg));
-                }
 
-                Feature pointFeature = new Feature(new Point(msg.longitude / 10000000.0, msg.latitude / 10000000.0, (double) (msg.altitude_amsl / 1.0)), properties);
-   
-                features.getFeatures().add(pointFeature);
+                if (msg.longitude != 0 || msg.latitude != 0) { 
+                    Map<String, Object> properties = new HashMap<String, Object>();
+                    properties.put("device_id", record.getDeviceId());
+                    properties.put("time", record.getTime().getTime());
+
+                    for (Field field : msg.getClass().getFields()) {
+                        properties.put(field.getName(), field.get(msg));
+                    }
+
+                    Feature pointFeature = new Feature(new Point(msg.longitude / 10000000.0, msg.latitude / 10000000.0, (double) (msg.altitude_amsl / 1.0)), properties);
+
+                    features.getFeatures().add(pointFeature);
+                }
             }
         }
     }

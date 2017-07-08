@@ -22,27 +22,29 @@ package com.envirover.geojson;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class Point extends Geometry {
+public class Point implements Geometry {
 
     private Collection<Double> coordinates = new ArrayList<Double>();
 
     public Point() {
-        this.type = "Point";
         coordinates.add(0.0);
         coordinates.add(0.0);
     }
 
     public Point(Double x, Double y) {
-        this.type = "Point";
         coordinates.add(x);
         coordinates.add(y);
     }
 
     public Point(Double x, Double y, Double z) {
-        this.type = "Point";
         coordinates.add(x);
         coordinates.add(y);
         coordinates.add(z);
+    }
+
+    @Override
+    public String getType() {
+        return "Point";
     }
 
     public Collection<Double> getCoordinates() {

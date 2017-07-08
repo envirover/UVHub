@@ -20,17 +20,13 @@ along with SPLTracks.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.geojson;
 
 /**
- * Base class for geometric primitices.
+ * Geometric primitives.
  *  
  * @author Pavel
  *
  */
-abstract public class Geometry {
+public interface Geometry {
 
-    protected String type;
-
-    public String getType() {
-        return type;
-    }
+    public String getType();
 
 }

@@ -58,8 +58,7 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
 
     private static String tableName = "MAVLinkMessages";
 
-    //private final IteratorSupport<Item, QueryOutcome> iterator;
-    Table table ;
+    private final Table table ;
 
     public DynamoDBInputStream() {
         if (System.getenv(SPL_DYNAMODB_TABLE) != null) {
@@ -84,6 +83,7 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
     @Override
     public Iterable<MAVLinkRecord> query(String deviceId, Date startTime, Date endTime) throws IOException {
         RangeKeyCondition timeInterval;
+
         if (startTime == null && endTime == null) {
             timeInterval = null;
         } else if (startTime == null && endTime != null) {
@@ -104,9 +104,7 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
             MAVLinkRecord record = new MAVLinkRecord();
 
             record.setDeviceId(item.getString(ATTR_DEVICE_ID));
-
             record.setTime(new Date(item.getLong(ATTR_TIME)));
-
             record.setMsgId(item.getInt(ATTR_MSG_ID));
 
             if (item.getInt(ATTR_MSG_ID) == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {

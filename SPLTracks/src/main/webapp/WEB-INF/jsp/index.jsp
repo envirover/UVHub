@@ -368,7 +368,7 @@
 
       // Request the points data
       function getPoints() {
-        var url = "/spltracks/features?devices=<%=request.getParameter("devices")%>";
+        var url = "/spltracks/features" + window.location.search;
 
         return esriRequest(url, {
           responseType: "json"
@@ -377,7 +377,7 @@
 
       // Request the linestring data
       function getLines() {
-        var url = "/spltracks/features?devices=<%=request.getParameter("devices")%>&type=linestring";
+        var url = "/spltracks/features" + window.location.search + "&type=linestring";
 
         return esriRequest(url, {
           responseType: "json"
@@ -401,7 +401,11 @@
             }),
             attributes: feature.properties
           };
-          graphics.attributes.heading /= 100.0; 
+          graphics.attributes.latitude /= 10000000.0;
+          graphics.attributes.longitude /= 10000000.0;
+          graphics.attributes.heading /= 100.0;
+          graphics.attributes.pitch /= 100.0;
+          graphics.attributes.roll /= 100.0;
           return graphics;
         });
       }
