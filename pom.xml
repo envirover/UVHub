@@ -14,9 +14,10 @@
 	<modules>
 		<module>MAVLink</module>
 		<module>SPL</module>
+		<module>SPLStream</module>
+		<module>SPLTracks</module>
+
 		<module>distribution</module>
-                <module>SPLStream</module>
-                <module>SPLTracks</module>
 	</modules>
 
 	<properties>

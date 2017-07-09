@@ -4,8 +4,8 @@ import java.text.ParseException;
 
 import org.junit.Test;
 
-import com.envirover.spl.stream.DynamoDBInputStream;
-import com.envirover.spl.stream.MAVLinkRecord;
+//import com.envirover.spl.stream.DynamoDBInputStream;
+//import com.envirover.spl.stream.MAVLinkRecord;
 
 public class DynamoDBInputStreamTest {
 

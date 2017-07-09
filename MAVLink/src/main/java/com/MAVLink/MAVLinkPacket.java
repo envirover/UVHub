@@ -11,7 +11,6 @@ import com.MAVLink.Messages.MAVLinkPayload;
 import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.standard.CRC;
 import com.MAVLink.common.*;
-import com.MAVLink.standard.*;
 
 /**
 * Common interface for all MAVLink Messages

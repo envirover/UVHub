@@ -6,6 +6,8 @@ deploy:
     file: 
       - distribution/target/spl-1.0-bin.zip
       - distribution/target/spl-1.0-bin.tar.gz
+      - distribution/target/spltracks-1.0-bin.zip
+      - distribution/target/spltracks-1.0-bin.tar.gz
     on:
       repo: envirover/SPLGroundControl
     skip_cleanup: true

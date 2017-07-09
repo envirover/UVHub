@@ -61,5 +61,8 @@
 		</dependency>
 	</dependencies>
 
-	<!-- <build> <finalName>splstream</finalName> </build> -->
+	<build>
+		<finalName>splstream</finalName>
+	</build>
+
 </project>
