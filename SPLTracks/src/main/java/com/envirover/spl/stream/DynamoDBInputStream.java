@@ -130,8 +130,8 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
 
                 if (item.getInt(ATTR_MSG_ID) == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
                     String json = item.getJSON(ATTR_MESSAGE);
-                    msg_high_latency msg;
                     try {
+                        msg_high_latency msg;
                         msg = mapper.readValue(json, msg_high_latency.class);
                         record.setPacket(msg.pack());
                     } catch (JsonParseException e) {

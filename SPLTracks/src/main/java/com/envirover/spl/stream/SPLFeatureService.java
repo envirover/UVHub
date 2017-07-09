@@ -21,6 +21,7 @@ package com.envirover.spl.stream;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -149,7 +150,9 @@ public class SPLFeatureService {
                     properties.put("time", record.getTime().getTime());
 
                     for (Field field : msg.getClass().getFields()) {
-                        properties.put(field.getName(), field.get(msg));
+                        if (!Modifier.isStatic(field.getModifiers())) { 
+                            properties.put(field.getName(), field.get(msg));
+                        }
                     }
 
                     Feature pointFeature = new Feature(new Point(msg.longitude / 10000000.0, msg.latitude / 10000000.0, (double) (msg.altitude_amsl / 1.0)), properties);
