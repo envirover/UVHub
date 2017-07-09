@@ -22,14 +22,12 @@ package com.envirover.geojson;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
 /**
+ * GeoJSON feature collection. 
  * 
  * @author Pavel
  *
  */
-@XmlRootElement
 public class FeatureCollection {
 
     private final Collection<Feature> features;

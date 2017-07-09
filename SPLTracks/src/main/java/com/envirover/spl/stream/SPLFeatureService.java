@@ -139,7 +139,6 @@ public class SPLFeatureService {
 
         for (MAVLinkRecord record : records) {
             if (record.getMsgId() == MAVLINK_MSG_ID_HIGH_LATENCY) {
-
                 if (record.getLongitude() != 0.0 || record.getLatitude() != 0.0) { 
                     Point point = new Point(record.getLongitude(), 
                                             record.getLatitude(), 
