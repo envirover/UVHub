@@ -20,8 +20,6 @@ along with SPLTracks.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.spl.stream;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,7 +34,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.MAVLink.common.msg_high_latency;
 import com.envirover.geojson.Feature;
 import com.envirover.geojson.FeatureCollection;
 import com.envirover.geojson.LineString;
@@ -51,6 +48,8 @@ import com.sun.jersey.api.view.Viewable;
 @Path("/")
 public class SPLFeatureService {
 
+    private final int MAVLINK_MSG_ID_HIGH_LATENCY = 234;
+    
     private final DynamoDBInputStream stream;
 
     // private static final Logger logger =
@@ -106,9 +105,7 @@ public class SPLFeatureService {
         long maxTime = -1;
 
         for (MAVLinkRecord record : records) {
-            if (record.getMsgId() == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
-                msg_high_latency msg = (msg_high_latency)record.getPacket().unpack();
-      
+            if (record.getMsgId() == MAVLINK_MSG_ID_HIGH_LATENCY) {
                 if (minTime < 0 || record.getTime().getTime() < minTime) {
                     minTime = record.getTime().getTime();
                 }
@@ -117,11 +114,11 @@ public class SPLFeatureService {
                     maxTime = record.getTime().getTime();
                 }
 
-                if (msg.longitude != 0 || msg.latitude != 0) {
+                if (record.getLongitude() != 0.0 || record.getLatitude() != 0.0) {
                     List<Double> coordinates = new ArrayList<Double>();
-                    coordinates.add(msg.longitude / 10000000.0);
-                    coordinates.add(msg.latitude / 10000000.0);
-                    coordinates.add((double) (msg.altitude_amsl / 1.0));
+                    coordinates.add(record.getLongitude());
+                    coordinates.add(record.getLatitude());
+                    coordinates.add(record.getAltitude());
                     line.getCoordinates().add(coordinates);
                 }
             }
@@ -140,26 +137,18 @@ public class SPLFeatureService {
     private void buildPointFeatures(FeatureCollection features, Iterable<MAVLinkRecord> records)
             throws IOException, IllegalAccessException {
 
-        Field[] msg_high_latency_fields = msg_high_latency.class.getFields();
-
         for (MAVLinkRecord record : records) {
-            if (record.getMsgId() == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
-                msg_high_latency msg = (msg_high_latency)record.getPacket().unpack();
+            if (record.getMsgId() == MAVLINK_MSG_ID_HIGH_LATENCY) {
 
-                if (msg.longitude != 0 || msg.latitude != 0) { 
-                    Point point = new Point(msg.longitude / 10000000.0, 
-                                            msg.latitude / 10000000.0, 
-                                            (double) (msg.altitude_amsl / 1.0));
+                if (record.getLongitude() != 0.0 || record.getLatitude() != 0.0) { 
+                    Point point = new Point(record.getLongitude(), 
+                                            record.getLatitude(), 
+                                            record.getAltitude());
 
                     Map<String, Object> properties = new HashMap<String, Object>();
                     properties.put("device_id", record.getDeviceId());
                     properties.put("time", record.getTime().getTime());
-
-                    for (Field field : msg_high_latency_fields) {
-                        if (!Modifier.isStatic(field.getModifiers())) { 
-                            properties.put(field.getName(), field.get(msg));
-                        }
-                    }
+                    properties.putAll(record.getPacket());
 
                     features.getFeatures().add(new Feature(point, properties));
                 }
