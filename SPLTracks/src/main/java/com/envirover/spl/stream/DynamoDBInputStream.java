@@ -145,6 +145,11 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
 
                 return record;
             }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
         }
     }
 }
