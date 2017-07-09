@@ -22,10 +22,11 @@ along with SPLStream.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.spl.stream;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.Iterator;
 
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.MAVLink.common.msg_high_latency;
@@ -51,8 +52,6 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
     private static final String ATTR_TIME = "Time";
     private static final String ATTR_MSG_ID = "MsgId";
     private static final String ATTR_MESSAGE = "Message";
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     //private static final Logger logger = Logger.getLogger(DynamoDBInputStream.class.getName());
 
@@ -94,29 +93,63 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
             timeInterval = new RangeKeyCondition(ATTR_TIME).between(startTime.getTime(), endTime.getTime());
         }
 
-        IteratorSupport<Item, QueryOutcome> iterator = table.query(ATTR_DEVICE_ID, deviceId, timeInterval).iterator();
-
-        List<MAVLinkRecord> records = new ArrayList<MAVLinkRecord>();
-
-        while (iterator.hasNext()) {
-            Item item = iterator.next();
-
-            MAVLinkRecord record = new MAVLinkRecord();
-
-            record.setDeviceId(item.getString(ATTR_DEVICE_ID));
-            record.setTime(new Date(item.getLong(ATTR_TIME)));
-            record.setMsgId(item.getInt(ATTR_MSG_ID));
-
-            if (item.getInt(ATTR_MSG_ID) == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
-                String json = item.getJSON(ATTR_MESSAGE);
-                msg_high_latency msg = mapper.readValue(json, msg_high_latency.class);
-                record.setPacket(msg.pack());
-            }
-
-            records.add(record);
-        }
-
-        return records;
+        return new MAVLinkRecordIterable(table.query(ATTR_DEVICE_ID, deviceId, timeInterval).iterator());
     }
 
+    static class MAVLinkRecordIterable implements Iterable<MAVLinkRecord> {
+
+        private static final ObjectMapper mapper = new ObjectMapper();
+
+        private final IteratorSupport<Item, QueryOutcome> itemIterator;
+
+        public MAVLinkRecordIterable(IteratorSupport<Item, QueryOutcome> it) {
+            this.itemIterator = it;
+        }
+
+        @Override
+        public Iterator<MAVLinkRecord> iterator() {
+            return new MAVLinkRecordIterator();
+        }
+
+        class MAVLinkRecordIterator implements Iterator<MAVLinkRecord> {
+
+            @Override
+            public boolean hasNext() {
+                return itemIterator.hasNext();
+            }
+
+            @Override
+            public MAVLinkRecord next() {
+                Item item = itemIterator.next();
+
+                MAVLinkRecord record = new MAVLinkRecord();
+
+                record.setDeviceId(item.getString(ATTR_DEVICE_ID));
+                record.setTime(new Date(item.getLong(ATTR_TIME)));
+                record.setMsgId(item.getInt(ATTR_MSG_ID));
+
+                if (item.getInt(ATTR_MSG_ID) == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
+                    String json = item.getJSON(ATTR_MESSAGE);
+                    msg_high_latency msg;
+                    try {
+                        msg = mapper.readValue(json, msg_high_latency.class);
+                        record.setPacket(msg.pack());
+                    } catch (JsonParseException e) {
+                        e.printStackTrace();
+                    } catch (JsonMappingException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                return record;
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
 }

@@ -50,6 +50,20 @@
 							</descriptors>
 						</configuration>
 					</execution>
+					<execution>
+						<id>distro-assembly2</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>spltracks-${project.version}</finalName>
+							<tarLongFileMode>posix</tarLongFileMode> 
+							<descriptors>
+								<descriptor>src/assembly/spltracks.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>

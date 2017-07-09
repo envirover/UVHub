@@ -4,21 +4,22 @@ import java.text.ParseException;
 
 import org.junit.Test;
 
-import com.envirover.spl.stream.DynamoDBInputStream;
-import com.envirover.spl.stream.MAVLinkRecord;
+//import com.envirover.spl.stream.DynamoDBInputStream;
+//import com.envirover.spl.stream.MAVLinkRecord;
 
 public class DynamoDBInputStreamTest {
 
     @Test
-    public void testPostMobileOriginatedMessage() throws ParseException, IOException {
-        /*
-        DynamoDBInputStream stream = new DynamoDBInputStream("300234064280890", null, null);
+    public void testQueryMAVLinkRecords() throws ParseException, IOException {
+/*
+        DynamoDBInputStream stream = new DynamoDBInputStream();
+        Iterable<MAVLinkRecord> records = stream.query("300234064280890", null, null);
 
-        MAVLinkRecord record = null;
-        while ((record = stream.readPacket()) != null) {
-            System.out.println(record.getDeviceId());
+        int count = 0;
+        for (MAVLinkRecord record : records) {
+            System.out.println(Integer.toString(++count) +  " " + record.getDeviceId());
         }
-        */
+*/
     }
 
 }

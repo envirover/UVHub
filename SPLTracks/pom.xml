@@ -61,4 +61,8 @@
 		</dependency>
 	</dependencies>
 
+	<build>
+		<finalName>spltracks</finalName>
+	</build>
+
 </project>
