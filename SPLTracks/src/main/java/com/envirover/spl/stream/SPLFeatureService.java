@@ -98,14 +98,14 @@ public class SPLFeatureService {
         return features;
     }
 
-    private void buildLineFeatures(FeatureCollection features, String deviceId, Iterable<MAVLinkRecord> stream)
+    private void buildLineFeatures(FeatureCollection features, String deviceId, Iterable<MAVLinkRecord> records)
             throws IOException {
 
         LineString line = new LineString(); 
         long minTime = -1;
         long maxTime = -1;
 
-        for (MAVLinkRecord record : stream) {
+        for (MAVLinkRecord record : records) {
             if (record.getMsgId() == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
                 msg_high_latency msg = (msg_high_latency)record.getPacket().unpack();
       
@@ -137,27 +137,31 @@ public class SPLFeatureService {
         features.getFeatures().add(lineFeature);
     }
 
-    private void buildPointFeatures(FeatureCollection features, Iterable<MAVLinkRecord>  stream)
+    private void buildPointFeatures(FeatureCollection features, Iterable<MAVLinkRecord> records)
             throws IOException, IllegalAccessException {
 
-        for (MAVLinkRecord record : stream) {
-            if (record.getPacket().msgid == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
-                msg_high_latency msg = (msg_high_latency) record.getPacket().unpack();
+        Field[] msg_high_latency_fields = msg_high_latency.class.getFields();
+
+        for (MAVLinkRecord record : records) {
+            if (record.getMsgId() == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
+                msg_high_latency msg = (msg_high_latency)record.getPacket().unpack();
 
                 if (msg.longitude != 0 || msg.latitude != 0) { 
+                    Point point = new Point(msg.longitude / 10000000.0, 
+                                            msg.latitude / 10000000.0, 
+                                            (double) (msg.altitude_amsl / 1.0));
+
                     Map<String, Object> properties = new HashMap<String, Object>();
                     properties.put("device_id", record.getDeviceId());
                     properties.put("time", record.getTime().getTime());
 
-                    for (Field field : msg.getClass().getFields()) {
+                    for (Field field : msg_high_latency_fields) {
                         if (!Modifier.isStatic(field.getModifiers())) { 
                             properties.put(field.getName(), field.get(msg));
                         }
                     }
 
-                    Feature pointFeature = new Feature(new Point(msg.longitude / 10000000.0, msg.latitude / 10000000.0, (double) (msg.altitude_amsl / 1.0)), properties);
-
-                    features.getFeatures().add(pointFeature);
+                    features.getFeatures().add(new Feature(point, properties));
                 }
             }
         }
