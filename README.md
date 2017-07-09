@@ -13,7 +13,7 @@ SPL is a communication technology designed to:
 
 SPLGroundControl is a MAVLink proxy server for ArduPilot drones that uses Iridium sort burst data (ISBD) satellite communication system provided by [RockBLOCK](http://www.rock7mobile.com/products-rockblock) unit. It is designed to work with [SPLRadioRoom](https://github.com/envirover/SPLRadioRoom) field application, providing two way communication channel between ArduPilot based drones and MAVLink ground control stations such as MAVProxy, Mission Planer, or QGroundControl.
 
-## Installation and use
+### SPLGroundControl Installation and Use
 
 The machine that runs SPLGroundControl must be accessible from the Internet. Port 8080 must be accessible from RockBLOCK services, and port 5760 must be accessible from the ground control station client machines.
 
@@ -24,6 +24,10 @@ Once SPLGroundControl is started, you can connect to it from MAVProxy, Mission P
 ``mavproxy.py --master=tcp:<IP>:5760 --mav10``
 
 Currently SPLGroundControl supports one GCS client connection at a time.
+
+## SPLStream and SPLTracks
+
+SPLStream and SPLTracks web services provide a solution for storing and visualizing data reported by SPLRadioRoom. See [SPLStream and SPLTracks wiki page](https://github.com/envirover/SPLGroundControl/wiki/SPLStream-and-SPLTracks-Web-Services) for more information on deployment and use of these web services.
 
 ## Issues
 
