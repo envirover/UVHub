@@ -1,5 +1,5 @@
 /*
-This file is part of SPLStream application.
+This file is part of SPLTracks application.
 
 See http://www.rock7mobile.com/downloads/RockBLOCK-Web-Services-User-Guide.pdf
 
@@ -25,11 +25,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-
-import com.MAVLink.common.msg_high_latency;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
@@ -98,8 +93,6 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
 
     static class MAVLinkRecordIterable implements Iterable<MAVLinkRecord> {
 
-        private static final ObjectMapper mapper = new ObjectMapper();
-
         private final IteratorSupport<Item, QueryOutcome> itemIterator;
 
         public MAVLinkRecordIterable(IteratorSupport<Item, QueryOutcome> it) {
@@ -122,28 +115,7 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
             public MAVLinkRecord next() {
                 Item item = itemIterator.next();
 
-                MAVLinkRecord record = new MAVLinkRecord();
-
-                record.setDeviceId(item.getString(ATTR_DEVICE_ID));
-                record.setTime(new Date(item.getLong(ATTR_TIME)));
-                record.setMsgId(item.getInt(ATTR_MSG_ID));
-
-                if (item.getInt(ATTR_MSG_ID) == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
-                    String json = item.getJSON(ATTR_MESSAGE);
-                    try {
-                        msg_high_latency msg;
-                        msg = mapper.readValue(json, msg_high_latency.class);
-                        record.setPacket(msg.pack());
-                    } catch (JsonParseException e) {
-                        e.printStackTrace();
-                    } catch (JsonMappingException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                return record;
+                return new MAVLinkRecord(item.getString(ATTR_DEVICE_ID), new Date(item.getLong(ATTR_TIME)), item.getInt(ATTR_MSG_ID), item.getMap(ATTR_MESSAGE));
             }
 
             @Override

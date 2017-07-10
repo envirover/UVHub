@@ -313,8 +313,8 @@
       var view = new MapView({
         container: "viewDiv",
         map: map,
-        center: [-116.5, 33.5],
-        zoom: 9,
+        center: [0, 0],
+        zoom: 3,
         // customize ui padding for legend placement
         ui: {
           padding: {
@@ -363,6 +363,7 @@
         getPoints()
           .then(createPointsGraphics) // then send it to the createPointsGraphics() method
           .then(createPointsLayer) // when graphics are created, create the layer
+          .then(zoomToLayer)
           .otherwise(errback);
       });
 
@@ -382,6 +383,20 @@
         return esriRequest(url, {
           responseType: "json"
         });
+      }
+
+      function zoomToLayer(layer) {
+    	  view.whenLayerView(layer).then(function(layerView){
+    		  layerView.watch("updating", function(val){
+    		    // wait for the layer view to finish updating
+    		    if(!val){
+    		      layerView.queryExtent().then(function(response){
+    		        // go to the extent of all the graphics in the layer view
+    		        view.goTo(response.extent);
+    		      });
+    		    }
+    		  });
+    		});
       }
 
       /**************************************************
@@ -447,6 +462,7 @@
         });
 
         map.add(pointsLayer);
+
         return pointsLayer;
       }
 
