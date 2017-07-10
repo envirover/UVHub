@@ -313,8 +313,8 @@
       var view = new MapView({
         container: "viewDiv",
         map: map,
-        center: [-116.5, 33.5],
-        zoom: 9,
+        center: [0, 0],
+        zoom: 3,
         // customize ui padding for legend placement
         ui: {
           padding: {
