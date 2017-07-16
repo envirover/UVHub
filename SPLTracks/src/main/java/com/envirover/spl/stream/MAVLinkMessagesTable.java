@@ -29,6 +29,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.QueryFilter;
 import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.RangeKeyCondition;
 import com.amazonaws.services.dynamodbv2.document.Table;
@@ -39,7 +40,7 @@ import com.amazonaws.services.dynamodbv2.document.internal.IteratorSupport;
  * 
  * 
  */
-public class DynamoDBInputStream implements MAVLinkInputStream {
+public class MAVLinkMessagesTable implements MAVLinkInputStream {
 
     private static final String SPL_DYNAMODB_TABLE = "SPL_DYNAMODB_TABLE";
 
@@ -54,7 +55,7 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
 
     private final Table table ;
 
-    public DynamoDBInputStream() {
+    public MAVLinkMessagesTable() {
         if (System.getenv(SPL_DYNAMODB_TABLE) != null) {
             tableName = System.getenv(SPL_DYNAMODB_TABLE);
         }
@@ -75,7 +76,7 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
     }
 
     @Override
-    public Iterable<MAVLinkRecord> query(String deviceId, Date startTime, Date endTime) throws IOException {
+    public Iterable<MAVLinkRecord> query(String deviceId, Date startTime, Date endTime, Integer msgId) throws IOException {
         RangeKeyCondition timeInterval;
 
         if (startTime == null && endTime == null) {
@@ -88,7 +89,9 @@ public class DynamoDBInputStream implements MAVLinkInputStream {
             timeInterval = new RangeKeyCondition(ATTR_TIME).between(startTime.getTime(), endTime.getTime());
         }
 
-        return new MAVLinkRecordIterable(table.query(ATTR_DEVICE_ID, deviceId, timeInterval).iterator());
+        QueryFilter filter = new QueryFilter(ATTR_MSG_ID).eq(msgId);
+
+        return new MAVLinkRecordIterable(table.query(ATTR_DEVICE_ID, deviceId, timeInterval, filter).iterator());
     }
 
     static class MAVLinkRecordIterable implements Iterable<MAVLinkRecord> {
