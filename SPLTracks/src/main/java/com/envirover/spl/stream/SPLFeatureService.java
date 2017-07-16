@@ -50,13 +50,13 @@ public class SPLFeatureService {
 
     private final int MAVLINK_MSG_ID_HIGH_LATENCY = 234;
     
-    private final DynamoDBInputStream stream;
+    private final MAVLinkMessagesTable stream;
 
     // private static final Logger logger =
     // Logger.getLogger(SPLFeatureService.class.getName());
 
     public SPLFeatureService() throws IOException {
-        stream = new DynamoDBInputStream();
+        stream = new MAVLinkMessagesTable();
     }
 
     @GET
@@ -84,7 +84,8 @@ public class SPLFeatureService {
                 Iterable<MAVLinkRecord> records = stream.query(
                         deviceId, 
                         startTime > 0 ? new Date(startTime) : null,
-                        endTime > 0 ? new Date(endTime) : null);
+                        endTime > 0 ? new Date(endTime) : null,
+                        MAVLINK_MSG_ID_HIGH_LATENCY);
 
                 if (type.equalsIgnoreCase("point")) {
                     buildPointFeatures(features, records);
@@ -105,22 +106,20 @@ public class SPLFeatureService {
         long maxTime = -1;
 
         for (MAVLinkRecord record : records) {
-            if (record.getMsgId() == MAVLINK_MSG_ID_HIGH_LATENCY) {
-                if (minTime < 0 || record.getTime().getTime() < minTime) {
-                    minTime = record.getTime().getTime();
-                }
+            if (minTime < 0 || record.getTime().getTime() < minTime) {
+                minTime = record.getTime().getTime();
+            }
 
-                if (maxTime < 0 || record.getTime().getTime() > maxTime) {
-                    maxTime = record.getTime().getTime();
-                }
+            if (maxTime < 0 || record.getTime().getTime() > maxTime) {
+                maxTime = record.getTime().getTime();
+            }
 
-                if (record.getLongitude() != 0.0 || record.getLatitude() != 0.0) {
-                    List<Double> coordinates = new ArrayList<Double>();
-                    coordinates.add(record.getLongitude());
-                    coordinates.add(record.getLatitude());
-                    coordinates.add(record.getAltitude());
-                    line.getCoordinates().add(coordinates);
-                }
+            if (record.getLongitude() != 0.0 || record.getLatitude() != 0.0) {
+                List<Double> coordinates = new ArrayList<Double>();
+                coordinates.add(record.getLongitude());
+                coordinates.add(record.getLatitude());
+                coordinates.add(record.getAltitude());
+                line.getCoordinates().add(coordinates);
             }
         }
 
@@ -138,19 +137,17 @@ public class SPLFeatureService {
             throws IOException, IllegalAccessException {
 
         for (MAVLinkRecord record : records) {
-            if (record.getMsgId() == MAVLINK_MSG_ID_HIGH_LATENCY) {
-                if (record.getLongitude() != 0.0 || record.getLatitude() != 0.0) { 
-                    Point point = new Point(record.getLongitude(), 
-                                            record.getLatitude(), 
-                                            record.getAltitude());
+            if (record.getLongitude() != 0.0 || record.getLatitude() != 0.0) { 
+                Point point = new Point(record.getLongitude(), 
+                                        record.getLatitude(), 
+                                        record.getAltitude());
 
-                    Map<String, Object> properties = new HashMap<String, Object>();
-                    properties.put("device_id", record.getDeviceId());
-                    properties.put("time", record.getTime().getTime());
-                    properties.putAll(record.getPacket());
+                Map<String, Object> properties = new HashMap<String, Object>();
+                properties.put("device_id", record.getDeviceId());
+                properties.put("time", record.getTime().getTime());
+                properties.putAll(record.getPacket());
 
-                    features.getFeatures().add(new Feature(point, properties));
-                }
+                features.getFeatures().add(new Feature(point, properties));
             }
         }
     }

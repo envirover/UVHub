@@ -49,6 +49,6 @@ public interface MAVLinkInputStream {
      * @return MAVLinkRecord or null if the end of the stream is reached.
      * @throws IOException
      */
-    Iterable<MAVLinkRecord> query(String deviceId, Date startTime, Date endTime) throws IOException;
+    Iterable<MAVLinkRecord> query(String deviceId, Date startTime, Date endTime, Integer msgId) throws IOException;
 
 }
