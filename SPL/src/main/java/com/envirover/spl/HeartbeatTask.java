@@ -38,9 +38,7 @@ import com.MAVLink.common.msg_mission_current;
 import com.MAVLink.common.msg_nav_controller_output;
 import com.MAVLink.common.msg_sys_status;
 import com.MAVLink.common.msg_vfr_hud;
-import com.MAVLink.enums.MAV_AUTOPILOT;
 import com.MAVLink.enums.MAV_STATE;
-import com.MAVLink.enums.MAV_TYPE;
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkShadow;
 
@@ -57,9 +55,13 @@ import com.envirover.mavlink.MAVLinkShadow;
 public class HeartbeatTask extends TimerTask {
 
     private final MAVLinkChannel dst;
+    private final Short autopilot;
+    private final Short mavType;
 
-    public HeartbeatTask(MAVLinkChannel dst) {
+    public HeartbeatTask(MAVLinkChannel dst, Short autopilot, Short mavType) {
         this.dst = dst;
+        this.autopilot = autopilot;
+        this.mavType = mavType;
     }
 
     @Override
@@ -106,8 +108,8 @@ public class HeartbeatTask extends TimerTask {
         msg.base_mode = msgHighLatency.base_mode;
         msg.custom_mode = msgHighLatency.custom_mode;
         msg.system_status = MAV_STATE.MAV_STATE_ACTIVE;
-        msg.autopilot = MAV_AUTOPILOT.MAV_AUTOPILOT_ARDUPILOTMEGA;
-        msg.type = MAV_TYPE.MAV_TYPE_GROUND_ROVER;
+        msg.autopilot = autopilot;
+        msg.type = mavType;
         return msg;
     }
 

@@ -36,6 +36,9 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import com.MAVLink.enums.MAV_AUTOPILOT;
+import com.MAVLink.enums.MAV_TYPE;
+
 /**
  * Provides access to configuration properties specified in app.properties file
  * in the classpath or in command line parameters. 
@@ -52,12 +55,16 @@ public class Config {
     private final static String PROP_ROCKBLOCK_USERNAME = "rockblock.username";
     private final static String PROP_ROCKBLOCK_PASSWORD = "rockblock.password";
     private final static String PROP_HEARTBEAT_INTERVAL = "heartbeat.interval";
+    private final static String PROP_MAV_AUTOPILOT      = "mav.autopilot";
+    private final static String PROP_MAV_TYPE           = "mav.type";
 
     //CLI options
     private final static String CLI_OPTION_HELP         = "h";
     private final static String CLI_OPTION_IMEI         = "i";
     private final static String CLI_OPTION_USERNAME     = "u";
     private final static String CLI_OPTION_PASSWORD     = "p";
+    private final static String CLI_OPTION_AUTOPILOT    = "a";
+    private final static String CLI_OPTION_MAV_TYPE     = "t";
 
     // default property values
     private final static String  DEFAULT_ROCKBLOCK_URL  = "https://core.rock7.com/rockblock/MT";
@@ -66,6 +73,8 @@ public class Config {
     private final static Integer DEFAULT_MAVLINK_PORT   = 5760;
     private final static Integer DEFAULT_QUEUE_SIZE     = 10;
     private final static Integer DEFAULT_HEARTBEAT_INT  = 1000;
+    private final static Short   DEFAULT_AUTOPILOT      = MAV_AUTOPILOT.MAV_AUTOPILOT_ARDUPILOTMEGA;
+    private final static Short   DEFAULT_MAV_TYPE       = MAV_TYPE.MAV_TYPE_GROUND_ROVER;
 
     private String  rockblockUrl      = DEFAULT_ROCKBLOCK_URL;
     private String  httpContext       = DEFAULT_HTTP_CONTEXT;
@@ -76,6 +85,8 @@ public class Config {
     private String  imei              = null;
     private String  username          = null;
     private String  password          = null;
+    private Short   autopilot         = DEFAULT_AUTOPILOT;
+    private Short   mavType           = DEFAULT_MAV_TYPE;
 
     public void init() throws IOException, ParseException {
         init(null);
@@ -87,6 +98,8 @@ public class Config {
         options.addOption(CLI_OPTION_IMEI, true, "IMEI of RockBLOCK");
         options.addOption(CLI_OPTION_USERNAME, true, "Rock 7 Core username");
         options.addOption(CLI_OPTION_PASSWORD, true, "Rock 7 Core password");
+        options.addOption(CLI_OPTION_AUTOPILOT, true, "Autopilot code");
+        options.addOption(CLI_OPTION_MAV_TYPE, true, "MAV type");
         CommandLineParser parser = new BasicParser();
         CommandLine cmd = parser.parse( options, args);
 
@@ -145,6 +158,10 @@ public class Config {
             return false;
         }
 
+        autopilot = Short.valueOf(cmd.getOptionValue(CLI_OPTION_AUTOPILOT, props.getProperty(PROP_MAV_AUTOPILOT, DEFAULT_AUTOPILOT.toString())));
+
+        mavType = Short.valueOf(cmd.getOptionValue(CLI_OPTION_MAV_TYPE, props.getProperty(PROP_MAV_TYPE, DEFAULT_MAV_TYPE.toString())));
+
         return true;
     }
 
@@ -182,6 +199,14 @@ public class Config {
 
     public String getRockBlockURL() {
         return rockblockUrl;
+    }
+
+    public short getAutopilot() {
+        return autopilot;
+    }
+
+    public short getMavType() {
+        return mavType;
     }
 
 }
