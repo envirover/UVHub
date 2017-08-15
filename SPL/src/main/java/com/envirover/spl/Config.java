@@ -99,6 +99,7 @@ public class Config {
         options.addOption(CLI_OPTION_USERNAME, true, "Rock 7 Core username");
         options.addOption(CLI_OPTION_PASSWORD, true, "Rock 7 Core password");
         options.addOption(CLI_OPTION_AUTOPILOT, true, "Autopilot code");
+        options.addOption(CLI_OPTION_MAV_TYPE, true, "MAV type");
         CommandLineParser parser = new BasicParser();
         CommandLine cmd = parser.parse( options, args);
 
