@@ -113,7 +113,7 @@ public class SPLDaemon implements Daemon {
         mtMsgPumpThread = new Thread(mtMsgPump, "mt-message-pump");
 
         reportStateTimer = new Timer("report-state-timer", false);
-        reportStateTask = new HeartbeatTask(socket);
+        reportStateTask = new HeartbeatTask(socket, config.getAutopilot(), config.getMavType());
     }
 
     @Override

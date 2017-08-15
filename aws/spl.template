@@ -51,6 +51,16 @@
       "Description" : "URL of default.params file with initial on-board parameters values.",
       "Type" : "String",
       "Default" : "https://s3-us-west-2.amazonaws.com/envirover/spl/default.params"
+    },
+    "MAVAutopilot" : {
+      "Description" : "Autopilot class from MAV_AUTOPILOT enumeration (3 - ARDUPILOTMEGA, 12 - PX4).",
+      "Type" : "Number",
+      "Default" : "3"
+    },
+    "MAVType" : {
+      "Description" : "Vehicle type from MAV_TYPE enumeration (1 - FIXED_WING, 2 - QUADROTOR, 10 - GROUND_ROVER, 12 - SUBMARINE).",
+      "Type" : "Number",
+      "Default" : "10"
     }
   },
   "Mappings" : {
@@ -181,7 +191,7 @@
             "/opt/aws/bin/cfn-init -s ", { "Ref" : "AWS::StackId" }, " -r SPLServer ", " --region ", { "Ref" : "AWS::Region" }, " || error_exit 'Failed to run cfn-init'\n",
             "service awslogs start\n",
             "yum install -y jsvc*\n", 
-            "/usr/bin/jsvc -server -cp $SPL_HOME/conf:$SPL_HOME/lib/* -pidfile $SPL_HOME/jsvc.pid -home $JAVA_HOME com.envirover.spl.SPLDaemon -i ", { "Ref" : "RockBlockIMEI" }, " -u ", { "Ref" : "RockBlockUsername" }, " -p ", { "Ref" : "RockBlockPassword" }, "\n",
+            "/usr/bin/jsvc -server -cp $SPL_HOME/conf:$SPL_HOME/lib/* -pidfile $SPL_HOME/jsvc.pid -home $JAVA_HOME com.envirover.spl.SPLDaemon -i ", { "Ref" : "RockBlockIMEI" }, " -u ", { "Ref" : "RockBlockUsername" }, " -p ", { "Ref" : "RockBlockPassword" }, " -a ", { "Ref" : "MAVAutopilot" }, " -t ", { "Ref" : "MAVType" }, "\n",
             "/opt/aws/bin/cfn-signal -e $? --stack ", { "Ref" : "AWS::StackName" }, " --region ", { "Ref" : "AWS::Region" }, " --resource SPLServer\n" ] ]
           }
         }

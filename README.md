@@ -4,7 +4,7 @@
 # SPLGroundControl
 
 SPL is a communication technology designed to:
-* Track position, attitude, and velocity of your drone anywhere on Earth;
+* Track position, attitude, and velocity of your drones anywhere on Earth;
 * Monitor vital signs signs of your drone, such as battery charge, system status, and temperature;
 * Update missions, parameters, and send commands to your drone;
 * Control gymbals, and RC servos connected to AutoPilot.
