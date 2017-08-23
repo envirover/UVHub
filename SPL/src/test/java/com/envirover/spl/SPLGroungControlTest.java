@@ -64,7 +64,7 @@ import com.MAVLink.common.msg_high_latency;
 
 public class SPLGroungControlTest {
     private static final String[] args = {"-i", "1234567890", "-u", "user", "-p", "password"};
-    private static final Config config = new Config();
+    private static final Config config = Config.getInstance();
     private static final SPLDaemon daemon = new SPLDaemon();
 
     @BeforeClass

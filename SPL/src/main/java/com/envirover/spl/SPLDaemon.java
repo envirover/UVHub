@@ -34,11 +34,13 @@ import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
 import org.apache.log4j.Logger;
+import org.glassfish.tyrus.server.Server;
 
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkMessageQueue;
 import com.envirover.mavlink.MAVLinkShadow;
 import com.envirover.mavlink.MAVLinkSocket;
+import com.envirover.mavlink.MAVLinkWSEndpoint;
 import com.envirover.rockblock.RockBlockClient;
 import com.envirover.rockblock.RockBlockHttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -52,7 +54,7 @@ public class SPLDaemon implements Daemon {
 
     private final static Logger logger = Logger.getLogger(SPLDaemon.class);
     
-    private final Config config = new Config();
+    private final Config config = Config.getInstance();
     private MAVLinkChannel socket = null;
     private HttpServer server = null;
     private Thread moMsgPumpThread = null;
@@ -60,6 +62,7 @@ public class SPLDaemon implements Daemon {
     private Thread mtMsgPumpThread = null;
     private Timer  reportStateTimer = null;
     private TimerTask reportStateTask = null;
+    private Server wsServer;
 
     @Override
     public void destroy() {
@@ -87,7 +90,7 @@ public class SPLDaemon implements Daemon {
         socket = new MAVLinkSocket(config.getMAVLinkPort());
 
         MAVLinkMessageQueue moMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
-        
+
         MOMessageHandler moHandler = new MOMessageHandler(moMessageQueue);
 
         server = HttpServer.create(new InetSocketAddress(config.getRockblockPort()), 0);
@@ -114,6 +117,9 @@ public class SPLDaemon implements Daemon {
 
         reportStateTimer = new Timer("report-state-timer", false);
         reportStateTask = new HeartbeatTask(socket, config.getAutopilot(), config.getMavType());
+
+        MAVLinkWSEndpoint.setMTQueue(mtMessageQueue);
+        wsServer = new Server("localhost", config.getWSPort(), "/gcs", MAVLinkWSEndpoint.class);
     }
 
     @Override
@@ -128,6 +134,8 @@ public class SPLDaemon implements Daemon {
         mtHandlerThread.start();
         mtMsgPumpThread.start();
         reportStateTimer.schedule(reportStateTask, 0, config.getHeartbeatInterval());
+        wsServer.start();
+
         Thread.sleep(1000);
 
         logger.info("SPL Ground Control server started.");
@@ -146,6 +154,8 @@ public class SPLDaemon implements Daemon {
         moMsgPumpThread.join(1000);
 
         server.stop(0);
+
+        wsServer.stop();
 
         Thread.sleep(1000);
 
