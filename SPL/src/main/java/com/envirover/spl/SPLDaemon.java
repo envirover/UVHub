@@ -66,8 +66,10 @@ public class SPLDaemon implements Daemon {
 
     @Override
     public void destroy() {
-        if (socket != null)
+        if (socket != null) {
           socket.close();
+          socket = null;
+        }
 
         server.removeContext(config.getHttpContext());
     }
