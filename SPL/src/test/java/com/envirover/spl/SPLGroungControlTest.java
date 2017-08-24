@@ -87,7 +87,7 @@ public class SPLGroungControlTest {
 
         Logger.getRootLogger().addAppender(console);
 
-        System.out.println("SETUP: Starting SPLGroundControl application...");
+        System.out.println("SETUP: Starting SPLGroundControl...");
         config.init(args);
 
         daemon.init(new SPLGroundControl.SPLDaemonContext(args));
@@ -98,6 +98,7 @@ public class SPLGroungControlTest {
     public static void tearDownClass() throws Exception {
         daemon.stop();
         daemon.destroy();
+        System.out.println("TEAR DOWN: SPLGroundControl stopped.");
     }
 
     //Test receiving MO messages from RockBLOCK
@@ -272,8 +273,6 @@ public class SPLGroungControlTest {
     public void testWSClient() throws InterruptedException, DeploymentException, IOException  {
         System.out.println("WS TEST: Testing WebSocket endpoint...");
 
-        Thread.sleep(1000);
-
         String endpoint = String.format("ws://%s:%d/gcs/ws", 
                           InetAddress.getLocalHost().getHostAddress(), 
                           config.getWSPort());
@@ -285,7 +284,7 @@ public class SPLGroungControlTest {
 
         Session session = client.connectToServer(WSClient.class, URI.create(endpoint)); 
 
-        System.out.printf("WS TEST: Connected %s", endpoint);
+        System.out.printf("WS TEST: Connected to %s", endpoint);
         System.out.println();
 
         MAVLinkPacket packet = getSamplePacket();

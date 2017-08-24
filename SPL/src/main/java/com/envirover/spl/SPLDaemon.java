@@ -40,7 +40,6 @@ import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkMessageQueue;
 import com.envirover.mavlink.MAVLinkShadow;
 import com.envirover.mavlink.MAVLinkSocket;
-import com.envirover.mavlink.MAVLinkWSEndpoint;
 import com.envirover.rockblock.RockBlockClient;
 import com.envirover.rockblock.RockBlockHttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -120,8 +119,8 @@ public class SPLDaemon implements Daemon {
         reportStateTimer = new Timer("report-state-timer", false);
         reportStateTask = new HeartbeatTask(socket, config.getAutopilot(), config.getMavType());
 
-        MAVLinkWSEndpoint.setMTQueue(mtMessageQueue);
-        wsServer = new Server("localhost", config.getWSPort(), "/gcs", MAVLinkWSEndpoint.class);
+        WSEndpoint.setMTQueue(mtMessageQueue);
+        wsServer = new Server("localhost", config.getWSPort(), "/gcs", WSEndpoint.class);
     }
 
     @Override

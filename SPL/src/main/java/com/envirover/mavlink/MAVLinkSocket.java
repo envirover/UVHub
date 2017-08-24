@@ -156,7 +156,7 @@ public class MAVLinkSocket implements MAVLinkChannel {
     }
 
     @Override
-    public synchronized void close() {
+    public void close() {
         closeConnection();
 
         try {

@@ -1,4 +1,4 @@
-package com.envirover.mavlink;
+package com.envirover.spl;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -17,12 +17,12 @@ import org.apache.commons.codec.DecoderException;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
-import com.envirover.spl.Config;
-import com.envirover.spl.HeartbeatTask;
-import com.envirover.spl.MTMessageHandler;
+import com.envirover.mavlink.MAVLinkChannel;
+import com.envirover.mavlink.MAVLinkMessageQueue;
+import com.envirover.mavlink.MAVLinkWebSocket;
 
 @ServerEndpoint("/ws")
-public class MAVLinkWSEndpoint {
+public class WSEndpoint {
 
     private final Config config = Config.getInstance();
 
@@ -36,7 +36,7 @@ public class MAVLinkWSEndpoint {
         mtMessageQueue = queue;
     }
 
-    public MAVLinkWSEndpoint() {
+    public WSEndpoint() {
         System.out.println("class loaded " + this.getClass());
     }
 
@@ -55,7 +55,7 @@ public class MAVLinkWSEndpoint {
         mtSessionQueues.put(session.getId(), mtSessionQueue);
 
         MTMessageHandler mtHandler = new MTMessageHandler(mtSessionQueue, mtMessageQueue);
-        Thread mtHandlerThread = new Thread(mtHandler, "mt-handler");
+        Thread mtHandlerThread = new Thread(mtHandler, "mt-handler-ws");
         mtHandlerThread.start();
         mtHandlerThreads.put(session.getId(), mtHandlerThread);
     }
@@ -84,7 +84,7 @@ public class MAVLinkWSEndpoint {
     }
 
     @OnClose
-    public void onClose(Session session) {
+    public void onClose(Session session) throws InterruptedException {
         Timer timer = timers.get(session.getId());
 
         if (timer != null) {
@@ -96,6 +96,7 @@ public class MAVLinkWSEndpoint {
 
         if (mtHandlerThread != null) {
             mtHandlerThread.interrupt();
+            mtHandlerThread.join(1000);
             mtHandlerThreads.remove(session.getId());
         }
 
