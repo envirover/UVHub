@@ -3,8 +3,6 @@ package com.envirover.spl;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -18,18 +16,12 @@ import org.apache.commons.codec.DecoderException;
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
 import com.envirover.mavlink.MAVLinkChannel;
-import com.envirover.mavlink.MAVLinkMessageQueue;
 import com.envirover.mavlink.MAVLinkWebSocket;
 
 @ServerEndpoint("/ws")
 public class WSEndpoint {
 
-    private final Config config = Config.getInstance();
-
-    private Map<String, Timer> timers = new HashMap<String, Timer>();
-    private Map<String, Thread> mtHandlerThreads = new HashMap<String, Thread>();
-    private Map<String, MAVLinkChannel> mtSessionQueues = new HashMap<String, MAVLinkChannel>();
-
+    private static Map<String, ClientSession> sessions = new HashMap<String, ClientSession>();
     private static MAVLinkChannel mtMessageQueue = null;
 
     public static void setMTQueue(MAVLinkChannel queue) {
@@ -37,44 +29,25 @@ public class WSEndpoint {
     }
 
     public WSEndpoint() {
-        System.out.println("class loaded " + this.getClass());
     }
 
     @OnOpen
     public void onOpen(Session session) {
-        System.out.printf("Session opened, id: %s%n", session.getId());
+        System.out.printf("WebSocket session opened, id: %s%n", session.getId());
 
-        TimerTask heartbeatTask = new HeartbeatTask(new MAVLinkWebSocket(session),
-                                                    config.getAutopilot(), 
-                                                    config.getMavType());
-        Timer heartbeatTimer = new Timer();
-        timers.put(session.getId(), heartbeatTimer);
-        heartbeatTimer.schedule(heartbeatTask, 0, config.getHeartbeatInterval());
-
-        MAVLinkMessageQueue mtSessionQueue = new MAVLinkMessageQueue(config.getQueueSize());
-        mtSessionQueues.put(session.getId(), mtSessionQueue);
-
-        MTMessageHandler mtHandler = new MTMessageHandler(mtSessionQueue, mtMessageQueue);
-        Thread mtHandlerThread = new Thread(mtHandler, "mt-handler-ws");
-        mtHandlerThread.start();
-        mtHandlerThreads.put(session.getId(), mtHandlerThread);
+        ClientSession clientSession = new ClientSession(new MAVLinkWebSocket(session), mtMessageQueue);
+        clientSession.onOpen();
+        sessions.put(session.getId(), clientSession);
     }
 
     @OnMessage
-    public void onMessage(byte[] message, Session session) {
-        System.out.printf("Message received. Session id: %s Message: %s",
-            session.getId(), message.toString());
+    public void onMessage(byte[] message, Session session) throws IOException, InterruptedException, DecoderException {
+        System.out.printf("Message received. Session id: %s Message: %s", session.getId(), message.toString());
 
-        try {
-            MAVLinkChannel mtSessionQueue = mtSessionQueues.get(session.getId());
+        ClientSession clientSession = sessions.get(session.getId());
 
-            if (mtSessionQueue != null) {
-                mtSessionQueue.sendMessage(getPacket(message));
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } catch (DecoderException e) {
-            e.printStackTrace();
+        if (clientSession != null) {
+            clientSession.onMessage(getPacket(message));
         }
     }
 
@@ -85,26 +58,16 @@ public class WSEndpoint {
 
     @OnClose
     public void onClose(Session session) throws InterruptedException {
-        Timer timer = timers.get(session.getId());
+        ClientSession clientSession = sessions.get(session.getId());
 
-        if (timer != null) {
-            timer.cancel();
-            timers.remove(session.getId());
+        if (clientSession != null) {
+            clientSession.onClose();
+            sessions.remove(session.getId());
         }
 
-        Thread mtHandlerThread = mtHandlerThreads.get(session.getId());
-
-        if (mtHandlerThread != null) {
-            mtHandlerThread.interrupt();
-            mtHandlerThread.join(1000);
-            mtHandlerThreads.remove(session.getId());
-        }
-
-        mtSessionQueues.remove(session.getId());
-
-        System.out.printf("Session closed with id: %s%n", session.getId());
+        System.out.printf("webSocket %s session closed.", session.getId());
     }
- 
+
     private MAVLinkPacket getPacket(byte[] data) throws DecoderException {
         Parser parser = new Parser();
         MAVLinkPacket packet = null;

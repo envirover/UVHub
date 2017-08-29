@@ -1,31 +1,9 @@
-/*
-This file is part of SPLGroundControl application.
-
-SPLGroundControl is a MAVLink proxy server for ArduPilot rovers with
-RockBLOCK satellite communication.
-
-See http://www.rock7mobile.com/downloads/RockBLOCK-Web-Services-User-Guide.pdf
-
-Copyright (C) 2017 Envirover
-
-SPLGroundControl is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-SPLGroundControl is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with SPLGroundControl.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 package com.envirover.spl;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -58,54 +36,45 @@ import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkLogger;
 import com.envirover.mavlink.MAVLinkShadow;
 
-/**
- * Receives MAVLink message packets from a source channel, such as MAVLinkSocket,
- * filters out high frequency messages, and sends the packets to the destination
- * channel, such as MAVLinkMessageQueue.
+/*
+ * MAVLink client session.
  */
-public class MTMessageHandler implements Runnable {
+public class ClientSession {
 
     private final static int MAX_MISSION_COUNT = 10;
 
-    private final static Logger logger = Logger.getLogger(MTMessageHandler.class);
+    private final static Logger logger = Logger.getLogger(ClientSession.class);
+    private static final Config config = Config.getInstance();
 
+    private final Timer heartbeatTimer = new Timer();
     private final MAVLinkChannel src;
     private final MAVLinkChannel dst;
 
-    /**
-     * Constructs instance of MAVLinkHandler.
-     * 
-     * @param src source message channel, such as MAVLinkSocket.
-     * @param dst destination message channel, such as MAVLinkMessageQueue.
-     */
-    public MTMessageHandler(MAVLinkChannel src, MAVLinkChannel dst) {
+    public ClientSession(MAVLinkChannel src, MAVLinkChannel mtMessageQueue) {
         this.src = src;
-        this.dst = dst;
+        this.dst = mtMessageQueue;
     }
 
-    @Override
-    public void run() {
-        logger.debug("MTMessageHandler started.");
+    public void onOpen() {
+        TimerTask heartbeatTask = new HeartbeatTask(src, config.getAutopilot(), config.getMavType());
+        heartbeatTimer.schedule(heartbeatTask, 0, config.getHeartbeatInterval());
+    }
 
-        while (true) {
-            try {
-                MAVLinkPacket packet = src.receiveMessage();
+    public void onClose() throws InterruptedException {
+        heartbeatTimer.cancel();
 
-                handleParams(packet);
-                handleMissions(packet);
-                handleCommand(packet);
+        if (src != null) {
+            src.close();
+        }
+    }
 
-                if (filter(packet)) {
-                    dst.sendMessage(packet);
-                }
+    public void onMessage(MAVLinkPacket packet) throws IOException, InterruptedException {
+        handleParams(packet);
+        handleMissions(packet);
+        handleCommand(packet);
 
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                logger.info("MAVLinkHandler interrupted.");
-                return;
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            } 
+        if (filter(packet)) {
+            dst.sendMessage(packet);
         }
     }
 
@@ -190,16 +159,16 @@ public class MTMessageHandler implements Runnable {
                     mission_ack.compid = msg.target_component;
                     mission_ack.target_system = (short) packet.sysid;
                     mission_ack.target_component = (short) packet.compid;
-                    sendToSource(mission_ack);                	
+                    sendToSource(mission_ack);                  
                 } else {
-	                shadow.setDesiredMissionCount(msg.count);
-	                msg_mission_request request = new msg_mission_request();
-	                request.seq = 0;
-	                request.sysid = msg.target_system;
-	                request.compid = msg.target_component;
-	                request.target_system = (short) packet.sysid;
-	                request.target_component = (short) packet.compid;
-	                sendToSource(request);
+                    shadow.setDesiredMissionCount(msg.count);
+                    msg_mission_request request = new msg_mission_request();
+                    request.seq = 0;
+                    request.sysid = msg.target_system;
+                    request.compid = msg.target_component;
+                    request.target_system = (short) packet.sysid;
+                    request.target_component = (short) packet.compid;
+                    sendToSource(request);
                 }
                 break;
             }
@@ -275,7 +244,8 @@ public class MTMessageHandler implements Runnable {
                packet.msgid == msg_mission_item_int.MAVLINK_MSG_ID_MISSION_ITEM_INT ||
                packet.msgid == msg_command_int.MAVLINK_MSG_ID_COMMAND_INT ||
               (packet.msgid == msg_command_long.MAVLINK_MSG_ID_COMMAND_LONG && 
-               ((msg_command_long)packet.unpack()).command != MAV_CMD.MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES) ||
+               (((msg_command_long)packet.unpack()).command != MAV_CMD.MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES) ||
+                ((msg_command_long)packet.unpack()).command != 519 /* MAV_CMD_REQUEST_PROTOCOL_VERSION */) ||
                packet.msgid == msg_set_home_position.MAVLINK_MSG_ID_SET_HOME_POSITION);
     }
 

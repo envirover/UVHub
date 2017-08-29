@@ -69,6 +69,7 @@ public class HeartbeatTask extends TimerTask {
         try {
             reportState();
         } catch (IOException e) {
+            dst.close();
             e.printStackTrace();
         }
     }
