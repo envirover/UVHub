@@ -275,7 +275,7 @@
       "Description" : "SPLGroundControl logs"
     },
     "WSMAVLinkClientURL" : {
-      "Value" : { "Fn::Join" : [ "", [ "ws://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ] }, ":8080/gcs/ws" ] ] },
+      "Value" : { "Fn::Join" : [ "", [ "ws://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ] }, ":8000/gcs/ws" ] ] },
       "Description" : "MAVLink client WebSocket connection URL"
     }
   }
