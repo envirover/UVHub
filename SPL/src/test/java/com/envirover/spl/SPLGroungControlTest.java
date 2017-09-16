@@ -34,8 +34,15 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.websocket.ClientEndpoint;
+import javax.websocket.DeploymentException;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -54,6 +61,7 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+import org.glassfish.tyrus.client.ClientManager;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -61,10 +69,11 @@ import org.junit.Test;
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
 import com.MAVLink.common.msg_high_latency;
+import com.envirover.mavlink.MAVLinkLogger;
 
 public class SPLGroungControlTest {
     private static final String[] args = {"-i", "1234567890", "-u", "user", "-p", "password"};
-    private static final Config config = new Config();
+    private static final Config config = Config.getInstance();
     private static final SPLDaemon daemon = new SPLDaemon();
 
     @BeforeClass
@@ -78,7 +87,7 @@ public class SPLGroungControlTest {
 
         Logger.getRootLogger().addAppender(console);
 
-        System.out.println("SETUP: Starting SPLGroundControl application...");
+        System.out.println("SETUP: Starting SPLGroundControl...");
         config.init(args);
 
         daemon.init(new SPLGroundControl.SPLDaemonContext(args));
@@ -89,6 +98,7 @@ public class SPLGroungControlTest {
     public static void tearDownClass() throws Exception {
         daemon.stop();
         daemon.destroy();
+        System.out.println("TEAR DOWN: SPLGroundControl stopped.");
     }
 
     //Test receiving MO messages from RockBLOCK
@@ -247,18 +257,45 @@ public class SPLGroungControlTest {
 
     @Test
     public void testMessageParser() throws DecoderException {
-        //MAVLinkPacket packet = getPacket("fe030201012fff00016472");
         MAVLinkPacket packet = getPacket("fe28010101ea04000000242c4f14d4f32cbac1fe78fe527d6829d301d4e5010081001700000000090400000000018099");
 
         int[] MAVLINK_MESSAGE_CRCS = {50, 124, 137, 0, 237, 217, 104, 119, 0, 0, 0, 89, 0, 0, 0, 0, 0, 0, 0, 0, 214, 159, 220, 168, 24, 23, 170, 144, 67, 115, 39, 246, 185, 104, 237, 244, 222, 212, 9, 254, 230, 28, 28, 132, 221, 232, 11, 153, 41, 39, 78, 196, 0, 0, 15, 3, 0, 0, 0, 0, 0, 167, 183, 119, 191, 118, 148, 21, 0, 243, 124, 0, 0, 38, 20, 158, 152, 143, 0, 0, 0, 106, 49, 22, 143, 140, 5, 150, 0, 231, 183, 63, 54, 47, 0, 0, 0, 0, 0, 0, 175, 102, 158, 208, 56, 93, 138, 108, 32, 185, 84, 34, 174, 124, 237, 4, 76, 128, 56, 116, 134, 237, 203, 250, 87, 203, 220, 25, 226, 46, 29, 223, 85, 6, 229, 203, 1, 195, 109, 168, 181, 47, 72, 131, 127, 0, 103, 154, 178, 200, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 163, 105, 151, 35, 150, 0, 0, 0, 0, 0, 0, 90, 104, 85, 95, 130, 184, 81, 8, 204, 49, 170, 44, 83, 46, 0};
-        
+
         System.out.println(MAVLINK_MESSAGE_CRCS[47]);
-        
+
         if (packet == null) {
             fail("MAVLink message parse failed.");
         }
     }
-    
+
+    //Testing web socket service endpoint
+    @Test
+    public void testWSClient() throws InterruptedException, DeploymentException, IOException  {
+        System.out.println("WS TEST: Testing WebSocket endpoint...");
+
+        String endpoint = String.format("ws://%s:%d/gcs/ws", 
+                          InetAddress.getLocalHost().getHostAddress(), 
+                          config.getWSPort());
+
+        System.out.printf("WS TEST: Connecting to %s", endpoint);
+        System.out.println();
+
+        ClientManager client = ClientManager.createClient();
+
+        Session session = client.connectToServer(WSClient.class, URI.create(endpoint)); 
+
+        System.out.printf("WS TEST: Connected to %s", endpoint);
+        System.out.println();
+
+        MAVLinkPacket packet = getSamplePacket();
+        session.getBasicRemote().sendBinary(ByteBuffer.wrap(packet.encodePacket()));
+
+        Thread.sleep(10000);
+
+        System.out.println("WS TEST: Complete.");
+
+        session.close();
+    }
 
     private MAVLinkPacket getSamplePacket() {
         msg_high_latency msg = new msg_high_latency();
@@ -279,4 +316,33 @@ public class SPLGroungControlTest {
 
         return packet;
     }
+
+    @ClientEndpoint
+    public static class WSClient {
+
+        @OnOpen
+        public void onOpen(Session session) {
+        }
+
+        @OnMessage
+        public void onMessage(byte[] message, Session session) throws DecoderException {
+            MAVLinkLogger.log(Level.INFO, "WS >>", getPacket(message));
+        }
+
+        private MAVLinkPacket getPacket(byte[] data) throws DecoderException {
+            Parser parser = new Parser();
+            MAVLinkPacket packet = null;
+
+            for (byte b : data) {
+                packet = parser.mavlink_parse_char(b & 0xFF);
+                if (packet != null) {
+                    return packet;
+                }
+            }
+
+            return null;
+        }
+
+    }
+
 }

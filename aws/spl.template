@@ -273,6 +273,10 @@
     "CloudWatchLogs" : {
       "Value" : { "Fn::Join" : [ "", [ "https://console.aws.amazon.com/cloudwatch/home?region=", { "Ref" : "AWS::Region" }, "#logStream:group=", { "Ref" : "LogGroup" } ] ] },
       "Description" : "SPLGroundControl logs"
+    },
+    "WSMAVLinkClientURL" : {
+      "Value" : { "Fn::Join" : [ "", [ "ws://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ] }, ":8000/gcs/ws" ] ] },
+      "Description" : "MAVLink client WebSocket connection URL"
     }
   }
 }

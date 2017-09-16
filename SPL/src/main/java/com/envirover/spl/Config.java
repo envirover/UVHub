@@ -50,6 +50,7 @@ public class Config {
     private final static String PROP_QUEUE_SIZE         = "queue.size";
     private final static String PROP_ROCKBLOCK_PORT     = "rockblock.port";
     private final static String PROP_MAVLINK_PORT       = "mavlink.port";
+    private final static String PROP_WS_PORT            = "ws.port";
     private final static String PROP_ROCKBLOCK_URL      = "rockblock.url";
     private final static String PROP_ROCKBLOCK_IMEI     = "rockblock.imei";
     private final static String PROP_ROCKBLOCK_USERNAME = "rockblock.username";
@@ -69,8 +70,9 @@ public class Config {
     // default property values
     private final static String  DEFAULT_ROCKBLOCK_URL  = "https://core.rock7.com/rockblock/MT";
     private final static String  DEFAULT_HTTP_CONTEXT   = "/mo";
-    private final static Integer DEFAULT_ROCKBLOCK_PORT = 8000;
+    private final static Integer DEFAULT_ROCKBLOCK_PORT = 8080;
     private final static Integer DEFAULT_MAVLINK_PORT   = 5760;
+    private final static Integer DEFAULT_WS_PORT        = 8000;
     private final static Integer DEFAULT_QUEUE_SIZE     = 10;
     private final static Integer DEFAULT_HEARTBEAT_INT  = 1000;
     private final static Short   DEFAULT_AUTOPILOT      = MAV_AUTOPILOT.MAV_AUTOPILOT_ARDUPILOTMEGA;
@@ -80,6 +82,7 @@ public class Config {
     private String  httpContext       = DEFAULT_HTTP_CONTEXT;
     private Integer rockblockPort     = DEFAULT_ROCKBLOCK_PORT;
     private Integer mavlinkPort       = DEFAULT_MAVLINK_PORT;
+    private Integer wsPort            = DEFAULT_WS_PORT;
     private Integer queueSize         = DEFAULT_QUEUE_SIZE;
     private Integer heartbeatInterval = DEFAULT_HEARTBEAT_INT;
     private String  imei              = null;
@@ -87,6 +90,15 @@ public class Config {
     private String  password          = null;
     private Short   autopilot         = DEFAULT_AUTOPILOT;
     private Short   mavType           = DEFAULT_MAV_TYPE;
+
+    static Config config = new Config();
+
+    private Config() {
+    }
+
+    public static Config getInstance() {
+        return config;
+    }
 
     public void init() throws IOException, ParseException {
         init(null);
@@ -127,6 +139,9 @@ public class Config {
 
         if (props.getProperty(PROP_MAVLINK_PORT) != null)
             mavlinkPort = Integer.valueOf(props.getProperty(PROP_MAVLINK_PORT));
+
+        if (props.getProperty(PROP_WS_PORT) != null)
+            wsPort = Integer.valueOf(props.getProperty(PROP_WS_PORT));
 
         if (props.getProperty(PROP_QUEUE_SIZE) != null)
             queueSize = Integer.valueOf(props.getProperty(PROP_QUEUE_SIZE));
@@ -175,6 +190,10 @@ public class Config {
 
     public Integer getMAVLinkPort() {
         return mavlinkPort;
+    }
+
+    public Integer getWSPort() {
+        return wsPort;
     }
 
     public Integer getQueueSize() {

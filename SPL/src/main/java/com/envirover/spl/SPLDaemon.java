@@ -27,18 +27,15 @@ package com.envirover.spl;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
 import org.apache.log4j.Logger;
+import org.glassfish.tyrus.server.Server;
 
-import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkMessageQueue;
 import com.envirover.mavlink.MAVLinkShadow;
-import com.envirover.mavlink.MAVLinkSocket;
 import com.envirover.rockblock.RockBlockClient;
 import com.envirover.rockblock.RockBlockHttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -51,22 +48,20 @@ public class SPLDaemon implements Daemon {
     private final static String DEFAULT_PARAMS_FILE = "default.params";
 
     private final static Logger logger = Logger.getLogger(SPLDaemon.class);
-    
-    private final Config config = new Config();
-    private MAVLinkChannel socket = null;
-    private HttpServer server = null;
-    private Thread moMsgPumpThread = null;
-    private Thread mtHandlerThread = null;
+
+    private final Config config = Config.getInstance();
+    private MAVLinkTcpServer tcpServer = null;
+    private HttpServer httpServer = null;
+    //private Thread moMsgPumpThread = null;
+    //private Thread mtHandlerThread = null;
     private Thread mtMsgPumpThread = null;
-    private Timer  reportStateTimer = null;
-    private TimerTask reportStateTask = null;
+    //private Timer  reportStateTimer = null;
+    //private TimerTask reportStateTask = null;
+    private Server wsServer;
 
     @Override
     public void destroy() {
-        if (socket != null)
-          socket.close();
-
-        server.removeContext(config.getHttpContext());
+        httpServer.removeContext(config.getHttpContext());
     }
 
     @Override
@@ -83,26 +78,19 @@ public class SPLDaemon implements Daemon {
             logger.warn("File 'default.params' with initial parameters values not found.");
         }
 
-        //Init mobile-originated pipeline
-        socket = new MAVLinkSocket(config.getMAVLinkPort());
+        MAVLinkMessageQueue mtMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
+        tcpServer = new MAVLinkTcpServer(config.getMAVLinkPort(), mtMessageQueue);
 
         MAVLinkMessageQueue moMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
-        
+
         MOMessageHandler moHandler = new MOMessageHandler(moMessageQueue);
 
-        server = HttpServer.create(new InetSocketAddress(config.getRockblockPort()), 0);
-        server.createContext(config.getHttpContext(), 
+        httpServer = HttpServer.create(new InetSocketAddress(config.getRockblockPort()), 0);
+        httpServer.createContext(config.getHttpContext(), 
                              new RockBlockHttpHandler(moHandler, config.getRockBlockIMEI()));
-        server.setExecutor(null);
+        httpServer.setExecutor(null);
 
-        MOMessagePump moMsgPump = new MOMessagePump(moMessageQueue, socket);
-        moMsgPumpThread = new Thread(moMsgPump, "mo-message-pump");
-
-        //Init mobile-terminated pipeline
-        MAVLinkMessageQueue mtMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
-
-        MTMessageHandler mtHandler = new MTMessageHandler(socket, mtMessageQueue);
-        mtHandlerThread = new Thread(mtHandler, "mt-handler");
+        // TODO: Broadcast MO messages to all the connected clients.
 
         RockBlockClient rockblock = new RockBlockClient(config.getRockBlockIMEI(),
                                                         config.getRockBlockUsername(),
@@ -112,8 +100,8 @@ public class SPLDaemon implements Daemon {
         MTMessagePump mtMsgPump = new MTMessagePump(mtMessageQueue, rockblock);
         mtMsgPumpThread = new Thread(mtMsgPump, "mt-message-pump");
 
-        reportStateTimer = new Timer("report-state-timer", false);
-        reportStateTask = new HeartbeatTask(socket, config.getAutopilot(), config.getMavType());
+        WSEndpoint.setMTQueue(mtMessageQueue);
+        wsServer = new Server("localhost", config.getWSPort(), "/gcs", WSEndpoint.class);
     }
 
     @Override
@@ -123,11 +111,11 @@ public class SPLDaemon implements Daemon {
                           ip, config.getRockblockPort(), config.getHttpContext());
         System.out.println();
 
-        server.start();
-        moMsgPumpThread.start();
-        mtHandlerThread.start();
+        httpServer.start();
         mtMsgPumpThread.start();
-        reportStateTimer.schedule(reportStateTask, 0, config.getHeartbeatInterval());
+        tcpServer.start();
+        wsServer.start();
+
         Thread.sleep(1000);
 
         logger.info("SPL Ground Control server started.");
@@ -135,17 +123,14 @@ public class SPLDaemon implements Daemon {
 
     @Override
     public void stop() throws Exception {
-        reportStateTimer.cancel();
+
         mtMsgPumpThread.interrupt();
         mtMsgPumpThread.join(1000);
 
-        mtHandlerThread.interrupt();
-        mtHandlerThread.join(1000);
+        httpServer.stop(0);
 
-        moMsgPumpThread.interrupt();
-        moMsgPumpThread.join(1000);
-
-        server.stop(0);
+        tcpServer.stop();
+        wsServer.stop();
 
         Thread.sleep(1000);
 
