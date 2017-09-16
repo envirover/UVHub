@@ -37,7 +37,8 @@ import com.envirover.mavlink.MAVLinkLogger;
 import com.envirover.mavlink.MAVLinkShadow;
 
 /*
- * MAVLink client session.
+ * TCP and WebSocket MAVLink client sessions that handle communications with GCS clients.
+ *
  */
 public class ClientSession {
 
@@ -232,6 +233,12 @@ public class ClientSession {
 
     //White list message filter
     private static boolean filter(MAVLinkPacket packet) {
+        if (packet.msgid == msg_command_long.MAVLINK_MSG_ID_COMMAND_LONG) {
+            int command = ((msg_command_long)packet.unpack()).command;
+            return command != MAV_CMD.MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES &&
+                   command != 519  /* MAV_CMD_REQUEST_PROTOCOL_VERSION */;
+        }
+
         return packet != null &&
               (packet.msgid == msg_set_mode.MAVLINK_MSG_ID_SET_MODE || 
                packet.msgid == msg_param_set.MAVLINK_MSG_ID_PARAM_SET ||
@@ -243,9 +250,6 @@ public class ClientSession {
                packet.msgid == msg_mission_clear_all.MAVLINK_MSG_ID_MISSION_CLEAR_ALL ||
                packet.msgid == msg_mission_item_int.MAVLINK_MSG_ID_MISSION_ITEM_INT ||
                packet.msgid == msg_command_int.MAVLINK_MSG_ID_COMMAND_INT ||
-              (packet.msgid == msg_command_long.MAVLINK_MSG_ID_COMMAND_LONG && 
-               (((msg_command_long)packet.unpack()).command != MAV_CMD.MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES) ||
-                ((msg_command_long)packet.unpack()).command != 519 /* MAV_CMD_REQUEST_PROTOCOL_VERSION */) ||
                packet.msgid == msg_set_home_position.MAVLINK_MSG_ID_SET_HOME_POSITION);
     }
 

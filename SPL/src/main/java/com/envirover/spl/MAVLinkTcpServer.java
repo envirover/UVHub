@@ -13,6 +13,13 @@ import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkSocket;
 
+/**
+ * MAVLink TCP server that accepts connections from TCP GCS clients.
+ * {@link com.envirover.spl.MAVLinksession} is created for each client connection. 
+ *  
+ * @author pavel
+ *
+ */
 public class MAVLinkTcpServer {
 
     private final static Logger logger = Logger.getLogger(MAVLinkTcpServer.class);
@@ -23,24 +30,46 @@ public class MAVLinkTcpServer {
     private ServerSocket serverSocket;
     private Thread listenerThread;
 
+    /**
+     * Creates an instance of MAVLinkTcpServer 
+     * 
+     * @param port TCP port used for MAVLink ground control stations connections 
+     * @param mtMessageQueue Mobile-terminated messages queue
+     */
     public MAVLinkTcpServer(Integer port, MAVLinkChannel mtMessageQueue) {
         this.port = port;
         this.mtMessageQueue = mtMessageQueue;
         this.threadPool = Executors.newCachedThreadPool();
     }
 
+    /**
+     * Starts MAVLinkTcpServer.
+     * 
+     * @throws IOException Signals that an I/O exception of some sort has occurred.
+     */
     public void start() throws IOException {
         serverSocket = new ServerSocket(port);
         listenerThread = new Thread(new ConnectionListener());
         listenerThread.start();
     }
 
+    /**
+     * Stops MAVLinkTcpServer.
+     * 
+     * @throws IOException Signals that an I/O exception of some sort has occurred.
+     */
     public void stop() throws IOException {
         threadPool.shutdownNow();
         listenerThread.interrupt();
         serverSocket.close();
     }
 
+    /**
+     * Accepts socket connections. 
+     * 
+     * @author pavel
+     *
+     */
     class ConnectionListener implements Runnable {
 
         @Override
@@ -63,6 +92,12 @@ public class MAVLinkTcpServer {
             }
         }
 
+        /**
+         * Reads MAVLink messages from the socket and passes them to ClientSession.onMessage(). 
+         * 
+         * @author pavel
+         *
+         */
         class SocketListener implements Runnable {
 
             private final MAVLinkSocket clientSocket;
