@@ -42,8 +42,6 @@ import com.envirover.mavlink.MAVLinkShadow;
  */
 public class ClientSession {
 
-    private final static int MAX_MISSION_COUNT = 10;
-
     private final static Logger logger = Logger.getLogger(ClientSession.class);
     private static final Config config = Config.getInstance();
 
@@ -153,24 +151,14 @@ public class ClientSession {
             case msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT: {
                 MAVLinkLogger.log(Level.INFO, "<<", packet);
                 msg_mission_count msg = (msg_mission_count)packet.unpack();
-                if (msg.count > MAX_MISSION_COUNT) {
-                    msg_mission_ack mission_ack = new msg_mission_ack();
-                    mission_ack.type = MAV_MISSION_RESULT.MAV_MISSION_NO_SPACE;
-                    mission_ack.sysid = msg.target_system;
-                    mission_ack.compid = msg.target_component;
-                    mission_ack.target_system = (short) packet.sysid;
-                    mission_ack.target_component = (short) packet.compid;
-                    sendToSource(mission_ack);                  
-                } else {
-                    shadow.setDesiredMissionCount(msg.count);
-                    msg_mission_request request = new msg_mission_request();
-                    request.seq = 0;
-                    request.sysid = msg.target_system;
-                    request.compid = msg.target_component;
-                    request.target_system = (short) packet.sysid;
-                    request.target_component = (short) packet.compid;
-                    sendToSource(request);
-                }
+                shadow.setDesiredMissionCount(msg.count);
+                msg_mission_request request = new msg_mission_request();
+                request.seq = 0;
+                request.sysid = msg.target_system;
+                request.compid = msg.target_component;
+                request.target_system = (short) packet.sysid;
+                request.target_component = (short) packet.compid;
+                sendToSource(request);
                 break;
             }
             case msg_mission_item.MAVLINK_MSG_ID_MISSION_ITEM: {
