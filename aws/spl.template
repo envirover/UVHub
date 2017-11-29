@@ -45,7 +45,7 @@
     "SPLArchiveURL" : {
       "Description" : "URL of SPLGroundControl distribution archive",
       "Type" : "String",
-      "Default" : "https://s3-us-west-2.amazonaws.com/envirover/spl/spl-1.0-bin.tar.gz"
+      "Default" : "https://s3-us-west-2.amazonaws.com/envirover/spl/spl-2.0-bin.tar.gz"
     },
     "MAVParametersURL" : {
       "Description" : "URL of default.params file with initial on-board parameters values.",
