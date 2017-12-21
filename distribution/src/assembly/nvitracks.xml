@@ -23,8 +23,5 @@
 			</includes>
 		</fileSet>
 	</fileSets>
-	<!-- <moduleSets> <moduleSet> <useAllReactorProjects>true</useAllReactorProjects> 
-		<includes> <include>com.envirover:splstream</include> <include>com.envirover:spltracks</include> 
-		</includes> <binaries> <outputDirectory>/</outputDirectory> <unpack>false</unpack> 
-		</binaries> </moduleSet> </moduleSets> -->
+
 </assembly>
