@@ -5,16 +5,16 @@
 
 	<parent>
 		<groupId>com.envirover</groupId>
-		<artifactId>splgroundcontrol</artifactId>
+		<artifactId>nvigroundcontrol</artifactId>
 		<version>2.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>spl.assembly</artifactId>
+	<artifactId>nvi.assembly</artifactId>
 
 	<packaging>pom</packaging>
 
-	<name>SPL Distribution</name>
+	<name>NVI Distribution</name>
 	<description>Distribution assembly build</description>
 
 	<dependencies>
@@ -25,7 +25,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.envirover</groupId>
-			<artifactId>spl</artifactId>
+			<artifactId>nvi</artifactId>
 			<version>2.0</version>
 		</dependency>
 	</dependencies>
@@ -43,10 +43,10 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
-							<finalName>spl-${project.version}</finalName>
+							<finalName>nvi-${project.version}</finalName>
 							<tarLongFileMode>posix</tarLongFileMode> 
 							<descriptors>
-								<descriptor>src/assembly/spl.xml</descriptor>
+								<descriptor>src/assembly/nvi.xml</descriptor>
 							</descriptors>
 						</configuration>
 					</execution>
@@ -57,10 +57,10 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
-							<finalName>spltracks-${project.version}</finalName>
+							<finalName>nvitracks-${project.version}</finalName>
 							<tarLongFileMode>posix</tarLongFileMode> 
 							<descriptors>
-								<descriptor>src/assembly/spltracks.xml</descriptor>
+								<descriptor>src/assembly/nvitracks.xml</descriptor>
 							</descriptors>
 						</configuration>
 					</execution>
