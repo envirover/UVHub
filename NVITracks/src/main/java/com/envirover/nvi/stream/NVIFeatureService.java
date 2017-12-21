@@ -44,7 +44,7 @@ import com.sun.jersey.api.view.Viewable;
  */
 
 @Path("/")
-public class SPLFeatureService {
+public class NVIFeatureService {
 
     private final int MAVLINK_MSG_ID_HIGH_LATENCY = 234;
     
@@ -53,7 +53,7 @@ public class SPLFeatureService {
     // private static final Logger logger =
     // Logger.getLogger(SPLFeatureService.class.getName());
 
-    public SPLFeatureService() throws IOException {
+    public NVIFeatureService() throws IOException {
         stream = new MAVLinkMessagesTable();
     }
 

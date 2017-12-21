@@ -34,13 +34,13 @@ import com.envirover.rockblock.RockBlockHttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 /**
- * Daemon interface for SPL application.
+ * Daemon interface for NVI application.
  */
 @SuppressWarnings("restriction")
-public class SPLDaemon implements Daemon {
+public class NVIDaemon implements Daemon {
     private final static String DEFAULT_PARAMS_FILE = "default.params";
 
-    private final static Logger logger = Logger.getLogger(SPLDaemon.class);
+    private final static Logger logger = Logger.getLogger(NVIDaemon.class);
 
     private final Config config = Config.getInstance();
     private MAVLinkTcpServer tcpServer = null;
@@ -62,7 +62,7 @@ public class SPLDaemon implements Daemon {
         if (!config.init(context.getArguments()))
             throw new DaemonInitException("Invalid configuration.");
 
-        ClassLoader loader = SPLDaemon.class.getClassLoader();
+        ClassLoader loader = NVIDaemon.class.getClassLoader();
         InputStream params = loader.getResourceAsStream(DEFAULT_PARAMS_FILE);
         if (params != null) {
             MAVLinkShadow.getInstance().loadParams(params);
@@ -111,7 +111,7 @@ public class SPLDaemon implements Daemon {
 
         Thread.sleep(1000);
 
-        logger.info("SPL Ground Control server started.");
+        logger.info("NVI Ground Control server started.");
     }
 
     @Override
@@ -127,7 +127,7 @@ public class SPLDaemon implements Daemon {
 
         Thread.sleep(1000);
 
-        logger.info("SPL Ground Control server stopped.");
+        logger.info("NVI Ground Control server stopped.");
     }
 
 }

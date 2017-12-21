@@ -64,13 +64,13 @@ import com.MAVLink.Parser;
 import com.MAVLink.common.msg_high_latency;
 import com.envirover.mavlink.MAVLinkLogger;
 import com.envirover.nvi.Config;
-import com.envirover.nvi.SPLDaemon;
-import com.envirover.nvi.SPLGroundControl;
+import com.envirover.nvi.NVIDaemon;
+import com.envirover.nvi.NVIGroundControl;
 
-public class SPLGroungControlTest {
+public class NVIGroungControlTest {
     private static final String[] args = {"-i", "1234567890", "-u", "user", "-p", "password"};
     private static final Config config = Config.getInstance();
-    private static final SPLDaemon daemon = new SPLDaemon();
+    private static final NVIDaemon daemon = new NVIDaemon();
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -83,10 +83,10 @@ public class SPLGroungControlTest {
 
         Logger.getRootLogger().addAppender(console);
 
-        System.out.println("SETUP: Starting SPLGroundControl...");
+        System.out.println("SETUP: Starting NVIGroundControl...");
         config.init(args);
 
-        daemon.init(new SPLGroundControl.SPLDaemonContext(args));
+        daemon.init(new NVIGroundControl.NVIDaemonContext(args));
         daemon.start();
     }
 
@@ -94,7 +94,7 @@ public class SPLGroungControlTest {
     public static void tearDownClass() throws Exception {
         daemon.stop();
         daemon.destroy();
-        System.out.println("TEAR DOWN: SPLGroundControl stopped.");
+        System.out.println("TEAR DOWN: NVIGroundControl stopped.");
     }
 
     //Test receiving MO messages from RockBLOCK

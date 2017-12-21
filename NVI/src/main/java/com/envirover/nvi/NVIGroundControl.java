@@ -25,13 +25,13 @@ import org.apache.commons.daemon.DaemonController;
 /**
  * The main application class. 
  */
-public class SPLGroundControl {
+public class NVIGroundControl {
 
     public static void main(String[] args) {
         try {
-            SPLDaemon daemon = new SPLDaemon();
+            NVIDaemon daemon = new NVIDaemon();
 
-            daemon.init(new SPLDaemonContext(args));
+            daemon.init(new NVIDaemonContext(args));
 
             daemon.start();
 
@@ -59,11 +59,11 @@ public class SPLGroundControl {
         } 
     }
 
-    public static class SPLDaemonContext implements DaemonContext {
+    public static class NVIDaemonContext implements DaemonContext {
 
         private final String[] args;
 
-        public SPLDaemonContext(String[] args) {
+        public NVIDaemonContext(String[] args) {
             this.args = args;
         }
 

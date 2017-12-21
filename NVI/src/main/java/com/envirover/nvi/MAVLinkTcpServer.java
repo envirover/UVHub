@@ -15,7 +15,7 @@ import com.envirover.mavlink.MAVLinkSocket;
 
 /**
  * MAVLink TCP server that accepts connections from TCP GCS clients.
- * {@link com.envirover.spl.MAVLinksession} is created for each client connection. 
+ * {@link com.envirover.nvi.MAVLinkSession} is created for each client connection. 
  *  
  * @author pavel
  *
