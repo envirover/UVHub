@@ -19,6 +19,7 @@ package com.envirover.nvi;
 
 import static org.junit.Assert.fail;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -81,110 +82,107 @@ public class NVIGroungControlTest {
         System.out.println("TEAR DOWN: NVIGroundControl stopped.");
     }
 
-    //Test receiving MO messages from RockBLOCK
-//    @Test
-//    public void testMOMessagePipeline() throws URISyntaxException, ClientProtocolException, IOException, InterruptedException {
-//        System.out.println("MO TEST: Testing MO message pipeline...");
-//
-//        Thread.sleep(1000);
-//
-//        Thread mavlinkThread = new Thread(new Runnable() {
-//            public void run() {
-//                Socket client = null;
-//
-//                try {
-//                    System.out.printf("MO TEST: Connecting to tcp://%s:%d", 
-//                                      InetAddress.getLocalHost().getHostAddress(), 
-//                                      config.getMAVLinkPort());
-//                    System.out.println();
-//    
-//                    client = new Socket(InetAddress.getLocalHost().getHostAddress(), 
-//                                               config.getMAVLinkPort());
-//
-//                    System.out.printf("MO TEST: Connected tcp://%s:%d", 
-//                                      InetAddress.getLocalHost().getHostAddress(), 
-//                                      config.getMAVLinkPort());
-//                    System.out.println();
-//
-//                    Parser parser = new Parser();
-//                    DataInputStream in = new DataInputStream(client.getInputStream());
-//                    while (true) {
-//                        MAVLinkPacket packet;
-//                        do {
-//                            int c = in.readUnsignedByte();
-//                            packet = parser.mavlink_parse_char(c);
-//                        } while (packet == null);
-//
-//                        System.out.printf("MO TEST: MAVLink message received: msgid = %d", packet.msgid);
-//                        System.out.println();
-//
-//                        Thread.sleep(100);
-//                    }
-//                } catch(InterruptedException ex) {
-//                    return;
-//                }  catch(Exception ex) {
-//                    ex.printStackTrace();
-//                } finally {
-//                    try {
-//                        client.close();
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        });
-//        mavlinkThread.start();
-//
-//        HttpClient httpclient = HttpClients.createDefault();
-//
-//        URIBuilder builder = new URIBuilder();
-//        builder.setScheme("http");
-//        builder.setHost(InetAddress.getLocalHost().getHostAddress());
-//        builder.setPort(config.getRockblockPort());
-//        builder.setPath(config.getHttpContext());
-//
-//        URI uri = builder.build();
-//        HttpPost httppost = new HttpPost(uri);
-//
-//        // Request parameters and other properties.
-//        List<NameValuePair> params = new ArrayList<NameValuePair>(2);
-//        params.add(new BasicNameValuePair("imei", config.getRockBlockIMEI()));
-//        params.add(new BasicNameValuePair("momsn", "12345"));
-//        params.add(new BasicNameValuePair("transmit_time", "12-10-10 10:41:50"));
-//        params.add(new BasicNameValuePair("iridium_latitude", "52.3867"));
-//        params.add(new BasicNameValuePair("iridium_longitude", "0.2938"));
-//        params.add(new BasicNameValuePair("iridium_cep", "9"));
-//        params.add(new BasicNameValuePair("data", Hex.encodeHexString(getSamplePacket().encodePacket())));
-//        httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
-//
-//        // Execute and get the response.
-//        System.out.printf("MO TEST: Sending test message to %s", uri.toString());
-//        System.out.println();
-//
-//        HttpResponse response = httpclient.execute(httppost);
-//
-//        if (response.getStatusLine().getStatusCode() != 200) {
-//            fail(String.format("RockBLOCK HTTP message handler status code = %d.",
-//                                response.getStatusLine().getStatusCode()));
-//        }
-//
-//        HttpEntity entity = response.getEntity();
-//
-//        if (entity != null) {
-//            InputStream responseStream = entity.getContent();
-//            try {
-//                String responseString = IOUtils.toString(responseStream);
-//                System.out.println(responseString);
-//            } finally {
-//                responseStream.close();
-//            }
-//        }
-//
-//        Thread.sleep(1000);
-//
-//        mavlinkThread.interrupt();
-//        System.out.println("MO TEST: Complete.");
-//    }
+    //Test receiving MO messages 
+    @Test
+    public void testMOMessagePipeline() throws IOException, InterruptedException {
+        System.out.println("MO TEST: Testing MO message pipeline...");
+
+        Thread.sleep(1000);
+
+        Thread mavlinkThread = new Thread(new Runnable() {
+            public void run() {
+                Socket client = null;
+
+                try {
+                    System.out.printf("MO TEST: Connecting to tcp://%s:%d", 
+                                      InetAddress.getLocalHost().getHostAddress(), 
+                                      config.getMAVLinkPort());
+                    System.out.println();
+    
+                    client = new Socket(InetAddress.getLocalHost().getHostAddress(), 
+                                               config.getMAVLinkPort());
+
+                    System.out.printf("MO TEST: Connected tcp://%s:%d", 
+                                      InetAddress.getLocalHost().getHostAddress(), 
+                                      config.getMAVLinkPort());
+                    System.out.println();
+
+                    Parser parser = new Parser();
+                    DataInputStream in = new DataInputStream(client.getInputStream());
+                    while (true) {
+                        MAVLinkPacket packet;
+                        do {
+                            int c = in.readUnsignedByte();
+                            packet = parser.mavlink_parse_char(c);
+                        } while (packet == null);
+
+                        System.out.printf("MO TEST: MAVLink message received: msgid = %d", packet.msgid);
+                        System.out.println();
+
+                        Thread.sleep(100);
+                    }
+                } catch(InterruptedException ex) {
+                    return;
+                }  catch(Exception ex) {
+                    ex.printStackTrace();
+                } finally {
+                    try {
+                        client.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        mavlinkThread.start();
+
+        
+        Socket client = null;
+        DataOutputStream out = null;
+
+        try {
+            System.out.printf("MO TEST: Connecting to tcp://%s:%d",
+                              InetAddress.getLocalHost().getHostAddress(),
+                              config.getRadioRoomPort());
+            System.out.println();
+
+            client = new Socket(InetAddress.getLocalHost().getHostAddress(), 
+                                config.getRadioRoomPort());
+
+            System.out.printf("MO TEST: Connected to tcp://%s:%d", 
+                              InetAddress.getLocalHost().getHostAddress(), 
+                              config.getRadioRoomPort());
+            System.out.println();
+
+            out = new DataOutputStream(client.getOutputStream());
+
+            MAVLinkPacket packet = getSamplePacket();
+            out.write(packet.encodePacket());
+            out.flush();
+
+            System.out.printf("MO TEST: MAVLink message sent: msgid = %d", packet.msgid);
+            System.out.println();
+
+            Thread.sleep(5000);
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try {
+                if (out != null) 
+                    out.close();
+
+                if (client != null) 
+                    client.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+              
+        Thread.sleep(1000);
+
+        mavlinkThread.interrupt();
+        System.out.println("MO TEST: Complete.");
+    }
 
     //Test sending MT messages to RockBLOCK
     @Test
