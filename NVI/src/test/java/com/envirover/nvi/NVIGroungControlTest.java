@@ -52,7 +52,7 @@ import com.envirover.nvi.NVIDaemon;
 import com.envirover.nvi.NVIGroundControl;
 
 public class NVIGroungControlTest {
-    private static final String[] args = {"-i", "1234567890", "-u", "user", "-p", "password"};
+    private static final String[] args = {};
     private static final Config config = Config.getInstance();
     private static final NVIDaemon daemon = new NVIDaemon();
 
