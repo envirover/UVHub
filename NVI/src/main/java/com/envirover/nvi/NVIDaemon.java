@@ -76,12 +76,8 @@ public class NVIDaemon implements Daemon {
 
     @Override
     public void start() throws Exception {
-        String ip = InetAddress.getLocalHost().getHostAddress();
-        System.out.printf("Starting RockBLOCK HTTP message handler on http://%s:%d%s...",
-                          ip, config.getRockblockPort(), config.getHttpContext());
-        System.out.println();
+       // String ip = InetAddress.getLocalHost().getHostAddress();
 
-        mtMsgPumpThread.start();
         gcsTcpServer.start();
         wsServer.start();
         rrTcpServer.start();
@@ -94,9 +90,7 @@ public class NVIDaemon implements Daemon {
     @Override
     public void stop() throws Exception {
 
-        mtMsgPumpThread.interrupt();
-        mtMsgPumpThread.join(1000);
-
+        rrTcpServer.stop();
         gcsTcpServer.stop();
         wsServer.stop();
 
