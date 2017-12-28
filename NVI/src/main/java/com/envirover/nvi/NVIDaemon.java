@@ -18,7 +18,6 @@
 package com.envirover.nvi;
 
 import java.io.InputStream;
-import java.net.InetAddress;
 
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
@@ -40,8 +39,7 @@ public class NVIDaemon implements Daemon {
     private final Config config = Config.getInstance();
     private GCSTcpServer gcsTcpServer = null;
     private RRTcpServer rrTcpServer = null;
-    private Thread mtMsgPumpThread = null;
-    private Server wsServer;
+     private Server wsServer;
 
     @Override
     public void destroy() {
