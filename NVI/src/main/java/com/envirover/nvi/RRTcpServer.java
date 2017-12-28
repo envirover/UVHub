@@ -14,36 +14,38 @@ import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkSocket;
 
 /**
- * MAVLink TCP server that accepts connections from TCP GCS clients.
- * {@link com.envirover.nvi.MAVLinkSession} is created for each client connection. 
+ * MAVLink TCP server that accepts TCP/IP connections from NVI RadioRoom clients.
+ * {@link com.envirover.nvi.RRClientSession} is created for each client connection. 
  *  
- * @author pavel
+ * @author Pavel Bobov
  *
  */
-public class MAVLinkTcpServer {
+public class RRTcpServer {
 
-    private final static Logger logger = Logger.getLogger(MAVLinkTcpServer.class);
+    private final static Logger logger = Logger.getLogger(RRTcpServer.class);
 
     private final Integer port;
+    private final MAVLinkChannel dst;
     private final MAVLinkChannel mtMessageQueue;
     private final ExecutorService threadPool; 
     private ServerSocket serverSocket;
     private Thread listenerThread;
 
     /**
-     * Creates an instance of MAVLinkTcpServer 
+     * Creates an instance of RRTcpServer 
      * 
-     * @param port TCP port used for MAVLink ground control stations connections 
-     * @param mtMessageQueue Mobile-terminated messages queue
+     * @param port TCP port used for RadioRoom connections 
+     * @param dst MO message handler
      */
-    public MAVLinkTcpServer(Integer port, MAVLinkChannel mtMessageQueue) {
+    public RRTcpServer(Integer port, MAVLinkChannel dst, MAVLinkChannel mtMessageQueue) {
         this.port = port;
+        this.dst = dst;
         this.mtMessageQueue = mtMessageQueue;
         this.threadPool = Executors.newCachedThreadPool();
     }
 
     /**
-     * Starts MAVLinkTcpServer.
+     * Starts RRTcpServer.
      * 
      * @throws IOException Signals that an I/O exception of some sort has occurred.
      */
@@ -54,7 +56,7 @@ public class MAVLinkTcpServer {
     }
 
     /**
-     * Stops MAVLinkTcpServer.
+     * Stops RRTcpServer.
      * 
      * @throws IOException Signals that an I/O exception of some sort has occurred.
      */
@@ -79,7 +81,7 @@ public class MAVLinkTcpServer {
                     Socket socket = serverSocket.accept();
 
                     MAVLinkSocket clientSocket = new MAVLinkSocket(socket);
-                    ClientSession session = new ClientSession(clientSocket, mtMessageQueue);
+                    RRClientSession session = new RRClientSession(clientSocket, dst, mtMessageQueue);
                     session.onOpen();
 
                     threadPool.execute(new SocketListener(clientSocket, session));
@@ -93,7 +95,7 @@ public class MAVLinkTcpServer {
         }
 
         /**
-         * Reads MAVLink messages from the socket and passes them to ClientSession.onMessage(). 
+         * Reads MAVLink messages from the socket and passes them to RRClientSession.onMessage(). 
          * 
          * @author pavel
          *
@@ -101,9 +103,9 @@ public class MAVLinkTcpServer {
         class SocketListener implements Runnable {
 
             private final MAVLinkSocket clientSocket;
-            private final ClientSession session;
+            private final RRClientSession session;
 
-            public SocketListener(MAVLinkSocket clientSocket, ClientSession session) {
+            public SocketListener(MAVLinkSocket clientSocket, RRClientSession session) {
                 this.clientSocket = clientSocket;
                 this.session = session;
             }

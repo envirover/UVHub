@@ -221,4 +221,7 @@ public class Config {
         return mavType;
     }
 
+    public Integer getRadioRoomPort() {
+    	return 5060;
+    }
 }
