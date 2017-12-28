@@ -19,7 +19,6 @@ package com.envirover.nvi;
 
 import java.io.InputStream;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
@@ -29,32 +28,23 @@ import org.glassfish.tyrus.server.Server;
 
 import com.envirover.mavlink.MAVLinkMessageQueue;
 import com.envirover.mavlink.MAVLinkShadow;
-import com.envirover.rockblock.RockBlockClient;
-import com.envirover.rockblock.RockBlockHttpHandler;
-import com.sun.net.httpserver.HttpServer;
 
 /**
  * Daemon interface for NVI application.
  */
-@SuppressWarnings("restriction")
 public class NVIDaemon implements Daemon {
     private final static String DEFAULT_PARAMS_FILE = "default.params";
 
     private final static Logger logger = Logger.getLogger(NVIDaemon.class);
 
     private final Config config = Config.getInstance();
-    private MAVLinkTcpServer tcpServer = null;
-    private HttpServer httpServer = null;
-    //private Thread moMsgPumpThread = null;
-    //private Thread mtHandlerThread = null;
+    private GCSTcpServer gcsTcpServer = null;
+    private RRTcpServer rrTcpServer = null;
     private Thread mtMsgPumpThread = null;
-    //private Timer  reportStateTimer = null;
-    //private TimerTask reportStateTask = null;
     private Server wsServer;
 
     @Override
     public void destroy() {
-        httpServer.removeContext(config.getHttpContext());
     }
 
     @Override
@@ -72,26 +62,13 @@ public class NVIDaemon implements Daemon {
         }
 
         MAVLinkMessageQueue mtMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
-        tcpServer = new MAVLinkTcpServer(config.getMAVLinkPort(), mtMessageQueue);
+        gcsTcpServer = new GCSTcpServer(config.getMAVLinkPort(), mtMessageQueue);
 
         MAVLinkMessageQueue moMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
 
         MOMessageHandler moHandler = new MOMessageHandler(moMessageQueue);
 
-        httpServer = HttpServer.create(new InetSocketAddress(config.getRockblockPort()), 0);
-        httpServer.createContext(config.getHttpContext(), 
-                             new RockBlockHttpHandler(moHandler, config.getRockBlockIMEI()));
-        httpServer.setExecutor(null);
-
-        // TODO: Broadcast MO messages to all the connected clients.
-
-        RockBlockClient rockblock = new RockBlockClient(config.getRockBlockIMEI(),
-                                                        config.getRockBlockUsername(),
-                                                        config.getRockBlockPassword(),
-                                                        config.getRockBlockURL());
-
-        MTMessagePump mtMsgPump = new MTMessagePump(mtMessageQueue, rockblock);
-        mtMsgPumpThread = new Thread(mtMsgPump, "mt-message-pump");
+        rrTcpServer = new RRTcpServer(config.getRadioRoomPort(), moHandler, mtMessageQueue);
 
         WSEndpoint.setMTQueue(mtMessageQueue);
         wsServer = new Server("localhost", config.getWSPort(), "/gcs", WSEndpoint.class);
@@ -104,10 +81,10 @@ public class NVIDaemon implements Daemon {
                           ip, config.getRockblockPort(), config.getHttpContext());
         System.out.println();
 
-        httpServer.start();
         mtMsgPumpThread.start();
-        tcpServer.start();
+        gcsTcpServer.start();
         wsServer.start();
+        rrTcpServer.start();
 
         Thread.sleep(1000);
 
@@ -120,9 +97,7 @@ public class NVIDaemon implements Daemon {
         mtMsgPumpThread.interrupt();
         mtMsgPumpThread.join(1000);
 
-        httpServer.stop(0);
-
-        tcpServer.stop();
+        gcsTcpServer.stop();
         wsServer.stop();
 
         Thread.sleep(1000);

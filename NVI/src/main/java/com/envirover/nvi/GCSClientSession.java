@@ -40,16 +40,16 @@ import com.envirover.mavlink.MAVLinkShadow;
  * TCP and WebSocket MAVLink client sessions that handle communications with GCS clients.
  *
  */
-public class ClientSession {
+public class GCSClientSession {
 
-    private final static Logger logger = Logger.getLogger(ClientSession.class);
+    private final static Logger logger = Logger.getLogger(GCSClientSession.class);
     private static final Config config = Config.getInstance();
 
     private final Timer heartbeatTimer = new Timer();
     private final MAVLinkChannel src;
     private final MAVLinkChannel dst;
 
-    public ClientSession(MAVLinkChannel src, MAVLinkChannel mtMessageQueue) {
+    public GCSClientSession(MAVLinkChannel src, MAVLinkChannel mtMessageQueue) {
         this.src = src;
         this.dst = mtMessageQueue;
     }
