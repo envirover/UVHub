@@ -50,20 +50,6 @@
 							</descriptors>
 						</configuration>
 					</execution>
-					<execution>
-						<id>distro-assembly2</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<finalName>nvitracks-${project.version}</finalName>
-							<tarLongFileMode>posix</tarLongFileMode> 
-							<descriptors>
-								<descriptor>src/assembly/nvitracks.xml</descriptor>
-							</descriptors>
-						</configuration>
-					</execution>
 				</executions>
 			</plugin>
 		</plugins>
