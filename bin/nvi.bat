@@ -1,6 +1,6 @@
 @echo off
 
-if "%SPL_HOME%"=="" (
+if "%NVI_HOME%"=="" (
   echo Environment variable NVI_HOME is not set.
   exit /b
 )

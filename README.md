@@ -2,11 +2,11 @@
 
 # NVI GroundControl
 
-NVI GroundControl is a MAVLink proxy server for high latency TCP/IP communication with unmanned vehicles controlled by ArduPilot or PX4 autopilots. It is designed to work with NVI RadioRoom companion computer, providing two way communication channel between vehicles and MAVLink ground control stations such as Mission Planer or QGroundControl.
+NVI GroundControl is a MAVLink proxy server for TCP/IP communication with unmanned vehicles controlled by ArduPilot or PX4 autopilots. It is designed to work with NVI RadioRoom companion computer, providing two way communication channel between the vehicles and MAVLink ground control stations such as Mission Planer or QGroundControl.
 
 ## Download NVI GroundControl Package
 
-Download the latest build of NVI GroundControl from [https://s3-us-west-2.amazonaws.com/envirover/nvi/NVIGroundControl/nvi-2.0-bin.zip](https://s3-us-west-2.amazonaws.com/envirover/nvi/NVIGroundControl/nvi-2.0-bin.zip).
+Download the latest build of NVI GroundControl from [https://s3-us-west-2.amazonaws.com/envirover/nvi/shared/NVIGroundControl/nvi-2.0-bin.zip](https://s3-us-west-2.amazonaws.com/envirover/nvi/shared/NVIGroundControl/nvi-2.0-bin.zip). Extract the archive to a folder on a local disk drive such as C:\nvi-2.0.
 
 ## Install Latest Java SE Development Kit
 
