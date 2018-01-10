@@ -223,7 +223,7 @@ public class GCSClientSession {
             command_ack.result = MAV_RESULT.MAV_RESULT_ACCEPTED;
             command_ack.sysid = msg.target_system;
             command_ack.compid = msg.target_component;
-            src.sendMessage(command_ack.pack());
+            sendToSource(command_ack);
         } else if (packet.msgid == msg_command_int.MAVLINK_MSG_ID_COMMAND_INT) {
             MAVLinkLogger.log(Level.INFO, "<<", packet);
             msg_command_int msg = (msg_command_int)packet.unpack();
@@ -232,7 +232,7 @@ public class GCSClientSession {
             command_ack.result = MAV_RESULT.MAV_RESULT_ACCEPTED;
             command_ack.sysid = msg.target_system;
             command_ack.compid = msg.target_component;
-            src.sendMessage(command_ack.pack());
+            sendToSource(command_ack);
         }
     }
 

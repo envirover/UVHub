@@ -166,6 +166,12 @@ public class MAVLinkShadow {
     }
     
     public msg_mission_item getReportedMissionItem(int index) {
+    	if (index >= reportedMissions.size()) {
+    		msg_mission_item mission = new msg_mission_item();
+    		mission.seq = index;
+    		return mission;
+    	}
+    	
         return reportedMissions.get(index);
     }
     
