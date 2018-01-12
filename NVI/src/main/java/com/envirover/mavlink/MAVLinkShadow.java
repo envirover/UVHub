@@ -124,6 +124,10 @@ public class MAVLinkShadow {
      */
     public msg_param_value getParamValue(String paramId, short paramIndex) {
         if (paramIndex >= 0) {
+        	if (paramIndex >= params.size()) {
+        		return null;
+        	}
+        	
             return params.get(paramIndex);
         }
 
