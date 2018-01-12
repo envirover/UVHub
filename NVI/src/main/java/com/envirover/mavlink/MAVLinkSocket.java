@@ -42,6 +42,7 @@ public class MAVLinkSocket implements MAVLinkChannel {
     private final DataOutputStream out;
 
     private int seq = 0;
+    private boolean is_open;
 
     /**
      * Constructs instance of MAVLinkSocket.
@@ -53,10 +54,15 @@ public class MAVLinkSocket implements MAVLinkChannel {
         this.socket = socket;
         this.in = new DataInputStream(socket.getInputStream());
         this.out = new DataOutputStream(socket.getOutputStream());
+        this.is_open = true;
     }
 
     @Override
     public MAVLinkPacket receiveMessage() throws IOException {
+    	if (!is_open) {
+    		throw new IOException("Failed to receive message. The socket is closed.");
+    	}
+    	
         Parser parser = new Parser();
 
         MAVLinkPacket packet = null;
@@ -83,6 +89,10 @@ public class MAVLinkSocket implements MAVLinkChannel {
 
     @Override
     public void sendMessage(MAVLinkPacket packet) throws IOException {
+    	if (!is_open) {
+    		throw new IOException("Failed to send message. The socket is closed.");
+    	}
+    	
         if (packet == null)
             return;
 
@@ -98,6 +108,8 @@ public class MAVLinkSocket implements MAVLinkChannel {
 
     @Override
     public void close() {
+    	is_open = false;
+    	
         try {
             in.close();
         } catch (IOException e) {

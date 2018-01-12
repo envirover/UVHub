@@ -31,7 +31,7 @@ import com.envirover.mavlink.MAVLinkChannel;
  */
 class MOMessagePump implements Runnable {
 
-    private final static long MO_MESSAGE_PUMP_INTERVAL = 10;
+    private final static long MO_MESSAGE_PUMP_INTERVAL = 10; //10 milliseconds
 
     private final static Logger logger = Logger.getLogger(MOMessagePump.class);
 

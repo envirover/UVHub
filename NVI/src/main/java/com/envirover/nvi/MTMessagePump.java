@@ -30,9 +30,7 @@ import com.envirover.mavlink.MAVLinkChannel;
  */
 public class MTMessagePump implements Runnable {
 
-    // Long enough delay between messages is required to ensure that 
-    // messages are received in FIFO order.
-    private final static long MT_MESSAGE_PUMP_INTERVAL = 5000;
+    private final static long MT_MESSAGE_PUMP_INTERVAL = 10; //10 milliseconds
 
     private final static Logger logger = Logger.getLogger(MTMessagePump.class);
 

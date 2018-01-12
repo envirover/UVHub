@@ -101,7 +101,7 @@ public class GCSTcpServer {
 
                     threadPool.execute(new SocketListener(clientSocket, session));
 
-                    logger.info(MessageFormat.format("MAVLink client ''{0}'' connected.", socket.getInetAddress()));
+                    logger.info(MessageFormat.format("GCS client ''{0}'' connected.", socket.getInetAddress()));
                 } catch (IOException e) {
                     e.printStackTrace();
                     return;
@@ -127,6 +127,7 @@ public class GCSTcpServer {
 
             @Override
             public void run() {
+            	
                 while (true) {
                     try {
                         MAVLinkPacket packet = clientSocket.receiveMessage();
@@ -143,7 +144,7 @@ public class GCSTcpServer {
                             e1.printStackTrace();
                         }
 
-                        logger.info("MAVLink client disconnected.");
+                        logger.info("GCS client disconnected.");
 
                         return;
                     }
