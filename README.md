@@ -6,7 +6,7 @@ NVI GroundControl is a MAVLink proxy server for TCP/IP communication with unmann
 
 ## Download NVI GroundControl Package
 
-Download the latest build of NVI GroundControl from [https://s3-us-west-2.amazonaws.com/envirover/nvi/shared/NVIGroundControl/nvi-2.0-bin.zip](https://s3-us-west-2.amazonaws.com/envirover/nvi/shared/NVIGroundControl/nvi-2.0-bin.zip). Extract the archive to a folder on a local disk drive such as C:\nvi-2.0.
+Download the latest build of NVI GroundControl from [https://s3-us-west-2.amazonaws.com/envirover/nvi/shared/NVIGroundControl/nvi-1.0-bin.zip](https://s3-us-west-2.amazonaws.com/envirover/nvi/shared/NVIGroundControl/nvi-1.0-bin.zip). Extract the archive to a folder on a local disk drive such as C:\nvi-1.0.
 
 ## Install Latest Java SE Development Kit
 
