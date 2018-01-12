@@ -44,7 +44,7 @@ public class MAVLinkShadow {
     private static int COMP_ID = 1;
 
     private static String HL_REPORT_PERIOD_PARAM = "HL_REPORT_PERIOD";
-    private static float  DEFAULT_HL_REPORT_PERIOD = 300.0F;
+    private static float  DEFAULT_HL_REPORT_PERIOD = 1.0F; //1 second
 
     private static MAVLinkShadow instance = null;
 
@@ -124,10 +124,10 @@ public class MAVLinkShadow {
      */
     public msg_param_value getParamValue(String paramId, short paramIndex) {
         if (paramIndex >= 0) {
-        	if (paramIndex >= params.size()) {
-        		return null;
-        	}
-        	
+            if (paramIndex >= params.size()) {
+                return null;
+            }
+
             return params.get(paramIndex);
         }
 
@@ -170,12 +170,12 @@ public class MAVLinkShadow {
     }
     
     public msg_mission_item getReportedMissionItem(int index) {
-    	if (index >= reportedMissions.size()) {
-    		msg_mission_item mission = new msg_mission_item();
-    		mission.seq = index;
-    		return mission;
-    	}
-    	
+        if (index >= reportedMissions.size()) {
+            msg_mission_item mission = new msg_mission_item();
+            mission.seq = index;
+            return mission;
+        }
+
         return reportedMissions.get(index);
     }
     
