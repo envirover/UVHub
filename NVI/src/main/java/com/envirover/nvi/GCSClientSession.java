@@ -352,7 +352,8 @@ public class GCSClientSession {
             msg_sys_status msg = new msg_sys_status();
             msg.sysid = msgHighLatency.sysid;
             msg.battery_remaining = (byte)msgHighLatency.battery_remaining;
-            msg.current_battery = 0;
+            msg.voltage_battery = msgHighLatency.temperature * 1000;
+            msg.current_battery = (short)(msgHighLatency.temperature_air * 100);
             return msg;
         }
 
