@@ -232,7 +232,7 @@ public class GCSClientSession implements ClientSession {
      * @throws IOException
      * @throws InterruptedException 
      */
-    private void handleCommand(MAVLinkPacket packet) throws IOException, InterruptedException {
+    private synchronized void handleCommand(MAVLinkPacket packet) throws IOException, InterruptedException {
         if (packet == null) {
             return;
         }
@@ -306,7 +306,7 @@ public class GCSClientSession implements ClientSession {
      * @throws IOException if a message sending failed
      * @throws InterruptedException 
      */
-    private void reportState() throws IOException, InterruptedException {
+    private synchronized void reportState() throws IOException, InterruptedException {
         msg_high_latency msgHighLatency = MAVLinkShadow.getInstance().getHighLatencyMessage();
 
         sendToSource(getHeartbeatMsg(msgHighLatency));
