@@ -39,7 +39,8 @@ public class NVIDaemon implements Daemon {
     private final Config config = Config.getInstance();
     private GCSTcpServer gcsTcpServer = null;
     private RRTcpServer rrTcpServer = null;
-     private Server wsServer;
+    private ShadowTcpServer shadowServer = null;
+    private Server wsServer;
 
     @Override
     public void destroy() {
@@ -62,6 +63,8 @@ public class NVIDaemon implements Daemon {
         MAVLinkMessageQueue mtMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
         gcsTcpServer = new GCSTcpServer(config.getMAVLinkPort(), mtMessageQueue);
 
+        shadowServer = new ShadowTcpServer(config.getShadowPort());
+
         MAVLinkMessageQueue moMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
 
         MOMessageHandler moHandler = new MOMessageHandler(moMessageQueue);
@@ -77,6 +80,7 @@ public class NVIDaemon implements Daemon {
        // String ip = InetAddress.getLocalHost().getHostAddress();
 
         gcsTcpServer.start();
+        shadowServer.start();
         wsServer.start();
         rrTcpServer.start();
 
@@ -89,6 +93,7 @@ public class NVIDaemon implements Daemon {
     public void stop() throws Exception {
 
         rrTcpServer.stop();
+        shadowServer.stop();
         gcsTcpServer.stop();
         wsServer.stop();
 
