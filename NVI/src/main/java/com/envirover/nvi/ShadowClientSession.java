@@ -74,7 +74,16 @@ public class ShadowClientSession implements ClientSession {
      */
     @Override
     public void onOpen() {
-        TimerTask heartbeatTask = new HeartbeatTask(config.getAutopilot(), config.getMavType());
+        TimerTask heartbeatTask = new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    reportState();
+                } catch (IOException | InterruptedException e) {
+                }
+            }
+        };
+
         heartbeatTimer.schedule(heartbeatTask, 0, config.getHeartbeatInterval());
     }
 
@@ -364,4 +373,5 @@ public class ShadowClientSession implements ClientSession {
             return msg;
         }
     }
+
 }
