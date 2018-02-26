@@ -26,7 +26,7 @@ import com.envirover.mavlink.MAVLinkChannel;
  * MAVLink client sessions that handle TCP communications with RadioRoom clients.
  *
  */
-public class RRClientSession {
+public class RRClientSession implements ClientSession {
 
     private final MAVLinkChannel src;
     private final MAVLinkChannel dst;
@@ -38,15 +38,18 @@ public class RRClientSession {
         this.thread = new Thread(new MTMessagePump(mtMessageQueue, src));
     }
 
+    @Override
     public void onOpen() {
     	thread.start();
     }
 
+    @Override
     public void onClose() throws InterruptedException {
     	thread.interrupt();
     	src.close();
     }
 
+    @Override
     public void onMessage(MAVLinkPacket packet) throws IOException, InterruptedException {
         dst.sendMessage(packet);
     }

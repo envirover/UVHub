@@ -83,6 +83,10 @@ public class RRTcpServer {
         serverSocket.close();
     }
 
+    protected ClientSession createClientSession(MAVLinkSocket clientSocket) {
+        return new RRClientSession(clientSocket, dst, mtMessageQueue);
+    }
+
     /**
      * Accepts socket connections. 
      * 
@@ -98,7 +102,7 @@ public class RRTcpServer {
                     Socket socket = serverSocket.accept();
 
                     MAVLinkSocket clientSocket = new MAVLinkSocket(socket);
-                    RRClientSession session = new RRClientSession(clientSocket, dst, mtMessageQueue);
+                    ClientSession session = createClientSession(clientSocket);
                     session.onOpen();
 
                     threadPool.execute(new SocketListener(clientSocket, session));
@@ -120,9 +124,9 @@ public class RRTcpServer {
         class SocketListener implements Runnable {
 
             private final MAVLinkSocket clientSocket;
-            private final RRClientSession session;
+            private final ClientSession session;
 
-            public SocketListener(MAVLinkSocket clientSocket, RRClientSession session) {
+            public SocketListener(MAVLinkSocket clientSocket, ClientSession session) {
                 this.clientSocket = clientSocket;
                 this.session = session;
             }

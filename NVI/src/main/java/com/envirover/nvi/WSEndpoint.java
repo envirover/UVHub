@@ -44,7 +44,7 @@ public class WSEndpoint {
     public void onMessage(byte[] message, Session session) throws IOException, InterruptedException, DecoderException {
         System.out.printf("Message received. Session id: %s Message: %s", session.getId(), message.toString());
 
-        GCSClientSession clientSession = sessions.get(session.getId());
+        ClientSession clientSession = sessions.get(session.getId());
 
         if (clientSession != null) {
             clientSession.onMessage(getPacket(message));
@@ -58,7 +58,7 @@ public class WSEndpoint {
 
     @OnClose
     public void onClose(Session session) throws InterruptedException {
-        GCSClientSession clientSession = sessions.get(session.getId());
+        ClientSession clientSession = sessions.get(session.getId());
 
         if (clientSession != null) {
             clientSession.onClose();
