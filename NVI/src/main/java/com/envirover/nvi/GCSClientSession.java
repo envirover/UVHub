@@ -85,7 +85,16 @@ public class GCSClientSession implements ClientSession {
      */
     @Override
     public void onOpen() {
-        TimerTask heartbeatTask = new HeartbeatTask();
+        TimerTask heartbeatTask = new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    reportState();
+                } catch (IOException | InterruptedException e) {
+                }
+            }
+        };
+
         heartbeatTimer.schedule(heartbeatTask, 0, config.getHeartbeatInterval());
     }
 
