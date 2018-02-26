@@ -405,5 +405,30 @@ public class GCSClientSession implements ClientSession {
         msg.throttle = msgHighLatency.throttle;
         return msg;
     }
+    
+    /**
+     * Sends heartbeats and status messages to the specified channel.  
+     * 
+     * Heartbeats and high-frequency messages such as SYS_STATUS, GPS_RAW_INT, ATTITUDE, 
+     * GLOBAL_POSITION_INT, MISSION_CURRENT, NAV_CONTROLLER_OUTPUT, and VFR_HUD are 
+     * derived form the HIGH_LATENCY message and sent to the destination channel.
 
+     * @author pavel
+     *
+     */
+    class HeartbeatTask extends TimerTask {
+
+        public HeartbeatTask() {
+        }
+
+        @Override
+        public void run() {
+            try {
+                reportState();
+            } catch (IOException | InterruptedException e) {
+                dst.close();
+            }
+        }
+
+    }
 }
