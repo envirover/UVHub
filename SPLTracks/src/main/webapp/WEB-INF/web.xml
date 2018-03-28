@@ -1,0 +1,39 @@
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+    <display-name>SPL Tracking Web Service</display-name>
+
+    <filter>
+        <filter-name>SPLTracking Web Service</filter-name>
+        <filter-class>com.sun.jersey.spi.container.servlet.ServletContainer</filter-class>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.packages</param-name>
+            <param-value>com.envirover.spl.stream</param-value>
+        </init-param>
+        <init-param>
+            <param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>
+            <param-value>com.envirover.spl.stream.CORSFilter</param-value>
+        </init-param>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.JSPTemplatesBasePath</param-name>
+            <param-value>/WEB-INF/jsp</param-value>
+        </init-param>
+        <init-param>
+            <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.packages</param-name>
+            <param-value>com.envirover.spl.stream</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>SPLTracking Web Service</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+</web-app>
