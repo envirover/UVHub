@@ -4,25 +4,35 @@
 
     <parent>
         <groupId>com.envirover</groupId>
-        <artifactId>nvigroundcontrol</artifactId>
-        <version>1.0</version>
+        <artifactId>spl</artifactId>
+        <version>2.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>splstream</artifactId>
+    <artifactId>uvtracks</artifactId>
     <packaging>war</packaging>
 
-    <name>SPL Stream</name>
-    <description>Saves MAVLink messages received from Rock7Core to a persistent store, such as AWS DynamoDB, or to a streaming service, such as AWS Kinesis.</description>
+    <name>UV Tracks</name>
+    <description>Retrieves device tracks in JSON format.</description>
 
     <url>http://envirover.com/spl.html</url>
 
     <dependencies>
         <dependency>
-            <groupId>com.envirover</groupId>
-            <artifactId>mavlink</artifactId>
-            <version>1.0</version>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-core-asl</artifactId>
+            <version>1.9.2</version>
         </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.9.2</version>
+        </dependency>
+        <dependency>
+            <groupId> javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.2.2</version>
+        </dependency>    
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-server</artifactId>
@@ -30,23 +40,13 @@
         </dependency>
         <dependency>
             <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-servlet</artifactId>
-            <version>1.19</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tomcat</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>6.0.44</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.9</version>
+            <artifactId>jersey-json</artifactId>
+            <version>1.19.1</version>
         </dependency>
         <dependency>
             <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-json</artifactId>
-            <version>1.8</version>
+            <artifactId>jersey-bundle</artifactId>
+            <version>1.19.3</version>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
@@ -58,6 +58,12 @@
             <artifactId>junit</artifactId>
             <version>4.8.1</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
         </dependency>
         
         <dependency>
@@ -71,18 +77,10 @@
             <artifactId>json</artifactId>
             <version>20180130</version>
         </dependency>
-<!-- // this one is guaranteed to work, not sure about the newer one
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20150318</version>
-        </dependency>
--->
-        
     </dependencies>
 
     <build>
-        <finalName>splstream</finalName>
+        <finalName>uvtracks</finalName>
     </build>
 
 </project>

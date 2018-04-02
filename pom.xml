@@ -4,19 +4,19 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.envirover</groupId>
-	<artifactId>nvigroundcontrol</artifactId>
-	<version>1.0</version>
+	<artifactId>spl</artifactId>
+	<version>2.0</version>
 	<packaging>pom</packaging>
 
-	<name>NVI GroundControl</name>
-	<description>MAVLink proxy server</description>
+	<name>UVHub</name>
+	<description>Tracking and control server for unmanned vehicles</description>
 
 	<modules>
 		<module>MAVLink</module>
-		<module>NVI</module>
+		<module>UVHub</module>
 		<module>distribution</module>
-		<module>SPLStream</module>
-		<module>SPLTracks</module>
+		<module>UVStream</module>
+		<module>UVTracks</module>
 	</modules>
 
 	<properties>

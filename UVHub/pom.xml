@@ -4,22 +4,22 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.envirover</groupId>
-		<artifactId>nvigroundcontrol</artifactId>
-		<version>1.0</version>
+		<artifactId>spl</artifactId>
+		<version>2.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>nvi</artifactId>
+	<artifactId>uvhub</artifactId>
 	<packaging>jar</packaging>
 
-	<name>NVI</name>
+	<name>UVHub</name>
 	<description>MAVLink proxy server for ArduPilot rovers with RockBLOCK satellite communication</description>
 
 	<dependencies>
 		<dependency>
 			<groupId>com.envirover</groupId>
 			<artifactId>mavlink</artifactId>
-			<version>1.0</version>
+			<version>2.0</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
