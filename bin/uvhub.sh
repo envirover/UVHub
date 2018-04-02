@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # -----------------------------------------------------------------------------
-# Control Script for NVI Ground Control server
+# Control Script for UV Hub server
 #
 # Environment Variable Prerequisites
 #
-#   NVI_HOME        May point at your NVI "build" directory.
+#   UVHUB_HOME        May point at your UVHub "build" directory.
 #
 
-CLASSPATH=$NVI_HOME/conf:$NVI_HOME/lib/*
+CLASSPATH=$UVHUB_HOME/conf:$UVHUB_HOME/lib/*
 
-java -cp "$CLASSPATH" com.envirover.nvi.NVIGroundControl "$@"
+java -cp "$CLASSPATH" com.envirover.uvhub.UVHub "$@"
