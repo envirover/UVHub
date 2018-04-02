@@ -15,7 +15,7 @@
  * from Envirover.
  */
 
-package com.envirover.nvi;
+package com.envirover.uvhub;
 
 import static org.junit.Assert.fail;
 
