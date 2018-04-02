@@ -12,20 +12,20 @@ import com.envirover.spl.stream.DynamoDBOutputStream;
 
 public class DynamoDBInputStreamTest {
 
-    @Test
-    public void testPostMobileOriginatedMessage() throws ParseException, IOException {
-        DynamoDBOutputStream stream = null;
-        try {
-            stream = new DynamoDBOutputStream();
-            stream.open();
-            DateFormat dateFormat = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
-            Date date = new Date();
-            String transmitTime = dateFormat.format(date); //2016/11/16 12:08:43
-            stream.writePacket("012345678901234", "momsn", transmitTime, "-48.8", "48.8", "iridiumCep", getSamplePacket());
-        } finally {
-            stream.close();
-        }
-    }
+//    @Test
+//    public void testPostMobileOriginatedMessage() throws ParseException, IOException {
+//        DynamoDBOutputStream stream = null;
+//        try {
+//            stream = new DynamoDBOutputStream();
+//            stream.open();
+//            DateFormat dateFormat = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+//            Date date = new Date();
+//            String transmitTime = dateFormat.format(date); //2016/11/16 12:08:43
+//            stream.writePacket("012345678901234", "momsn", transmitTime, "-48.8", "48.8", "iridiumCep", getSamplePacket());
+//        } finally {
+//            stream.close();
+//        }
+//    }
 
     private MAVLinkPacket getSamplePacket() {
         msg_high_latency msg = new msg_high_latency();
