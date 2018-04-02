@@ -14,7 +14,7 @@
 
 			<!-- Now, select which projects to include in this module-set. -->
 			<includes>
-				<include>com.envirover:nvi</include>
+				<include>com.envirover:uvhub</include>
 			</includes>
 			<binaries>
 				<outputDirectory>lib</outputDirectory>

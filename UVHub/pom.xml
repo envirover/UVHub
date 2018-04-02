@@ -91,7 +91,7 @@
 						<index>false</index>
 						<manifest>
 							<addClasspath>false</addClasspath>
-							<mainClass>com.envirover.nvi.NVIGroundControl</mainClass>
+							<mainClass>com.envirover.uvhub.UVHub</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

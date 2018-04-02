@@ -10,12 +10,12 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>nvi.assembly</artifactId>
+	<artifactId>uvhub.assembly</artifactId>
 
 	<packaging>pom</packaging>
 
-	<name>NVI Distribution</name>
-	<description>Distribution assembly build</description>
+	<name>UV Hub Distribution</name>
+	<description>UV Hub distribution assembly build</description>
 
 	<dependencies>
 		<dependency>

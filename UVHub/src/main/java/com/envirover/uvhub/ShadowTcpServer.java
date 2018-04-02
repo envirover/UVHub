@@ -15,7 +15,7 @@
  * from Envirover.
  */
 
-package com.envirover.nvi;
+package com.envirover.uvhub;
 
 import com.envirover.mavlink.MAVLinkSocket;
 
@@ -23,7 +23,7 @@ import com.envirover.mavlink.MAVLinkSocket;
  * TCP server that accepts connections from GCS clients to update on-board parameters
  * and missions in the reported state of the shadow.
  * 
- * {@link com.envirover.nvi.ShadowClientSession} is created for each client connection. 
+ * {@link com.envirover.uvhub.ShadowClientSession} is created for each client connection. 
  *  
  * @author pavel
  *
