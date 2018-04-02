@@ -21,12 +21,12 @@
 		<dependency>
 			<groupId>com.envirover</groupId>
 			<artifactId>mavlink</artifactId>
-			<version>1.0</version>
+			<version>2.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.envirover</groupId>
-			<artifactId>nvi</artifactId>
-			<version>1.0</version>
+			<artifactId>uvhub</artifactId>
+			<version>2.0</version>
 		</dependency>
 	</dependencies>
 
@@ -43,10 +43,10 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
-							<finalName>nvi-${project.version}</finalName>
+							<finalName>uvhub-${project.version}</finalName>
 							<tarLongFileMode>posix</tarLongFileMode> 
 							<descriptors>
-								<descriptor>src/assembly/nvi.xml</descriptor>
+								<descriptor>src/assembly/uvhub.xml</descriptor>
 							</descriptors>
 						</configuration>
 					</execution>
