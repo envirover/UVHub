@@ -2,7 +2,7 @@
 
 # UV Hub
 
-UV Hub is a MAVLink proxy server for TCP/IP and Iridiun SBD communication with unmanned vehicles controlled by ArduPilot or PX4 autopilots. It is designed to work with SPL RadioRoom companion computer, providing two way communication channel between the vehicles and MAVLink ground control stations such as Mission Planer or QGroundControl.
+UV Hub is a MAVLink proxy server for TCP/IP and Iridium SBD communication with unmanned vehicles controlled by ArduPilot or PX4 autopilots. It is designed to work with SPL RadioRoom companion computer, providing two way communication channel between the vehicles and MAVLink ground control stations such as Mission Planer or QGroundControl.
 
 ## Download UV Hub Package
 
