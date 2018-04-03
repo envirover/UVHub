@@ -18,6 +18,8 @@
 package com.envirover.uvhub;
 
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
@@ -28,9 +30,14 @@ import org.glassfish.tyrus.server.Server;
 import com.envirover.mavlink.MAVLinkMessageQueue;
 import com.envirover.mavlink.MAVLinkShadow;
 
+import com.envirover.rockblock.RockBlockClient;
+import com.envirover.rockblock.RockBlockHttpHandler;
+import com.sun.net.httpserver.HttpServer;
+
 /**
  * Daemon interface for NVI application.
  */
+@SuppressWarnings("restriction")
 public class UVHubDaemon implements Daemon {
     private final static String DEFAULT_PARAMS_FILE = "default.params";
 
@@ -40,10 +47,13 @@ public class UVHubDaemon implements Daemon {
     private GCSTcpServer gcsTcpServer = null;
     private RRTcpServer rrTcpServer = null;
     private ShadowTcpServer shadowServer = null;
+    private HttpServer httpServer = null;
+    private Thread mtMsgPumpThread = null;
     private Server wsServer;
 
     @Override
     public void destroy() {
+    	httpServer.removeContext(config.getHttpContext());
     }
 
     @Override
@@ -71,14 +81,32 @@ public class UVHubDaemon implements Daemon {
 
         rrTcpServer = new RRTcpServer(config.getRadioRoomPort(), moHandler, mtMessageQueue);
 
+        httpServer = HttpServer.create(new InetSocketAddress(config.getRockblockPort()), 0);
+        httpServer.createContext(config.getHttpContext(), 
+                                 new RockBlockHttpHandler(moHandler, config.getRockBlockIMEI()));
+        httpServer.setExecutor(null);
+
+        RockBlockClient rockblock = new RockBlockClient(config.getRockBlockIMEI(),
+                                                        config.getRockBlockUsername(),
+                                                        config.getRockBlockPassword(),
+                                                        config.getRockBlockURL());
+       
+        MTMessagePump mtMsgPump = new MTMessagePump(mtMessageQueue, rockblock);
+        mtMsgPumpThread = new Thread(mtMsgPump, "mt-message-pump");
+
         WSEndpoint.setMTQueue(mtMessageQueue);
         wsServer = new Server("localhost", config.getWSPort(), "/gcs", WSEndpoint.class);
     }
 
     @Override
     public void start() throws Exception {
-       // String ip = InetAddress.getLocalHost().getHostAddress();
+        String ip = InetAddress.getLocalHost().getHostAddress();
+        System.out.printf("Starting RockBLOCK HTTP message handler on http://%s:%d%s...",
+                          ip, config.getRockblockPort(), config.getHttpContext());
+        System.out.println();
 
+    	httpServer.start();
+    	mtMsgPumpThread.start();
         gcsTcpServer.start();
         shadowServer.start();
         wsServer.start();
@@ -86,12 +114,13 @@ public class UVHubDaemon implements Daemon {
 
         Thread.sleep(1000);
 
-        logger.info("NVI Ground Control server started.");
+        logger.info("UV Hub server started.");
     }
 
     @Override
     public void stop() throws Exception {
 
+    	httpServer.stop(0);
         rrTcpServer.stop();
         shadowServer.stop();
         gcsTcpServer.stop();

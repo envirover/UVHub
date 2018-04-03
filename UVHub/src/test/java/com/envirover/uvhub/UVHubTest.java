@@ -53,7 +53,7 @@ import com.envirover.uvhub.UVHub;
 import com.envirover.uvhub.UVHubDaemon;
 
 public class UVHubTest {
-    private static final String[] args = {};
+	private static final String[] args = {"-i", "1234567890", "-u", "user", "-p", "password"};
     private static final Config config = Config.getInstance();
     private static final UVHubDaemon daemon = new UVHubDaemon();
 
@@ -71,7 +71,7 @@ public class UVHubTest {
         System.out.println("SETUP: Starting UVHub...");
         config.init(args);
 
-        daemon.init(new UVHub.NVIDaemonContext(args));
+        daemon.init(new UVHub.UVHubDaemonContext(args));
         daemon.start();
     }
 
