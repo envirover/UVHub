@@ -34,7 +34,7 @@
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>${project.basedir}/../bin</directory>
+			<directory>${project.basedir}/bin</directory>
 			<outputDirectory>bin</outputDirectory>
 			<lineEnding>windows</lineEnding>
 			<includes>
@@ -42,7 +42,7 @@
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>${project.basedir}/../bin</directory>
+			<directory>${project.basedir}/bin</directory>
 			<outputDirectory>bin</outputDirectory>
 			<lineEnding>unix</lineEnding>
 			<includes>
@@ -50,7 +50,7 @@
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>${project.basedir}/../conf</directory>
+			<directory>${project.basedir}/conf</directory>
 			<outputDirectory>conf</outputDirectory>
 			<lineEnding>windows</lineEnding>
 			<includes>
@@ -58,7 +58,7 @@
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>${project.basedir}/../logs</directory>
+			<directory>${project.basedir}/logs</directory>
 			<outputDirectory>logs</outputDirectory>
 			<includes>
 				<include>*</include>
