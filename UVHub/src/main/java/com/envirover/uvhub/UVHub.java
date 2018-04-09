@@ -24,6 +24,8 @@ import org.apache.commons.daemon.DaemonController;
 
 /**
  * The main application class. 
+ * 
+ * @author Pavel Bobov
  */
 public class UVHub {
 
@@ -60,7 +62,7 @@ public class UVHub {
         } 
     }
 
-    public static class UVHubDaemonContext implements DaemonContext {
+    static class UVHubDaemonContext implements DaemonContext {
 
         private final String[] args;
 

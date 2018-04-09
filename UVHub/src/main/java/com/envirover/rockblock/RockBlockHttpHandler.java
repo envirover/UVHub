@@ -44,6 +44,7 @@ import com.sun.net.httpserver.HttpHandler;
 /**
  * Handles HTTP requests with messages sent by RockBLOCK.
  *
+ * @author PAvel Bobov
  */
 @SuppressWarnings("restriction")
 public class RockBlockHttpHandler implements HttpHandler {

@@ -62,9 +62,10 @@ import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkLogger;
 import com.envirover.mavlink.MAVLinkShadow;
 
-/*
- * TCP and WebSocket MAVLink client sessions that handle communications with GCS clients.
- *
+/**
+ * TCP and WebSocket MAVLink client session that handle communications with GCS clients.
+ * 
+ * @author Pavel Bobov
  */
 public class GCSClientSession implements ClientSession {
 
@@ -74,6 +75,8 @@ public class GCSClientSession implements ClientSession {
     private final Timer heartbeatTimer = new Timer();
     private final MAVLinkChannel src;
     private final MAVLinkChannel dst;
+    
+    private boolean isOpen = false;
 
     public GCSClientSession(MAVLinkChannel src, MAVLinkChannel mtMessageQueue) {
         this.src = src;
@@ -84,26 +87,31 @@ public class GCSClientSession implements ClientSession {
      * @see com.envirover.nvi.ClientSession#onOpen()
      */
     @Override
-    public void onOpen() {
+    public void onOpen() throws IOException {
         TimerTask heartbeatTask = new TimerTask() {
             @Override
             public void run() {
                 try {
                     reportState();
                 } catch (IOException | InterruptedException e) {
-                    dst.close();
+                    src.close();
+                    isOpen = false;
                 }
             }
         };
 
         heartbeatTimer.schedule(heartbeatTask, 0, config.getHeartbeatInterval());
+        
+        isOpen = true;
     }
 
     /* (non-Javadoc)
      * @see com.envirover.nvi.ClientSession#onClose()
      */
     @Override
-    public void onClose() throws InterruptedException {
+    public void onClose() throws IOException {
+    	isOpen = false;
+    	
         heartbeatTimer.cancel();
 
         if (src != null) {
@@ -115,7 +123,7 @@ public class GCSClientSession implements ClientSession {
      * @see com.envirover.nvi.ClientSession#onMessage(com.MAVLink.MAVLinkPacket)
      */
     @Override
-    public void onMessage(MAVLinkPacket packet) throws IOException, InterruptedException {
+    public void onMessage(MAVLinkPacket packet) throws IOException {
         handleParams(packet);
         handleMissions(packet);
         handleCommand(packet);
@@ -125,7 +133,12 @@ public class GCSClientSession implements ClientSession {
         }
     }
 
-    private synchronized void handleParams(MAVLinkPacket packet) throws IOException, InterruptedException {
+	@Override
+	public boolean isOpen() {
+		return isOpen;
+	}
+	
+    private synchronized void handleParams(MAVLinkPacket packet) throws IOException {
         if (packet == null) {
             return;
         }
@@ -138,7 +151,12 @@ public class GCSClientSession implements ClientSession {
 
                 for (msg_param_value param : shadow.getParams()) {
                     sendToSource(param);
-                    Thread.sleep(10);
+    
+                    try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
                 }
 
                 logger.info(MessageFormat.format("{0} on-board parameters sent to the MAVLink client.", shadow.getParams().size()));
@@ -162,7 +180,7 @@ public class GCSClientSession implements ClientSession {
         }
     }
 
-    private synchronized void handleMissions(MAVLinkPacket packet) throws IOException, InterruptedException {
+    private synchronized void handleMissions(MAVLinkPacket packet) throws IOException {
         if (packet == null) {
             return;
         }
@@ -242,7 +260,7 @@ public class GCSClientSession implements ClientSession {
      * @throws IOException
      * @throws InterruptedException 
      */
-    private synchronized void handleCommand(MAVLinkPacket packet) throws IOException, InterruptedException {
+    private synchronized void handleCommand(MAVLinkPacket packet) throws IOException {
         if (packet == null) {
             return;
         }
@@ -290,7 +308,7 @@ public class GCSClientSession implements ClientSession {
                packet.msgid == msg_set_home_position.MAVLINK_MSG_ID_SET_HOME_POSITION);
     }
 
-    private void sendToSource(MAVLinkMessage msg) throws IOException, InterruptedException {
+    private void sendToSource(MAVLinkMessage msg) throws IOException {
         if (msg == null) {
             return;
         }

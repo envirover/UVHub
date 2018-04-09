@@ -35,6 +35,8 @@ import com.MAVLink.enums.MAV_TYPE;
 /**
  * Provides access to configuration properties specified in app.properties file
  * in the classpath or in command line parameters. 
+ * 
+ * @author Pavel Bobov
  */
 public class Config {
     private final static String CONFIG_PROPERTIES_FILE  = "app.properties"; 

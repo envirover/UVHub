@@ -40,7 +40,10 @@ import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkLogger;
 
 /**
- * Client class for RockBLOCK Web Services API.
+ * Client class used to send mobile-terminated MAVLink messages to RockBLOCK 
+ * Web Services API.
+ * 
+ * @author Pavel Bobov
  *
  */
 public class RockBlockClient implements MAVLinkChannel {

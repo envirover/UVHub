@@ -43,21 +43,21 @@ public class RRTcpServer {
 
     private final Integer port;
     private final MAVLinkChannel dst;
-    private final MAVLinkChannel mtMessageQueue;
     private final ExecutorService threadPool; 
+    private final ConnectionListener connectionListener = new ConnectionListener();
+  
     private ServerSocket serverSocket;
     private Thread listenerThread;
 
     /**
-     * Creates an instance of RRTcpServer 
+     * Creates an instance of RRTcpServer.
      * 
-     * @param port TCP port used for RadioRoom connections 
-     * @param dst MO message handler
+     * @param port TCP port used for SPL RadioRoom connections 
+     * @param dst Mobile-originated message handler
      */
-    public RRTcpServer(Integer port, MAVLinkChannel dst, MAVLinkChannel mtMessageQueue) {
+    public RRTcpServer(Integer port, MAVLinkChannel dst) {
         this.port = port;
         this.dst = dst;
-        this.mtMessageQueue = mtMessageQueue;
         this.threadPool = Executors.newCachedThreadPool();
     }
 
@@ -68,7 +68,7 @@ public class RRTcpServer {
      */
     public void start() throws IOException {
         serverSocket = new ServerSocket(port);
-        listenerThread = new Thread(new ConnectionListener());
+        listenerThread = new Thread(connectionListener);
         listenerThread.start();
     }
 
@@ -83,8 +83,17 @@ public class RRTcpServer {
         serverSocket.close();
     }
 
+    /**
+     * Returns the last connected client socket.
+     * 
+     * @return
+     */
+    public MAVLinkSocket getMAVLinkSocket() {
+    	return connectionListener.getClientSocket();
+    }
+    
     protected ClientSession createClientSession(MAVLinkSocket clientSocket) {
-        return new RRClientSession(clientSocket, dst, mtMessageQueue);
+        return new RRClientSession(dst);
     }
 
     /**
@@ -94,20 +103,33 @@ public class RRTcpServer {
      *
      */
     class ConnectionListener implements Runnable {
-
+    	
+    	private MAVLinkSocket clientSocket = null;
+    	
+    	public synchronized MAVLinkSocket getClientSocket() {
+   			return clientSocket;
+    	}
+    	
+    	private synchronized void setClientSocket(MAVLinkSocket clientSocket) {
+    		this.clientSocket = clientSocket;
+    	}
+    	
         @Override
         public void run() {
             while (serverSocket.isBound()) {
                 try {
                     Socket socket = serverSocket.accept();
 
-                    MAVLinkSocket clientSocket = new MAVLinkSocket(socket);
-                    ClientSession session = createClientSession(clientSocket);
+                    // Save the last socket connection. It will be used to as the
+                    // primary channel for mobile-terminated messages.
+                   	setClientSocket(new MAVLinkSocket(socket));
+                    
+                    ClientSession session = createClientSession(getClientSocket());
                     session.onOpen();
 
-                    threadPool.execute(new SocketListener(clientSocket, session));
+                    threadPool.execute(new SocketListener(getClientSocket(), session));
 
-                    logger.info(MessageFormat.format("MAVLink client ''{0}'' connected.", socket.getInetAddress()));
+                    logger.info(MessageFormat.format("RadioRoom client ''{0}'' connected.", socket.getInetAddress()));
                 } catch (IOException e) {
                     e.printStackTrace();
                     return;
@@ -145,11 +167,12 @@ public class RRTcpServer {
                     } catch (InterruptedException | IOException e) {
                         try {
                             session.onClose();
-                        } catch (InterruptedException e1) {
+                            clientSocket.close();
+                        } catch (IOException e1) {
                             e1.printStackTrace();
                         }
 
-                        logger.info("MAVLink client disconnected.");
+                        logger.info("RadioRoom client disconnected.");
 
                         return;
                     }

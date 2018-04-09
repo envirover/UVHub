@@ -13,6 +13,10 @@
 	<artifactId>mavlink</artifactId>
 	<packaging>jar</packaging>
 
-	<name>MAVLink</name>
+	<name>MAVLink library</name>
 	<description>Auto-generated MAVLink classes</description>
+	
+	<properties>
+		<maven.javadoc.skip>true</maven.javadoc.skip>
+	</properties>
 </project>

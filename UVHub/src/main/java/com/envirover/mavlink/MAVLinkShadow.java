@@ -37,6 +37,8 @@ import com.MAVLink.enums.MAV_PARAM_TYPE;
  * 
  * The actual state of the vehicle is updated during communication sessions. 
  * 
+ * @author Pavel Bobov
+ * 
  */
 public class MAVLinkShadow {
 
@@ -118,7 +120,7 @@ public class MAVLinkShadow {
     /**
      * Returns PARAM_VALUE message for the specified parameter.
      *   
-     * @param paramid Onboard parameter id, terminated by NULL if the length is less than 16 human-readable chars and WITHOUT null termination (NULL) byte if the length is exactly 16 chars - applications have to provide 16+1 bytes storage if the ID is stored as string
+     * @param paramId Onboard parameter id, terminated by NULL if the length is less than 16 human-readable chars and WITHOUT null termination (NULL) byte if the length is exactly 16 chars - applications have to provide 16+1 bytes storage if the ID is stored as string
      * @param paramIndex Parameter index. Send -1 to use the paramId field as identifier, else the paramId will be ignored
      * @return MAVLink packet with parameter value or null, if the parameter was not found.
      */

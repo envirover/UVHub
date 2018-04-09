@@ -8,7 +8,7 @@
 	<version>2.0</version>
 	<packaging>pom</packaging>
 
-	<name>UVHub</name>
+	<name>UV Hub Parent Project</name>
 	<description>Tracking and control server for unmanned vehicles</description>
 
 	<modules>
@@ -31,8 +31,8 @@
 	</organization>
 
 	<scm>
-		<developerConnection>scm:git:http://github.com/envirover/NVIGroundControl</developerConnection>
-		<url>http://github.com/envirover/NVIGroundControl</url>
+		<developerConnection>scm:git:http://github.com/envirover/UVHub</developerConnection>
+		<url>http://github.com/envirover/UVHub</url>
 	</scm>
 
 	<issueManagement>

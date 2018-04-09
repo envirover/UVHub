@@ -1,7 +1,7 @@
 /*
  * Envirover confidential
  * 
- *  [2017] Envirover
+ *  [2018] Envirover
  *  All Rights Reserved.
  * 
  * NOTICE:  All information contained herein is, and remains the property of 
@@ -143,13 +143,12 @@ public class GCSTcpServer {
                         Thread.sleep(10);
                     } catch (InterruptedException | IOException e) {
                         try {
-                            session.onClose();
-                        } catch (InterruptedException e1) {
-                            e1.printStackTrace();
-                        }
-
+							session.onClose();
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+                        
                         logger.info("GCS client disconnected.");
-
                         return;
                     }
                 }

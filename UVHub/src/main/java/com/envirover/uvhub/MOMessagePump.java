@@ -28,6 +28,8 @@ import com.envirover.mavlink.MAVLinkChannel;
  * Mobile-originated (MO) message pump receives MAVLink messages from the 
  * specified source channel and forwards them to the specified destination
  * channel. 
+ * 
+ * @author Pavel Bobov
  */
 class MOMessagePump implements Runnable {
 

@@ -12,7 +12,7 @@
 	<artifactId>uvhub</artifactId>
 	<packaging>jar</packaging>
 
-	<name>UVHub</name>
+	<name>UV Hub</name>
 	<description>MAVLink proxy server for ArduPilot rovers with RockBLOCK satellite communication</description>
 
 	<dependencies>
