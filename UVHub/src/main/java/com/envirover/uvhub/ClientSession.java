@@ -22,31 +22,41 @@ import java.io.IOException;
 import com.MAVLink.MAVLinkPacket;
 
 
-/*
- * TCP and WebSocket MAVLink client sessions that handle communications with GCS clients.
+/**
+ * Client sessions that handle communications with TCP and WebSocket MAVLink clients.
+ * 
+ * @author Pavel Bobov
  *
  */
 public interface ClientSession {
 
     /**
      * Called when client is connected.
+     * 
+     * @throws IOException if the session start failed.
      */
-    void onOpen();
+    void onOpen() throws IOException;
 
     /**
      * Called when client is disconnected.
      * 
-     * @throws InterruptedException
+     * @throws IOException if closing the session failed.
      */
-    void onClose() throws InterruptedException;
+    void onClose() throws IOException;
 
     /**
      * Called when MAVLink message is received from the client.
      * 
      * @param packet MAVLink packet 
      * @throws IOException thrown in case of I/O errors.
-     * @throws InterruptedException
      */
-    void onMessage(MAVLinkPacket packet) throws IOException, InterruptedException;
+    void onMessage(MAVLinkPacket packet) throws IOException;
+    
+    /**
+     * Returns true if the client session is open.
+     * 
+     * @return true if the client session is open.
+     */
+    boolean isOpen();
 
 }

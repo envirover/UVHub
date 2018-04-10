@@ -1,7 +1,7 @@
 /*
  * Envirover confidential
  * 
- *  [2017] Envirover
+ *  [2018] Envirover
  *  All Rights Reserved.
  * 
  * NOTICE:  All information contained herein is, and remains the property of 
@@ -24,6 +24,8 @@ import org.apache.commons.daemon.DaemonController;
 
 /**
  * The main application class. 
+ * 
+ * @author Pavel Bobov
  */
 public class UVHub {
 
@@ -31,7 +33,7 @@ public class UVHub {
         try {
             UVHubDaemon daemon = new UVHubDaemon();
 
-            daemon.init(new NVIDaemonContext(args));
+            daemon.init(new UVHubDaemonContext(args));
 
             daemon.start();
 
@@ -53,17 +55,18 @@ public class UVHub {
             daemon.destroy();
 
             System.out.println("Done.");
+            
             System.exit(0);
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         } 
     }
 
-    public static class NVIDaemonContext implements DaemonContext {
+    static class UVHubDaemonContext implements DaemonContext {
 
         private final String[] args;
 
-        public NVIDaemonContext(String[] args) {
+        public UVHubDaemonContext(String[] args) {
             this.args = args;
         }
 

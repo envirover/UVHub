@@ -26,6 +26,8 @@ import com.MAVLink.MAVLinkPacket;
 
 /**
  * MAVLink message queue channel.
+ * 
+ * @author Pavel Bobov
  *
  */
 public class MAVLinkMessageQueue implements MAVLinkChannel {

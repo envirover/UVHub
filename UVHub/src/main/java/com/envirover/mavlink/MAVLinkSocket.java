@@ -32,6 +32,7 @@ import com.MAVLink.Parser;
  * MAVLinkChannel implementation used to send and receive MAVLink messages
  * to/from server socket.
  *
+ * @author Pavel Bobov
  */
 public class MAVLinkSocket implements MAVLinkChannel {
 
@@ -48,7 +49,7 @@ public class MAVLinkSocket implements MAVLinkChannel {
      * Constructs instance of MAVLinkSocket.
      * 
      * @param socket server socket
-     * @throws IOException
+     * @throws IOException if instance construction failed.
      */
     public MAVLinkSocket(Socket socket) throws IOException {
         this.socket = socket;

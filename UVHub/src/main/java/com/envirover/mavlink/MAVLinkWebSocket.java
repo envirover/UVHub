@@ -27,6 +27,12 @@ import org.apache.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 
+/**
+ * MAVLinkChannel implementation used to send messages to WebSockets.
+ * 
+ * @author Pavel Bobov
+ *
+ */
 public class MAVLinkWebSocket implements MAVLinkChannel {
 
     private final static Logger logger = Logger.getLogger(MAVLinkWebSocket.class);
@@ -35,6 +41,11 @@ public class MAVLinkWebSocket implements MAVLinkChannel {
 
     private int seq = 0;
 
+    /**
+     * Construnct instance of MAVLinkWebSocket for the specified WebSocket session.
+     * 
+     * @param session WebSocket session
+     */
     public MAVLinkWebSocket(Session session) {
         this.session = session;
     }
@@ -44,6 +55,11 @@ public class MAVLinkWebSocket implements MAVLinkChannel {
         return null;
     }
 
+    /**
+     * Sends the specified MAVLink packet to the WebSocket.
+     * 
+     * @param packet MAVLink packet
+     */
     @Override
     public void sendMessage(MAVLinkPacket packet) throws IOException {
         if (packet == null)

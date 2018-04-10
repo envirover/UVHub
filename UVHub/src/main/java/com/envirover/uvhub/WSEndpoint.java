@@ -18,6 +18,12 @@ import com.MAVLink.Parser;
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkWebSocket;
 
+/**
+ * WebSocket endpoint class that handles WebSocket connections from GCS client.
+ * 
+ * @author Pavel Bobov
+ *
+ */
 @ServerEndpoint("/ws")
 public class WSEndpoint {
 
@@ -32,7 +38,7 @@ public class WSEndpoint {
     }
 
     @OnOpen
-    public void onOpen(Session session) {
+    public void onOpen(Session session) throws IOException {
         System.out.printf("WebSocket session opened, id: %s%n", session.getId());
 
         GCSClientSession clientSession = new GCSClientSession(new MAVLinkWebSocket(session), mtMessageQueue);
@@ -57,7 +63,7 @@ public class WSEndpoint {
     }
 
     @OnClose
-    public void onClose(Session session) throws InterruptedException {
+    public void onClose(Session session) throws IOException {
         ClientSession clientSession = sessions.get(session.getId());
 
         if (clientSession != null) {

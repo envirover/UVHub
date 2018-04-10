@@ -25,7 +25,7 @@ import com.envirover.mavlink.MAVLinkSocket;
  * 
  * {@link com.envirover.uvhub.ShadowClientSession} is created for each client connection. 
  *  
- * @author pavel
+ * @author Pavel Bobov
  *
  */
 public class ShadowTcpServer extends GCSTcpServer {

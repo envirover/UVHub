@@ -1,0 +1,300 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description" : "AWS CloudFormation template for UV Hub server. **WARNING** This template creates an Amazon EC2 instance. You will be billed for the AWS resources used if you create a stack from this template.",
+  "Parameters" : {
+    "KeyName" : {
+      "Description" : "Name of an existing EC2 KeyPair to enable SSH access to the instances",
+      "Type" : "AWS::EC2::KeyPair::KeyName",
+      "ConstraintDescription" : "must be the name of an existing EC2 KeyPair."
+    },
+    "InstanceType" : {
+      "Description" : "EC2 instance type",
+      "Type" : "String",
+      "Default" : "t2.micro",
+      "AllowedValues" : [ "t2.nano", "t2.micro", "t2.small", "t2.medium" ],
+      "ConstraintDescription" : "must be a valid EC2 instance type."
+    },
+    "ClientCIDR" : {
+      "Description" : "CIDR IP address range of MAVLink clients and SSH",
+      "Type" : "String",
+      "MinLength" : "9",
+      "MaxLength" : "18",
+      "Default" : "0.0.0.0/0",
+      "AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription" : "must be a valid IP CIDR range of the form x.x.x.x/x."
+    },
+    "RockBlockIMEI" : {
+      "Description" : "Unique IMEI of your RockBLOCK",
+      "Type" : "String",
+      "AllowedPattern" : "\\d{15}",
+      "ConstraintDescription" : "RockBLOCK IMEI must be a 15 digit number"
+    },
+    "RockBlockUsername" : {
+      "Description" : "Your Rock 7 Core username",
+      "Type" : "String",
+      "AllowedPattern" : "^(?!\\s*$).+",
+      "ConstraintDescription" : "RockBLOCK username is required"
+    },
+    "RockBlockPassword" : {
+      "Description" : "Your Rock 7 Core password",
+      "Type" : "String",
+      "NoEcho" : true,
+      "AllowedPattern" : "^(?!\\s*$).+",
+      "ConstraintDescription" : "RockBLOCK password is required"
+    },
+    "SPLArchiveURL" : {
+      "Description" : "URL of SPLGroundControl distribution archive",
+      "Type" : "String",
+      "Default" : "https://s3-us-west-2.amazonaws.com/envirover/UVHub/uvhub-2.0-bin.zip"
+    },
+    "MAVParametersURL" : {
+      "Description" : "URL of default.params file with initial on-board parameters values.",
+      "Type" : "String",
+      "Default" : "https://s3-us-west-2.amazonaws.com/envirover/spl/default.params"
+    },
+    "MAVAutopilot" : {
+      "Description" : "Autopilot class from MAV_AUTOPILOT enumeration (3 - ARDUPILOTMEGA, 12 - PX4).",
+      "Type" : "Number",
+      "Default" : "3"
+    },
+    "MAVType" : {
+      "Description" : "Vehicle type from MAV_TYPE enumeration (1 - FIXED_WING, 2 - QUADROTOR, 10 - GROUND_ROVER, 12 - SUBMARINE).",
+      "Type" : "Number",
+      "Default" : "10"
+    }
+  },
+  "Mappings" : {
+    "RegionMap" : {
+      "us-east-1" : {
+        "AMI" : "ami-0b33d91d"
+      },
+      "us-east-2" : {
+        "AMI" : "ami-c55673a0"
+      },
+      "us-west-1" : {
+        "AMI" : "ami-165a0876"
+      },
+      "us-west-2" : {
+        "AMI" : "ami-f173cc91"
+      },
+      "eu-west-1" : {
+        "AMI" : "ami-70edb016"
+      },
+      "eu-west-2" : {
+        "AMI" : "ami-f1949e95"
+      },
+      "eu-central-1" : {
+        "AMI" : "ami-af0fc0c0"
+      },
+      "ap-southeast-1" : {
+        "AMI" : "ami-dc9339bf"
+      },
+      "ap-northeast-2" : {
+        "AMI" : "ami-dac312b4"
+      },
+      "ap-northeast-1" : {
+        "AMI" : "ami-56d4ad31"
+      },
+      "ap-southeast-2" : {
+        "AMI" : "ami-1c47407f"
+      },
+      "ap-south-1" : {
+        "AMI" : "ami-f9daac96"
+      },
+      "a-east-1" : {
+        "AMI" : "ami-80086dec"
+      }
+    }
+  },
+  "Resources" : {
+    "SecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Enable HTTP access on port 8080, MAVLink GCS access on ports 5757/5760, and SSH access on port 22",
+        "SecurityGroupIngress" : [ {
+          "IpProtocol" : "tcp",
+          "FromPort" : "8080",
+          "ToPort" : "8080",
+          "CidrIp" : "0.0.0.0/0"
+        }, {
+          "IpProtocol" : "tcp",
+          "FromPort" : "8000",
+          "ToPort" : "8000",
+          "CidrIp" : {
+            "Ref" : "ClientCIDR"
+          }
+        }, {
+          "IpProtocol" : "tcp",
+          "FromPort" : "5760",
+          "ToPort" : "5760",
+          "CidrIp" : {
+            "Ref" : "ClientCIDR"
+          }
+        }, {
+          "IpProtocol" : "tcp",
+          "FromPort" : "5757",
+          "ToPort" : "5757",
+          "CidrIp" : {
+            "Ref" : "ClientCIDR"
+          }
+        }, {
+          "IpProtocol" : "tcp",
+          "FromPort" : "22",
+          "ToPort" : "22",
+          "CidrIp" : {
+            "Ref" : "ClientCIDR"
+          }
+        } ]
+      }
+    },
+    "LogRole" : {
+      "Type" : "AWS::IAM::Role",
+      "Properties" : {
+        "AssumeRolePolicyDocument" : {
+          "Version" : "2012-10-17",
+          "Statement" : [ {
+            "Effect" : "Allow",
+            "Principal" : {
+              "Service" : [ "ec2.amazonaws.com" ]
+            },
+            "Action" : [ "sts:AssumeRole" ]
+          } ]
+        },
+        "Path" : "/",
+        "Policies" : [ {
+          "PolicyName" : "LogRolePolicy",
+          "PolicyDocument" : {
+            "Version" : "2012-10-17",
+            "Statement" : [ {
+              "Effect" : "Allow",
+              "Action" : [ "logs:Create*", "logs:PutLogEvents", "s3:GetObject", "cloudformation:*" ],
+              "Resource" : [ "arn:aws:logs:*:*:*", "arn:aws:s3:::*", "arn:aws:cloudformation:*:*:*" ]
+            } ]
+          }
+        } ]
+      }
+    },
+    "LogRoleInstanceProfile" : {
+      "Type" : "AWS::IAM::InstanceProfile",
+      "Properties" : {
+        "Path" : "/",
+        "Roles" : [ { "Ref" : "LogRole" } ]
+      }
+    },
+    "SPLServer" : {
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "AMI" ] },
+        "InstanceType" : { "Ref" : "InstanceType" },
+        "SecurityGroups" : [ { "Ref" : "SecurityGroup" } ],
+        "IamInstanceProfile" : { "Ref" : "LogRoleInstanceProfile" },
+        "KeyName" : { "Ref" : "KeyName" },
+        "Tags" : [ { "Key" : "Name", "Value" : { "Ref" : "AWS::StackName" } } ],
+        "UserData" : {
+          "Fn::Base64" : { "Fn::Join" : [ "", [ 
+            "#!/bin/bash\n", 
+            "yum update -y\n", 
+            "yum install -y awslogs\n",
+            "mkdir /opt/spl\n", 
+            "cd /opt/spl\n",
+            "wget ", { "Ref" : "SPLArchiveURL" }, " -O spl-bin.tar.gz\n",
+            "tar -xvzf spl-bin.tar.gz\n", 
+            "export SPL_HOME=$(pwd)\n",
+            "export JAVA_HOME=/usr/lib/jvm/jre\n",
+            "wget ", { "Ref" : "MAVParametersURL" }, " -O conf/default.params\n",
+            "/opt/aws/bin/cfn-init -s ", { "Ref" : "AWS::StackId" }, " -r SPLServer ", " --region ", { "Ref" : "AWS::Region" }, " || error_exit 'Failed to run cfn-init'\n",
+            "service awslogs start\n",
+            "yum install -y jsvc*\n", 
+            "/usr/bin/jsvc -server -cp $SPL_HOME/conf:$SPL_HOME/lib/* -pidfile $SPL_HOME/jsvc.pid -home $JAVA_HOME com.envirover.spl.SPLDaemon -i ", { "Ref" : "RockBlockIMEI" }, " -u ", { "Ref" : "RockBlockUsername" }, " -p ", { "Ref" : "RockBlockPassword" }, " -a ", { "Ref" : "MAVAutopilot" }, " -t ", { "Ref" : "MAVType" }, "\n",
+            "/opt/aws/bin/cfn-signal -e $? --stack ", { "Ref" : "AWS::StackName" }, " --region ", { "Ref" : "AWS::Region" }, " --resource SPLServer\n" ] ]
+          }
+        }
+      },
+      "CreationPolicy" : {
+        "ResourceSignal" : {
+          "Timeout" : "PT10M"
+        }
+      },
+      "Metadata" : {
+        "AWS::CloudFormation::Init" : {
+          "config" : {
+            "files" : {
+              "/etc/awslogs/awscli.conf" : {
+                "content" : {
+                  "Fn::Join" : [ "", [ 
+                    "[plugins]\n", 
+                    "cwlogs = cwlogs\n", 
+                    "[default]\n", 
+                    "region = ", { "Ref" : "AWS::Region" }, "\n" ] ]
+                },
+                "mode" : "000444"
+              },
+              "/etc/awslogs/awslogs.conf" : {
+                "content" : {
+                  "Fn::Join" : [ "", [ 
+                    "[general]\n", 
+                    "state_file= /var/lib/awslogs/agent-state\n", 
+                    "[/var/log/spl.log]\n", 
+                    "file = /var/log/spl.log\n", 
+                    "log_group_name = ", { "Ref" : "LogGroup" }, "\n",
+                    "log_stream_name = {instance_id}/spl.log\n",
+                    "datetime_format = %Y-%m-%d %H:%M:%S\n" ] ]
+                },
+                "mode" : "000444"
+              }, 
+              "/opt/spl/conf/log4j.properties" : {
+                "content" : {
+                  "Fn::Join" : [ "", [ 
+                    "log4j.rootLogger=INFO, stdout, R\n",
+                    "log4j.appender.stdout=org.apache.log4j.ConsoleAppender\n",
+                    "log4j.appender.stdout.Target=System.out\n",
+                    "log4j.appender.stdout.layout=org.apache.log4j.PatternLayout\n",
+                    "log4j.appender.stdout.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %m%n\n",
+                    "log4j.appender.R=org.apache.log4j.RollingFileAppender\n",
+                    "log4j.appender.R.File=/var/log/spl.log\n",
+                    "log4j.appender.R.MaxFileSize=10MB\n",
+                    "log4j.appender.R.MaxBackupIndex=1\n",
+                    "log4j.appender.R.layout=org.apache.log4j.PatternLayout\n",
+                    "log4j.appender.R.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %m%n\n" ] ]
+                },
+                "mode" : "000444"
+              }
+            }
+          }
+        }
+      }
+    },
+    "LogGroup" : {
+      "Type" : "AWS::Logs::LogGroup",
+      "Properties" : {
+        "RetentionInDays" : 7
+      }
+    }
+  },
+  "Outputs" : {
+    "RockBLOCKHandlerURL" : {
+      "Value" : { "Fn::Join" : [ "", [ "http://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ] }, ":8080/mo" ] ] },
+      "Description" : "HTTP handler URL for mobile-originated RockBLOCK messages"
+    },
+    "MAVLinkClientURL" : {
+      "Value" : { "Fn::Join" : [ "", [ "tcp://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ] }, ":5760" ] ] },
+      "Description" : "GCS client TCP/IP connection URL"
+    },
+    "ShadowClientURL" : {
+      "Value" : { "Fn::Join" : [ "", [ "tcp://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ] }, ":5757" ] ] },
+      "Description" : "GCS client TCP/IP connection URL used to update parameters and missions in the reported state of the vehicle's shadow."
+    },
+    "RadioRoomClientURL" : {
+      "Value" : { "Fn::Join" : [ "", [ "tcp://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ] }, ":5060" ] ] },
+      "Description" : "Host and port that must be specified in radioroom.conf file in  SPL RadioRoom if TCP comm link is enabled."
+    },
+    "CloudWatchLogs" : {
+      "Value" : { "Fn::Join" : [ "", [ "https://console.aws.amazon.com/cloudwatch/home?region=", { "Ref" : "AWS::Region" }, "#logStream:group=", { "Ref" : "LogGroup" } ] ] },
+      "Description" : "SPLGroundControl logs"
+    },
+    "WSMAVLinkClientURL" : {
+      "Value" : { "Fn::Join" : [ "", [ "ws://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ] }, ":8000/gcs/ws" ] ] },
+      "Description" : "MAVLink client WebSocket connection URL"
+    }
+  }
+}

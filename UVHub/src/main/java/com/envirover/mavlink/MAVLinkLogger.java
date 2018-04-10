@@ -28,7 +28,7 @@ import com.MAVLink.common.*;
 /**
  * Decodes and logs MAVLink messages to Log4j logger.
  * 
- * @author pavel
+ * @author Pavel Bobov
  *
  */
 public class MAVLinkLogger {

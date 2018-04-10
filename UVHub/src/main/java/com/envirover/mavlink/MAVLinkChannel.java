@@ -23,6 +23,8 @@ import com.MAVLink.MAVLinkPacket;
 
 /**
  * Interface for two-way MAVLink message channels.
+ * 
+ * @author Pavel Bobov
  *
  */
 public interface MAVLinkChannel {
@@ -30,8 +32,8 @@ public interface MAVLinkChannel {
     /**
      * Receives MAVLink message from the channel.
      * 
-     * @return MAVLink message packet
-     * @throws IOException
+     * @return MAVLink message packet or null.
+     * @throws IOException if receiving message failed.
      */
     MAVLinkPacket receiveMessage() throws IOException;
 
@@ -39,7 +41,7 @@ public interface MAVLinkChannel {
      * Sends MAVLink message to the channel.
      * 
      * @param packet MAVLink message packet to sent.
-     * @throws IOException
+     * @throws IOException if sending message failed.
      */
     void sendMessage(MAVLinkPacket packet) throws IOException;
 

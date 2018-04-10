@@ -38,7 +38,7 @@ import com.envirover.mavlink.MAVLinkShadow;
  * The received messages trigger updates of MAVLinkShadow and forwarded to the
  * specified destination channel.
  * 
- * @author envirover
+ * @author Pavel Bobov
  *
  */
 public class MOMessageHandler implements MAVLinkChannel {

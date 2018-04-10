@@ -1,7 +1,7 @@
 /*
  * Envirover confidential
  * 
- *  [2017] Envirover
+ *  [2018] Envirover
  *  All Rights Reserved.
  * 
  * NOTICE:  All information contained herein is, and remains the property of 
@@ -22,36 +22,44 @@ import java.io.IOException;
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
 
-/*
- * MAVLink client sessions that handle TCP communications with RadioRoom clients.
+/**
+ * Handles MAVLink messages received from RadioRoom TCP client.
  *
+ * @author Pavel Bobov
  */
 public class RRClientSession implements ClientSession {
 
-    private final MAVLinkChannel src;
     private final MAVLinkChannel dst;
-    private final Thread thread;
+    
+    private boolean isOpen = false;
 
-    public RRClientSession(MAVLinkChannel src, MAVLinkChannel dst, MAVLinkChannel mtMessageQueue) {
-        this.src = src;
+    /**
+     * Constructs instance of RRClientSession.
+     * 
+     * @param dst destination MAVLink message channel (mobile originated message handler).
+     */
+    public RRClientSession(MAVLinkChannel dst) {
         this.dst = dst;
-        this.thread = new Thread(new MTMessagePump(mtMessageQueue, src));
     }
 
     @Override
-    public void onOpen() {
-    	thread.start();
+    public void onOpen() throws IOException {
+    	isOpen = true;
     }
 
     @Override
-    public void onClose() throws InterruptedException {
-    	thread.interrupt();
-    	src.close();
+    public void onClose() throws IOException {
+    	isOpen = false;
     }
 
     @Override
-    public void onMessage(MAVLinkPacket packet) throws IOException, InterruptedException {
+    public void onMessage(MAVLinkPacket packet) throws IOException {
         dst.sendMessage(packet);
     }
+
+	@Override
+	public boolean isOpen() {
+		return isOpen;
+	}
 
 }
