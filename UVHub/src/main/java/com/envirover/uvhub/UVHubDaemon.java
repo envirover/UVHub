@@ -108,10 +108,14 @@ public class UVHubDaemon implements Daemon {
         httpServer.setExecutor(null);
 
         // RockBLOCK HTTP client sends MAVLink messages to RockBLOCK Web Services.
-        RockBlockClient rockblock = new RockBlockClient(config.getRockBlockIMEI(),
-                                                        config.getRockBlockUsername(),
-                                                        config.getRockBlockPassword(),
-                                                        config.getRockBlockURL());
+        RockBlockClient rockblock = null;
+       
+        if (config.getRockBlockIMEI() != null) {
+        	rockblock = new RockBlockClient(config.getRockBlockIMEI(),
+                                            config.getRockBlockUsername(),
+                                            config.getRockBlockPassword(),
+                                            config.getRockBlockURL());
+        }
        
         // Mobile-terminated message pump pumps MAVLink messages from the specified
         // mobile-terminated queue to the last connected RadioRoom TCP client or 
@@ -159,7 +163,7 @@ public class UVHubDaemon implements Daemon {
 
         Thread.sleep(1000);
 
-        logger.info("NVI Ground Control server stopped.");
+        logger.info("UV Hub server stopped.");
     }
 
 }

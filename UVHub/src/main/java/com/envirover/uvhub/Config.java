@@ -19,7 +19,6 @@ package com.envirover.uvhub;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.MessageFormat;
 import java.util.Properties;
 
 import org.apache.commons.cli.BasicParser;
@@ -161,24 +160,24 @@ public class Config {
 
         imei = cmd.getOptionValue(CLI_OPTION_IMEI, props.getProperty(PROP_ROCKBLOCK_IMEI)); 
 
-        if (imei == null || imei.isEmpty()) {
-            System.out.println(MessageFormat.format("Required configuration property ''{0}'' is not set.", PROP_ROCKBLOCK_IMEI));
-            return false;
-        }
+//        if (imei == null || imei.isEmpty()) {
+//            System.out.println(MessageFormat.format("Required configuration property ''{0}'' is not set.", PROP_ROCKBLOCK_IMEI));
+//            return false;
+//        }
 
         username = cmd.getOptionValue(CLI_OPTION_USERNAME, props.getProperty(PROP_ROCKBLOCK_USERNAME));
 
-        if (username == null || username.isEmpty()) {
-            System.out.println(MessageFormat.format("Required configuration property ''{0}'' is not set.", PROP_ROCKBLOCK_USERNAME));
-            return false;
-        }
+//        if (username == null || username.isEmpty()) {
+//            System.out.println(MessageFormat.format("Required configuration property ''{0}'' is not set.", PROP_ROCKBLOCK_USERNAME));
+//            return false;
+//        }
 
         password = cmd.getOptionValue(CLI_OPTION_PASSWORD, props.getProperty(PROP_ROCKBLOCK_PASSWORD));
 
-        if (password == null || password.isEmpty()) {
-            System.out.println(MessageFormat.format("Required configuration property ''{0}'' is not set.", PROP_ROCKBLOCK_PASSWORD));
-            return false;
-        }
+//        if (password == null || password.isEmpty()) {
+//            System.out.println(MessageFormat.format("Required configuration property ''{0}'' is not set.", PROP_ROCKBLOCK_PASSWORD));
+//            return false;
+//        }
 
         autopilot = Short.valueOf(cmd.getOptionValue(CLI_OPTION_AUTOPILOT, props.getProperty(PROP_MAV_AUTOPILOT, DEFAULT_AUTOPILOT.toString())));
 

@@ -68,22 +68,24 @@ public class MTMessagePump implements Runnable {
                 if (packet != null) {
                 	boolean sent = false;
                 	
-                	MAVLinkChannel tcpSocket = tcpServer.getMAVLinkSocket();
-                	
-                	// Try the TCP channel first is it's active.
-                	if (tcpSocket != null) {
-                		try {
-                			tcpSocket.sendMessage(packet);
-                			sent = true;
-                		} catch(IOException ex) {
-                			logger.error(ex.getMessage());
-                		}
+                	if (tcpServer != null) {
+	                	MAVLinkChannel tcpSocket = tcpServer.getMAVLinkSocket();
+	                	
+	                	// Try the TCP channel first if it's active.
+	                	if (tcpSocket != null) {
+	                		try {
+	                			tcpSocket.sendMessage(packet);
+	                			sent = true;
+	                		} catch(IOException ex) {
+	                			logger.error(ex.getMessage());
+	                		}
+	                	}
                 	}
                 	
                 	// Send the message to the secondary RockBLOCK channel if
                 	// If the TCP channel is not active, or sending message to
                 	// the TCP channel failed.
-                	if (!sent) {
+                	if (!sent && rockblock != null) {
                 		rockblock.sendMessage(packet);
                 	}
                 }
