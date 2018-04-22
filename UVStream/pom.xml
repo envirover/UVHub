@@ -63,7 +63,10 @@
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-high-level-client</artifactId>
+            <version>6.2.2</version>
+<!-- //TODO remove if unused!
             <version>6.1.1</version>
+-->
         </dependency>
         
         <dependency>
