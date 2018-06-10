@@ -62,7 +62,12 @@ public class MAVLinkMessagesElasticsearchTable implements MAVLinkInputStream {
 
     public MAVLinkMessagesElasticsearchTable() {
         client = new RestHighLevelClient(
-            RestClient.builder(new HttpHost("localhost", 9200, "http"))); 
+            RestClient.builder(
+                new HttpHost(System.getProperty("envirover.elasticsearch.endpoint"), 
+                Integer.valueOf(System.getProperty("envirover.elasticsearch.port")), 
+                "https")));
+//TODO remove if unused!
+//            RestClient.builder(new HttpHost("localhost", 9200, "http"))); 
         
         
         if (System.getenv(SPL_ELASTICSEARCH_TABLE) != null) {
