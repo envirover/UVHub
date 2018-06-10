@@ -318,7 +318,7 @@ public class GCSClientSession implements ClientSession {
         packet.compid = 1;
         try {
             src.sendMessage(packet);
-            MAVLinkLogger.log(Level.INFO, ">>", packet);
+            //MAVLinkLogger.log(Level.DEBUG, ">>", packet);
         } catch (IOException ex) {
             ex.printStackTrace();
             onClose();

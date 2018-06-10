@@ -19,8 +19,11 @@ package com.envirover.uvhub;
 
 import java.io.IOException;
 
+import org.apache.log4j.Level;
+
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
+import com.envirover.mavlink.MAVLinkLogger;
 
 /**
  * Handles MAVLink messages received from RadioRoom TCP client.
