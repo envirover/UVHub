@@ -51,11 +51,10 @@ public class ElasticsearchOutputStream implements MAVLinkOutputStream {
     public void open() throws IOException {
         client = new RestHighLevelClient(
                 RestClient.builder(
-                    new HttpHost(System.getProperty("envirover.elasticsearch.endpoint"), 
-                    Integer.valueOf(System.getProperty("envirover.elasticsearch.port")), 
-                    "https")));
-//TODO remove if unused!
-//                RestClient.builder(new HttpHost("localhost", 9200, "http"))); 
+                    new HttpHost(System.getProperty("envirover.elasticsearch.endpoint", "localhost"), 
+                    Integer.valueOf(System.getProperty("envirover.elasticsearch.port", "9200")), 
+                    System.getProperty("envirover.elasticsearch.protocol", "http"))));
+
         if (System.getenv(SPL_ELASTICSEARCH_TABLE) != null) {
             tableName = System.getenv(SPL_ELASTICSEARCH_TABLE);
         }
@@ -82,7 +81,7 @@ public class ElasticsearchOutputStream implements MAVLinkOutputStream {
            String imei, String momsn, String transmitTime, 
            String iridiumLatitude, String iridiumLongitude, 
            String iridiumCep, MAVLinkPacket packet) throws IOException {
-        if (imei == null || imei.isEmpty() || transmitTime == null || packet == null) {
+        if (packet == null) {
             return;
         }
         IndexRequest indexRequest = org.elasticsearch.client.Requests.indexRequest(tableName);
@@ -93,35 +92,39 @@ public class ElasticsearchOutputStream implements MAVLinkOutputStream {
         try {
             //Time stamp like '17-04-03 02:11:35'
             SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
-            time = sdf.parse(transmitTime);
+            if (transmitTime != null) {
+            	time = sdf.parse(transmitTime);
+            }
         } catch (ParseException e) {
             e.printStackTrace();
         }
         
         
         JSONObject message = toJSON(packet);
-        record.put("time", time.getTime());
-        record.put("sysid", message.getInt("sysid"));
-        record.put("msgid", message.getInt("msgid"));
-        record.put("compid", message.getInt("compid"));
-        record.put("message", message);
-        JSONObject messageMetadata = new JSONObject();
-        messageMetadata.put("imei", imei);
-        	messageMetadata.put("momsn", momsn);
-        	messageMetadata.put("transmit_time", transmitTime); //TODO can we store transmitTime as millis?
-        	messageMetadata.put("iridium_latitude", iridiumLatitude);
-        	messageMetadata.put("iridium_longitude", iridiumLongitude);
-        	messageMetadata.put("iridium_cep",iridiumCep);
-        record.put("message_metadata", messageMetadata);
-        
-        JSONArray point = new JSONArray();
-        point.put(message.getInt("longitude") / 1E7 ).put(message.getInt("latitude") / 1E7);
-        record.put("location", point); // TODO should the field be called location or position instead of geometry?
-
-        indexRequest.source(record.toString(), XContentType.JSON);
-        IndexResponse response = client.index(indexRequest);
-        System.out.println(response.status());
-        
+        if (message != null) {
+	        record.put("time", time.getTime());
+	        record.put("sysid", message.getInt("sysid"));
+	        record.put("msgid", message.getInt("msgid"));
+	        record.put("compid", message.getInt("compid"));
+	        record.put("message", message);
+	        
+	        JSONObject messageMetadata = new JSONObject();
+	        messageMetadata.put("imei", imei);
+	        	messageMetadata.put("momsn", momsn);
+	        	messageMetadata.put("transmit_time", transmitTime); //TODO can we store transmitTime as millis?
+	        	messageMetadata.put("iridium_latitude", iridiumLatitude);
+	        	messageMetadata.put("iridium_longitude", iridiumLongitude);
+	        	messageMetadata.put("iridium_cep",iridiumCep);
+	        record.put("message_metadata", messageMetadata);
+	        
+	        JSONArray point = new JSONArray();
+	        point.put(message.getInt("longitude") / 1E7 ).put(message.getInt("latitude") / 1E7);
+	        record.put("location", point); // TODO should the field be called location or position instead of geometry?
+	
+	        indexRequest.source(record.toString(), XContentType.JSON);
+	        IndexResponse response = client.index(indexRequest);
+	        System.out.println(response.status());
+        }
     }
     
     public static JSONObject toJSON(MAVLinkMessage message) throws IOException {

@@ -31,6 +31,8 @@ import com.MAVLink.common.msg_statustext;
 import com.MAVLink.enums.MAV_SEVERITY;
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkShadow;
+import com.envirover.spl.stream.MAVLinkOutputStream;
+import com.envirover.spl.stream.MAVLinkOutputStreamFactory;
 
 /**
  * MOMessageHandler handles mobile-originated MAVLink messages.
@@ -83,6 +85,12 @@ public class MOMessageHandler implements MAVLinkChannel {
             break;
         default:
             dst.sendMessage(packet);
+        }
+        
+        MAVLinkOutputStream stream = MAVLinkOutputStreamFactory.getMAVLinkOutputStream();
+	      
+        if (stream != null) {
+        	stream.writePacket(null, null, null, null, null, null, packet);
         }
     }
 
