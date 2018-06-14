@@ -22,6 +22,8 @@ along with SPLStream.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.spl.stream;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.ws.rs.FormParam;
@@ -86,7 +88,16 @@ public class RockBlockService {
             MAVLinkPacket packet = getPacket(data);
             if (packet != null) {
                 MAVLinkOutputStream stream = MAVLinkOutputStreamFactory.getMAVLinkOutputStream();
-                stream.writePacket(imei, momsn, transmitTime, iridiumLatitude, iridiumLongitude, iridiumCep, packet);
+                
+                Map<String, String> metadata = new HashMap<String, String>();
+            	metadata.put("imei", imei);
+            	metadata.put("momsn", momsn);
+            	metadata.put("transmit_time", transmitTime);
+            	metadata.put("iridium_latitude", iridiumLatitude);
+            	metadata.put("iridium_longitude", iridiumLongitude);
+            	metadata.put("iridium_cep", iridiumCep);
+            	
+                stream.writePacket(packet, metadata);
             } else {
                 logger.warning("Invalid MAVLink message received: " + data);
             }

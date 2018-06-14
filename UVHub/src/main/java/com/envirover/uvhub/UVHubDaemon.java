@@ -31,6 +31,8 @@ import com.envirover.mavlink.MAVLinkShadow;
 
 import com.envirover.rockblock.RockBlockClient;
 import com.envirover.rockblock.RockBlockHttpHandler;
+import com.envirover.spl.stream.ElasticsearchOutputStream;
+import com.envirover.spl.stream.MAVLinkOutputStream;
 import com.sun.net.httpserver.HttpServer;
 
 /**
@@ -94,17 +96,24 @@ public class UVHubDaemon implements Daemon {
         // or pushed to the provided mobile-originated queue. 
         MOMessageHandler moHandler = new MOMessageHandler(moMessageQueue);
 
+        // Init message mersistance stream
+        MAVLinkOutputStream stream = new ElasticsearchOutputStream(config.getElasticsearchEndpoint(), 
+                config.getElasticsearchPort(),
+                config.getElasticsearchProtocol());
+        stream.open();
+
         // RadioRoom TCP server accepts TCP/IP connections on port 5060 from SPL RadioRoom. 
         // MAVLink messages received from RadioRoom are sent to the specified mobile-originated
         // message handler. 
-        rrTcpServer = new RRTcpServer(config.getRadioRoomPort(), moHandler);
+        rrTcpServer = new RRTcpServer(config.getRadioRoomPort(), moHandler, stream);
 
         // RockBLOCK HTTP handler listens on on port 8080 and sends mobile-originated
         // MAVLink messages received from RockBLOCK to the specified mobile-originated 
         // message handler.
         httpServer = HttpServer.create(new InetSocketAddress(config.getRockblockPort()), 0);
+        
         httpServer.createContext(config.getHttpContext(), 
-                                 new RockBlockHttpHandler(moHandler, config.getRockBlockIMEI()));
+                                 new RockBlockHttpHandler(moHandler, config.getRockBlockIMEI(), stream));
         httpServer.setExecutor(null);
 
         // RockBLOCK HTTP client sends MAVLink messages to RockBLOCK Web Services.

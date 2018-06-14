@@ -22,6 +22,7 @@ along with SPLStream.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.spl.stream;
 
 import java.io.IOException;
+import java.util.Map;
 
 import com.MAVLink.MAVLinkPacket;
 
@@ -48,15 +49,9 @@ public interface MAVLinkOutputStream {
     /**
      * Writes MAVLink packet to the stream. 
      * 
-     * @param imei device Id, such as RockBLOCK IMEI
-     * @param momsn TODO
-     * @param transmitTime the packet time stamp in UTC time
-     * @param iridiumLatitude TODO
-     * @param iridiumLongitude TODO
-     * @param iridiumCep TODO
      * @param packet MAVLink packet
-     * @throws IOException
+     * @param metadata Communication channel specific message metadata.
+     * @throws IOException if packet write failed.
      */
-    void writePacket(String imei, String momsn, String transmitTime, String iridiumLatitude, String iridiumLongitude, String iridiumCep, MAVLinkPacket packet) throws IOException;
-
+    void writePacket(MAVLinkPacket packet, Map<String, String> metadata) throws IOException;
 }

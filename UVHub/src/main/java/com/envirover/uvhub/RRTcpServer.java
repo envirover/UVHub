@@ -29,6 +29,7 @@ import org.apache.log4j.Logger;
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkSocket;
+import com.envirover.spl.stream.MAVLinkOutputStream;
 
 /**
  * MAVLink TCP server that accepts TCP/IP connections from SPL RadioRoom clients.
@@ -43,6 +44,7 @@ public class RRTcpServer {
 
     private final Integer port;
     private final MAVLinkChannel dst;
+    private final MAVLinkOutputStream stream;
     private final ExecutorService threadPool; 
     private final ConnectionListener connectionListener = new ConnectionListener();
   
@@ -55,9 +57,10 @@ public class RRTcpServer {
      * @param port TCP port used for SPL RadioRoom connections 
      * @param dst Mobile-originated message handler
      */
-    public RRTcpServer(Integer port, MAVLinkChannel dst) {
+    public RRTcpServer(Integer port, MAVLinkChannel dst, MAVLinkOutputStream stream) {
         this.port = port;
         this.dst = dst;
+        this.stream = stream;
         this.threadPool = Executors.newCachedThreadPool();
     }
 
@@ -93,7 +96,7 @@ public class RRTcpServer {
     }
     
     protected ClientSession createClientSession(MAVLinkSocket clientSocket) {
-        return new RRClientSession(dst);
+        return new RRClientSession(dst, stream);
     }
 
     /**

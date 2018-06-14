@@ -26,6 +26,7 @@ import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -55,99 +56,98 @@ import com.fasterxml.jackson.databind.JsonMappingException;
  */
 public class DynamoDBOutputStream implements MAVLinkOutputStream {
 
-    private static final String SPL_DYNAMODB_TABLE = "SPL_DYNAMODB_TABLE"; 
+	private static final String SPL_DYNAMODB_TABLE = "SPL_DYNAMODB_TABLE";
 
-    private static final String ATTR_DEVICE_ID = "DeviceId";
-    private static final String ATTR_TIME      = "Time";
-    private static final String ATTR_MSG_ID    = "MsgId";
-    private static final String ATTR_MESSAGE   = "Message";
+	private static final String ATTR_DEVICE_ID = "DeviceId";
+	private static final String ATTR_TIME = "Time";
+	private static final String ATTR_MSG_ID = "MsgId";
+	private static final String ATTR_MESSAGE = "Message";
 
-    private static final Long READ_CAPACITY    = 5L;
-    private static final Long WRITE_CAPACITY   = 5L;
+	private static final Long READ_CAPACITY = 5L;
+	private static final Long WRITE_CAPACITY = 5L;
 
-    private static final ObjectMapper mapper   = new ObjectMapper();
+	private static final ObjectMapper mapper = new ObjectMapper();
 
-    private static final Logger logger = Logger.getLogger(DynamoDBOutputStream.class.getName());
-    
-    private static String tableName            = "MAVLinkMessages";
-    
-    private DynamoDB dynamoDB;
+	private static final Logger logger = Logger.getLogger(DynamoDBOutputStream.class.getName());
 
-    public DynamoDBOutputStream() {
-        if (System.getenv(SPL_DYNAMODB_TABLE) != null) {
-            tableName = System.getenv(SPL_DYNAMODB_TABLE);
-        }
-    }
+	private static String tableName = "MAVLinkMessages";
 
-    @Override
-    public void open() throws IOException {
-        AmazonDynamoDB dynamoDBClient = AmazonDynamoDBClientBuilder.defaultClient();
+	private DynamoDB dynamoDB;
 
-        if (TableUtils.createTableIfNotExists(dynamoDBClient,
-                new CreateTableRequest()
-                   .withTableName(tableName)
-                   .withKeySchema(
-                        new KeySchemaElement(ATTR_DEVICE_ID, KeyType.HASH),
-                        new KeySchemaElement(ATTR_TIME, KeyType.RANGE))
-                   .withAttributeDefinitions(
-                        new AttributeDefinition(ATTR_DEVICE_ID, ScalarAttributeType.S),
-                        new AttributeDefinition(ATTR_TIME, ScalarAttributeType.N))
-                   .withProvisionedThroughput(new ProvisionedThroughput()
-                        .withReadCapacityUnits(READ_CAPACITY)
-                        .withWriteCapacityUnits(WRITE_CAPACITY)))) {
+	public DynamoDBOutputStream() {
+		if (System.getenv(SPL_DYNAMODB_TABLE) != null) {
+			tableName = System.getenv(SPL_DYNAMODB_TABLE);
+		}
+	}
 
-            try {
-                TableUtils.waitUntilActive(dynamoDBClient, tableName);
-            } catch (TableNeverTransitionedToStateException e) {
-                throw new IOException(e);
-            } catch (InterruptedException e) {
-                throw new IOException(e);
-            }
+	@Override
+	public void open() throws IOException {
+		AmazonDynamoDB dynamoDBClient = AmazonDynamoDBClientBuilder.defaultClient();
 
-            logger.info(MessageFormat.format("DynamoDB table ''{0}'' created.", tableName));
-        }
+		if (TableUtils.createTableIfNotExists(dynamoDBClient,
+				new CreateTableRequest().withTableName(tableName)
+						.withKeySchema(new KeySchemaElement(ATTR_DEVICE_ID, KeyType.HASH),
+								new KeySchemaElement(ATTR_TIME, KeyType.RANGE))
+						.withAttributeDefinitions(new AttributeDefinition(ATTR_DEVICE_ID, ScalarAttributeType.N),
+								new AttributeDefinition(ATTR_TIME, ScalarAttributeType.N))
+						.withProvisionedThroughput(new ProvisionedThroughput().withReadCapacityUnits(READ_CAPACITY)
+								.withWriteCapacityUnits(WRITE_CAPACITY)))) {
 
-        dynamoDB = new DynamoDB(dynamoDBClient);
-    }
+			try {
+				TableUtils.waitUntilActive(dynamoDBClient, tableName);
+			} catch (TableNeverTransitionedToStateException e) {
+				throw new IOException(e);
+			} catch (InterruptedException e) {
+				throw new IOException(e);
+			}
 
-    @Override
-    public void close() throws IOException {
-    }
+			logger.info(MessageFormat.format("DynamoDB table ''{0}'' created.", tableName));
+		}
 
-    @Override
-    public void writePacket(String imei, String momsn, String transmitTime, String iridiumLatitude, String iridiumLongitude, String iridiumCep, MAVLinkPacket packet) throws IOException {
-        if (imei == null || imei.isEmpty() || transmitTime == null || packet == null) {
-            return;
-        }
+		dynamoDB = new DynamoDB(dynamoDBClient);
+	}
 
-        Table table = dynamoDB.getTable(tableName);
+	@Override
+	public void close() throws IOException {
+	}
 
-        Date time = new Date();
-        try {
-            //Time stamp like '17-04-03 02:11:35'
-            SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
-            time = sdf.parse(transmitTime);
-            
-            table.putItem(new Item().withPrimaryKey(ATTR_DEVICE_ID, imei, ATTR_TIME, time.getTime())
-                .withNumber(ATTR_MSG_ID, packet.msgid)
-                .withJSON(ATTR_MESSAGE, toJSON(packet)));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-    }
+	@Override
+	public void writePacket(MAVLinkPacket packet, Map<String, String> metadata) throws IOException {
+		if (packet == null) {
+			return;
+		}
 
-    private String toJSON(MAVLinkPacket packet) throws JsonGenerationException, JsonMappingException, IOException {
-        if (packet == null) {
-            return "{}";
-        }
+		Table table = dynamoDB.getTable(tableName);
 
-        if (packet.msgid == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
-            msg_high_latency msg = (msg_high_latency) packet.unpack();
+		Date time = new Date();
 
-            return mapper.writeValueAsString(msg);
-        }
+		if (metadata != null && metadata.get("transmit_time") != null) {
+			try {
+				// Time stamp like '17-04-03 02:11:35'
+				SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+				time = sdf.parse(metadata.get("transmitTime"));
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
 
-        return "{}";
-    }
+		table.putItem(new Item().withPrimaryKey(ATTR_DEVICE_ID, packet.sysid, ATTR_TIME, time.getTime())
+				.withNumber(ATTR_MSG_ID, packet.msgid).withJSON(ATTR_MESSAGE, toJSON(packet)));
+
+	}
+
+	private String toJSON(MAVLinkPacket packet) throws JsonGenerationException, JsonMappingException, IOException {
+		if (packet == null) {
+			return "{}";
+		}
+
+		if (packet.msgid == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
+			msg_high_latency msg = (msg_high_latency) packet.unpack();
+
+			return mapper.writeValueAsString(msg);
+		}
+
+		return "{}";
+	}
 
 }

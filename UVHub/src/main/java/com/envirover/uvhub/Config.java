@@ -54,6 +54,9 @@ public class Config {
     private final static String PROP_HEARTBEAT_INTERVAL = "heartbeat.interval";
     private final static String PROP_MAV_AUTOPILOT      = "mav.autopilot";
     private final static String PROP_MAV_TYPE           = "mav.type";
+    private final static String PROP_ES_ENDPOINT        = "elasticsearch.endpoint";
+    private final static String PROP_ES_PORT            = "elasticsearch.port";
+    private final static String PROP_ES_PROTOCOL        = "elasticsearch.protocol";
 
     //CLI options
     private final static String CLI_OPTION_HELP         = "h";
@@ -75,6 +78,9 @@ public class Config {
     private final static Integer DEFAULT_HEARTBEAT_INT  = 1000;
     private final static Short   DEFAULT_AUTOPILOT      = MAV_AUTOPILOT.MAV_AUTOPILOT_ARDUPILOTMEGA;
     private final static Short   DEFAULT_MAV_TYPE       = MAV_TYPE.MAV_TYPE_GROUND_ROVER;
+    private final static String  DEFAULT_ES_ENDPOINT    = "localhost";
+    private final static int     DEFAULT_ES_PORT        = 9200;
+    private final static String  DEFAULT_ES_PROTOCOL    = "http";
 
     private String  rockblockUrl      = DEFAULT_ROCKBLOCK_URL;
     private String  httpContext       = DEFAULT_HTTP_CONTEXT;
@@ -90,6 +96,9 @@ public class Config {
     private String  password          = null;
     private Short   autopilot         = DEFAULT_AUTOPILOT;
     private Short   mavType           = DEFAULT_MAV_TYPE;
+    private String  esEndpoint        = DEFAULT_ES_ENDPOINT;
+    private int     esPort            = DEFAULT_ES_PORT;
+    private String  esProtocol        = DEFAULT_ES_PROTOCOL;
 
     static Config config = new Config();
 
@@ -157,32 +166,26 @@ public class Config {
 
         if (props.getProperty(PROP_ROCKBLOCK_URL) != null)
             rockblockUrl = props.getProperty(PROP_ROCKBLOCK_URL);
+        
+        if (props.getProperty(PROP_ES_ENDPOINT) != null)
+        	esEndpoint = props.getProperty(PROP_ES_ENDPOINT);
 
+        if (props.getProperty(PROP_ES_PORT) != null)
+        	esPort = Integer.valueOf(props.getProperty(PROP_ES_PORT));
+        
+        if (props.getProperty(PROP_ES_PROTOCOL) != null)
+        	esProtocol = props.getProperty(PROP_ES_PROTOCOL);       
+        
         imei = cmd.getOptionValue(CLI_OPTION_IMEI, props.getProperty(PROP_ROCKBLOCK_IMEI)); 
-
-//        if (imei == null || imei.isEmpty()) {
-//            System.out.println(MessageFormat.format("Required configuration property ''{0}'' is not set.", PROP_ROCKBLOCK_IMEI));
-//            return false;
-//        }
 
         username = cmd.getOptionValue(CLI_OPTION_USERNAME, props.getProperty(PROP_ROCKBLOCK_USERNAME));
 
-//        if (username == null || username.isEmpty()) {
-//            System.out.println(MessageFormat.format("Required configuration property ''{0}'' is not set.", PROP_ROCKBLOCK_USERNAME));
-//            return false;
-//        }
-
         password = cmd.getOptionValue(CLI_OPTION_PASSWORD, props.getProperty(PROP_ROCKBLOCK_PASSWORD));
-
-//        if (password == null || password.isEmpty()) {
-//            System.out.println(MessageFormat.format("Required configuration property ''{0}'' is not set.", PROP_ROCKBLOCK_PASSWORD));
-//            return false;
-//        }
 
         autopilot = Short.valueOf(cmd.getOptionValue(CLI_OPTION_AUTOPILOT, props.getProperty(PROP_MAV_AUTOPILOT, DEFAULT_AUTOPILOT.toString())));
 
         mavType = Short.valueOf(cmd.getOptionValue(CLI_OPTION_MAV_TYPE, props.getProperty(PROP_MAV_TYPE, DEFAULT_MAV_TYPE.toString())));
-
+        
         return true;
     }
    
@@ -242,4 +245,17 @@ public class Config {
     public Integer getRadioRoomPort() {
     	return radioroomPort;
     }
+    
+    public String getElasticsearchEndpoint() {
+    	return esEndpoint;
+    }
+    
+    public int getElasticsearchPort() {
+    	return esPort;
+    }
+    
+    public String getElasticsearchProtocol() {
+    	return esProtocol;
+    }
+    
 }

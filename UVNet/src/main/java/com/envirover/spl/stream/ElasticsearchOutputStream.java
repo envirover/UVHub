@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 
@@ -31,38 +32,68 @@ import com.MAVLink.common.msg_high_latency;
 import com.amazonaws.protocol.json.SdkJsonGenerator.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
+/**
+ * Writes MAVLink message to Elasticsearch index 'mavlinkmessages'.
+ * 
+ */
 public class ElasticsearchOutputStream implements MAVLinkOutputStream {
 
+    // Connection properties
+    public static String ELASTICSEARCH_ENDPOINT = "envirover.elasticsearch.endpoint";
+    public static String ELASTICSEARCH_PORT     = "envirover.elasticsearch.port";
+    public static String ELASTICSEARCH_PROTOCOL = "envirover.elasticsearch.protocol";
+    
     private static final Logger logger = Logger.getLogger(ElasticsearchOutputStream.class.getName());
     
     private static ResourceBundle definitions = ResourceBundle.getBundle("com.envirover.spl.stream.definitions");
     private static final String SPL_ELASTICSEARCH_TABLE = "SPL_ELASTICSEARCH_TABLE";
     
+    private static String DEFAULT_ELASTICSEARCH_ENDPOINT = "localhost";
+    private static String DEFAULT_ELASTICSEARCH_PORT     = "9200";
+    private static String DEFAULT_ELASTICSEARCH_PROTOCOL = "http";
+    
     private static RestHighLevelClient client = null;
-    private static String tableName = "mavlinkmessages"; //must be lowercase for ES (was "MAVLinkMessages")
+    private String tableName = "mavlinkmessages"; //must be lowercase for ES (was "MAVLinkMessages")
+    
+    private final String elasticsearchEndpoint;
+    private final int    elasticsearchPort;
+    private final String elasticsearchPotocol;
     
     public ElasticsearchOutputStream() throws IOException {
         if (System.getenv(SPL_ELASTICSEARCH_TABLE) != null) {
-            tableName = System.getenv(SPL_ELASTICSEARCH_TABLE);
+        	this.tableName = System.getenv(SPL_ELASTICSEARCH_TABLE);
         }
+        
+        this.elasticsearchEndpoint = System.getProperty(ELASTICSEARCH_ENDPOINT, DEFAULT_ELASTICSEARCH_ENDPOINT);
+        this.elasticsearchPort = Integer.valueOf(System.getProperty(ELASTICSEARCH_PORT, DEFAULT_ELASTICSEARCH_PORT));
+        this.elasticsearchPotocol = System.getProperty(ELASTICSEARCH_PROTOCOL, DEFAULT_ELASTICSEARCH_PROTOCOL);
+    }
+    
+    public ElasticsearchOutputStream(String elasticsearchEndpoint, int elasticsearchPort, String elasticsearchPotocol) throws IOException {
+        if (System.getenv(SPL_ELASTICSEARCH_TABLE) != null) {
+        	this.tableName = System.getenv(SPL_ELASTICSEARCH_TABLE);
+        }
+        
+        this.elasticsearchEndpoint = elasticsearchEndpoint;
+        this.elasticsearchPort = elasticsearchPort;
+        this.elasticsearchPotocol = elasticsearchPotocol;
     }
     
     @Override
     public void open() throws IOException {
         client = new RestHighLevelClient(
-                RestClient.builder(
-                    new HttpHost(System.getProperty("envirover.elasticsearch.endpoint", "localhost"), 
-                    Integer.valueOf(System.getProperty("envirover.elasticsearch.port", "9200")), 
-                    System.getProperty("envirover.elasticsearch.protocol", "http"))));
+                RestClient.builder(new HttpHost(elasticsearchEndpoint, elasticsearchPort, elasticsearchPotocol)));
 
         if (System.getenv(SPL_ELASTICSEARCH_TABLE) != null) {
             tableName = System.getenv(SPL_ELASTICSEARCH_TABLE);
         }
         
-        //create mavlinkmessages index in ES
+        // Create mavlinkmessages index in ES
         try {
             HttpEntity entity = new NStringEntity(definitions.getString("MAVLinkMessagesSchema"), ContentType.APPLICATION_JSON);
+            
             Response response = client.getLowLevelClient().performRequest("PUT", tableName, new HashMap<String, String>(), entity); 
+            
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 logger.info(MessageFormat.format("Elasticsearch table ''{0}'' created.", tableName));
             }
@@ -77,30 +108,30 @@ public class ElasticsearchOutputStream implements MAVLinkOutputStream {
     }
     
     @Override
-    public void writePacket(
-           String imei, String momsn, String transmitTime, 
-           String iridiumLatitude, String iridiumLongitude, 
-           String iridiumCep, MAVLinkPacket packet) throws IOException {
+    public void writePacket(MAVLinkPacket packet, Map<String, String> metadata) throws IOException {
         if (packet == null) {
             return;
         }
+        
         IndexRequest indexRequest = org.elasticsearch.client.Requests.indexRequest(tableName);
         indexRequest.type("spl_track");
+        
         JSONObject record = new JSONObject();
         
         Date time = new Date();
-        try {
-            //Time stamp like '17-04-03 02:11:35'
-            SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
-            if (transmitTime != null) {
-            	time = sdf.parse(transmitTime);
-            }
-        } catch (ParseException e) {
-            e.printStackTrace();
+   
+        if (metadata != null && metadata.get("transmit_time") != null) {
+	        try {
+	            //Time stamp like '17-04-03 02:11:35'
+	            SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+	           	time = sdf.parse(metadata.get("transmit_time"));
+	        } catch (ParseException e) {
+	            e.printStackTrace();
+	        }
         }
         
-        
         JSONObject message = toJSON(packet);
+        
         if (message != null) {
 	        record.put("time", time.getTime());
 	        record.put("sysid", message.getInt("sysid"));
@@ -109,12 +140,13 @@ public class ElasticsearchOutputStream implements MAVLinkOutputStream {
 	        record.put("message", message);
 	        
 	        JSONObject messageMetadata = new JSONObject();
-	        messageMetadata.put("imei", imei);
-	        	messageMetadata.put("momsn", momsn);
-	        	messageMetadata.put("transmit_time", transmitTime); //TODO can we store transmitTime as millis?
-	        	messageMetadata.put("iridium_latitude", iridiumLatitude);
-	        	messageMetadata.put("iridium_longitude", iridiumLongitude);
-	        	messageMetadata.put("iridium_cep",iridiumCep);
+	        
+	        if (metadata != null) {
+	        	for (Map.Entry<String, String> entry : metadata.entrySet()) {
+	        		messageMetadata.put(entry.getKey(), entry.getValue());
+	        	}
+	        }
+	        
 	        record.put("message_metadata", messageMetadata);
 	        
 	        JSONArray point = new JSONArray();
@@ -148,4 +180,5 @@ public class ElasticsearchOutputStream implements MAVLinkOutputStream {
         } else
             return null;
     }
+    
 }

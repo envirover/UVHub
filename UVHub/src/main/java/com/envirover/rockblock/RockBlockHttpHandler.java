@@ -23,7 +23,9 @@ import java.io.OutputStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -38,6 +40,7 @@ import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkLogger;
+import com.envirover.spl.stream.MAVLinkOutputStream;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -53,6 +56,8 @@ public class RockBlockHttpHandler implements HttpHandler {
 
     private final MAVLinkChannel dst;
     private final String imei;
+    // Write the message to the persistent store.
+    private final MAVLinkOutputStream stream;// = MAVLinkOutputStreamFactory.getMAVLinkOutputStream();
 
     /**
      * Constructs instance of RockBlockHttpHandler.
@@ -60,9 +65,10 @@ public class RockBlockHttpHandler implements HttpHandler {
      * @param dst MAVLink message handler
      * @param imei RockBLOCK imei
      */
-    public RockBlockHttpHandler(MAVLinkChannel dst, String imei) {
+    public RockBlockHttpHandler(MAVLinkChannel dst, String imei, MAVLinkOutputStream stream) {
         this.dst = dst;
         this.imei = imei;
+        this.stream = stream;
     }
 
     @Override
@@ -85,9 +91,21 @@ public class RockBlockHttpHandler implements HttpHandler {
                 MAVLinkPacket packet = message.getPacket();
     
                 if (packet != null) {
-                    MAVLinkLogger.log(Level.INFO, "MO", packet);
-    
                     dst.sendMessage(packet);
+                    
+                    MAVLinkLogger.log(Level.INFO, "MO", packet);
+                    
+                    if (stream != null) {
+                    	Map<String, String> metadata = new HashMap<String, String>();
+                    	metadata.put("imei", message.imei);
+                    	metadata.put("momsn", message.momsn);
+                    	metadata.put("transmit_time", message.transmitTime);
+                    	metadata.put("iridium_latitude", message.iridiumLatitude);
+                    	metadata.put("iridium_longitude", message.iridiumLongitude);
+                    	metadata.put("iridium_cep", message.iridiumCep);
+                    	
+                    	stream.writePacket(packet, metadata);
+                    }
                 } else {
                     logger.warn(MessageFormat.format("Invalid MAVLink message ''{0}''.", message.toString()));
                 }
