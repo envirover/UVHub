@@ -24,7 +24,6 @@ import java.util.Map;
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.spl.stream.MAVLinkOutputStream;
-import com.envirover.spl.stream.MAVLinkOutputStreamFactory;
 
 /**
  * Handles MAVLink messages received from RadioRoom TCP client.

@@ -60,7 +60,8 @@ import com.MAVLink.enums.MAV_RESULT;
 import com.MAVLink.enums.MAV_STATE;
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkLogger;
-import com.envirover.mavlink.MAVLinkShadow;
+import com.envirover.uvnet.UVShadow;
+import com.envirover.uvnet.UVShadowFactory;
 
 /**
  * TCP and WebSocket MAVLink client session that handle communications with GCS clients.
@@ -143,7 +144,7 @@ public class GCSClientSession implements ClientSession {
             return;
         }
 
-        MAVLinkShadow shadow = MAVLinkShadow.getInstance();
+        UVShadow shadow = UVShadowFactory.getUVShadow();
 
         switch (packet.msgid) {
             case msg_param_request_list.MAVLINK_MSG_ID_PARAM_REQUEST_LIST: {
@@ -185,7 +186,7 @@ public class GCSClientSession implements ClientSession {
             return;
         }
 
-        MAVLinkShadow shadow = MAVLinkShadow.getInstance();
+        UVShadow shadow = UVShadowFactory.getUVShadow();
 
         switch (packet.msgid) {
             case msg_mission_request_list.MAVLINK_MSG_ID_MISSION_REQUEST_LIST: {
@@ -335,7 +336,7 @@ public class GCSClientSession implements ClientSession {
      * @throws InterruptedException 
      */
     private synchronized void reportState() throws IOException, InterruptedException {
-        msg_high_latency msgHighLatency = MAVLinkShadow.getInstance().getHighLatencyMessage();
+        msg_high_latency msgHighLatency = UVShadowFactory.getUVShadow().getHighLatencyMessage();
 
         sendToSource(getHeartbeatMsg(msgHighLatency));
         sendToSource(getSysStatusMsg(msgHighLatency));

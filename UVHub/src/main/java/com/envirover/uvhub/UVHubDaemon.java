@@ -27,12 +27,11 @@ import org.apache.log4j.Logger;
 import org.glassfish.tyrus.server.Server;
 
 import com.envirover.mavlink.MAVLinkMessageQueue;
-import com.envirover.mavlink.MAVLinkShadow;
-
 import com.envirover.rockblock.RockBlockClient;
 import com.envirover.rockblock.RockBlockHttpHandler;
 import com.envirover.spl.stream.ElasticsearchOutputStream;
 import com.envirover.spl.stream.MAVLinkOutputStream;
+import com.envirover.uvnet.UVShadowFactory;
 import com.sun.net.httpserver.HttpServer;
 
 /**
@@ -69,7 +68,7 @@ public class UVHubDaemon implements Daemon {
         ClassLoader loader = UVHubDaemon.class.getClassLoader();
         InputStream params = loader.getResourceAsStream(DEFAULT_PARAMS_FILE);
         if (params != null) {
-            MAVLinkShadow.getInstance().loadParams(params);
+        	UVShadowFactory.getUVShadow().loadParams(params);
             params.close();
         } else {
             logger.warn("File 'default.params' with initial parameters values not found.");

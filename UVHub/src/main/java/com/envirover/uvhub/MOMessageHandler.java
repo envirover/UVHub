@@ -30,7 +30,8 @@ import com.MAVLink.common.msg_param_value;
 import com.MAVLink.common.msg_statustext;
 import com.MAVLink.enums.MAV_SEVERITY;
 import com.envirover.mavlink.MAVLinkChannel;
-import com.envirover.mavlink.MAVLinkShadow;
+import com.envirover.uvnet.UVShadow;
+import com.envirover.uvnet.UVShadowFactory;
 
 /**
  * MOMessageHandler handles mobile-originated MAVLink messages.
@@ -64,7 +65,7 @@ public class MOMessageHandler implements MAVLinkChannel {
             return;
         }
 
-        MAVLinkShadow shadow = MAVLinkShadow.getInstance();
+        UVShadow shadow = UVShadowFactory.getUVShadow();
 
         switch (packet.msgid) {
         case msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY:
