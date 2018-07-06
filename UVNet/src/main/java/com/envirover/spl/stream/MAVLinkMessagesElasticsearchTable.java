@@ -112,7 +112,7 @@ public class MAVLinkMessagesElasticsearchTable implements MAVLinkInputStream {
         sourceBuilder.size(10000);
         sourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
         SearchRequest searchRequest = new SearchRequest(tableName);
-        searchRequest.types("spl_track");
+        searchRequest.types("_doc");
         searchRequest.source(sourceBuilder);
         logger.info(sourceBuilder.toString());
         SearchResponse searchResponse = client.search(searchRequest);
@@ -129,7 +129,7 @@ public class MAVLinkMessagesElasticsearchTable implements MAVLinkInputStream {
             Map<String, Object> message = (Map<String, Object>) source.get(ATTR_MESSAGE); //"message"
             mavLinkRecord.put("latitude", ((Integer) message.get("latitude")) / 10000000.0);
             mavLinkRecord.put("longitude", ((Integer) message.get("longitude")) / 10000000.0);
-            mavLinkRecord.put("messsage", message);
+            mavLinkRecord.put("message", message);
             result.put(mavLinkRecord);
         }
         return result;

@@ -1,7 +1,7 @@
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.codehaus.jackson.JsonGenerationException;
@@ -31,13 +31,13 @@ public class GeoJSONTest {
         features.getFeatures().add(pointFeature);
 
 
-        Collection<Collection<Double>>  coordinates = new ArrayList<Collection<Double>>();
-        Collection<Double> point1 = new ArrayList<Double>();
+        List<List<Double>>  coordinates = new ArrayList<List<Double>>();
+        List<Double> point1 = new ArrayList<Double>();
         point1.add(1.0);
         point1.add(2.0);
         point1.add(3.0);
         coordinates.add(point1);
-        Collection<Double> point2 = new ArrayList<Double>();
+        List<Double> point2 = new ArrayList<Double>();
         point2.add(1.0);
         point2.add(2.0);
         point2.add(3.0);

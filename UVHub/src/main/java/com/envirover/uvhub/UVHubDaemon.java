@@ -17,8 +17,13 @@
 
 package com.envirover.uvhub;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
@@ -26,12 +31,12 @@ import org.apache.commons.daemon.DaemonInitException;
 import org.apache.log4j.Logger;
 import org.glassfish.tyrus.server.Server;
 
+import com.MAVLink.common.msg_param_value;
+import com.MAVLink.enums.MAV_PARAM_TYPE;
 import com.envirover.mavlink.MAVLinkMessageQueue;
 import com.envirover.rockblock.RockBlockClient;
 import com.envirover.rockblock.RockBlockHttpHandler;
-import com.envirover.spl.stream.ElasticsearchOutputStream;
-import com.envirover.spl.stream.MAVLinkOutputStream;
-import com.envirover.uvnet.UVShadowFactory;
+import com.envirover.uvnet.shadow.PersistentUVShadow;
 import com.sun.net.httpserver.HttpServer;
 
 /**
@@ -42,11 +47,16 @@ import com.sun.net.httpserver.HttpServer;
 @SuppressWarnings("restriction")
 public class UVHubDaemon implements Daemon {
     private final static String DEFAULT_PARAMS_FILE = "default.params";
+    
+    protected static String HL_REPORT_PERIOD_PARAM = "HL_REPORT_PERIOD";
+    protected static float  DEFAULT_HL_REPORT_PERIOD = 1.0F; //1 second
 
     private final static Logger logger = Logger.getLogger(UVHubDaemon.class);
 
     private final Config config = Config.getInstance();
+    private final int sysId = 1;  //TODO set system Id for the client session
     
+    private PersistentUVShadow shadow = null;
     private GCSTcpServer gcsTcpServer = null;
     private RRTcpServer rrTcpServer = null;
     private ShadowTcpServer shadowServer = null;
@@ -64,28 +74,37 @@ public class UVHubDaemon implements Daemon {
         if (!config.init(context.getArguments()))
             throw new DaemonInitException("Invalid configuration.");
 
+        shadow = new PersistentUVShadow(config.getElasticsearchEndpoint(),
+        		                        config.getElasticsearchPort(),
+        		                        config.getElasticsearchProtocol());
+        shadow.open();
+        
         // Load on-board parameters from default.params file.
         ClassLoader loader = UVHubDaemon.class.getClassLoader();
-        InputStream params = loader.getResourceAsStream(DEFAULT_PARAMS_FILE);
-        if (params != null) {
-        	UVShadowFactory.getUVShadow().loadParams(params);
-            params.close();
+        InputStream paramsStream = loader.getResourceAsStream(DEFAULT_PARAMS_FILE);
+        
+        if (paramsStream != null) {
+        	List<msg_param_value> params = loadParams(paramsStream);
+        	
+        	shadow.setParams(sysId, params);
+            
+        	paramsStream.close();
         } else {
             logger.warn("File 'default.params' with initial parameters values not found.");
         }
-
+        
         // Mobile-terminated queue contains MAVLink messages to be sent to the vehicle.
         MAVLinkMessageQueue mtMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
         
         // GCS TCP server accepts GCS client connections on port 5760. It handles 
         // MAVLink messages received form the connected clients and forwards some
         // of the messages to the specified mobile-terminated queue.
-        gcsTcpServer = new GCSTcpServer(config.getMAVLinkPort(), mtMessageQueue);
+        gcsTcpServer = new GCSTcpServer(config.getMAVLinkPort(), mtMessageQueue, shadow);
 
         // Shadow TCP server accepts GCS client connections on port 5757. It handles 
         // MAVLink messages received form the connected clients and updates on-board parameters 
         // missions in the vehicle shadow without sending any messages to the vehicle.
-        shadowServer = new ShadowTcpServer(config.getShadowPort());
+        shadowServer = new ShadowTcpServer(config.getShadowPort(), shadow);
 
         // Mobile-originated queue contains messages receive form the vehicle.
         MAVLinkMessageQueue moMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
@@ -93,18 +112,12 @@ public class UVHubDaemon implements Daemon {
         // Mobile-originated message handler is an implementation of MAVLinkChannel.
         // Messages sent to MOMessageHandler either used to update the vehicle's shadow, 
         // or pushed to the provided mobile-originated queue. 
-        MOMessageHandler moHandler = new MOMessageHandler(moMessageQueue);
-
-        // Init message mersistance stream
-        MAVLinkOutputStream stream = new ElasticsearchOutputStream(config.getElasticsearchEndpoint(), 
-                config.getElasticsearchPort(),
-                config.getElasticsearchProtocol());
-        stream.open();
+        MOMessageHandler moHandler = new MOMessageHandler(moMessageQueue, shadow);
 
         // RadioRoom TCP server accepts TCP/IP connections on port 5060 from SPL RadioRoom. 
         // MAVLink messages received from RadioRoom are sent to the specified mobile-originated
         // message handler. 
-        rrTcpServer = new RRTcpServer(config.getRadioRoomPort(), moHandler, stream);
+        rrTcpServer = new RRTcpServer(config.getRadioRoomPort(), moHandler);
 
         // RockBLOCK HTTP handler listens on on port 8080 and sends mobile-originated
         // MAVLink messages received from RockBLOCK to the specified mobile-originated 
@@ -112,7 +125,7 @@ public class UVHubDaemon implements Daemon {
         httpServer = HttpServer.create(new InetSocketAddress(config.getRockblockPort()), 0);
         
         httpServer.createContext(config.getHttpContext(), 
-                                 new RockBlockHttpHandler(moHandler, config.getRockBlockIMEI(), stream));
+                                 new RockBlockHttpHandler(moHandler, config.getRockBlockIMEI()));
         httpServer.setExecutor(null);
 
         // RockBLOCK HTTP client sends MAVLink messages to RockBLOCK Web Services.
@@ -134,7 +147,7 @@ public class UVHubDaemon implements Daemon {
         // WebSocket server accepts client connections on port 8000. It handles 
         // MAVLink messages received form the connected clients and forwards some
         // of the messages to the specified mobile-terminated queue.
-        WSEndpoint.setMTQueue(mtMessageQueue);
+        WSEndpoint.set(mtMessageQueue, shadow);
         wsServer = new Server("localhost", config.getWSPort(), "/gcs", WSEndpoint.class);
     }
 
@@ -155,7 +168,7 @@ public class UVHubDaemon implements Daemon {
 
         Thread.sleep(1000);
 
-        logger.info("UV Hub server started.");
+        logger.info("UV Hub daemon started.");
     }
 
     @Override
@@ -168,10 +181,65 @@ public class UVHubDaemon implements Daemon {
         rrTcpServer.stop();
         shadowServer.stop();
         gcsTcpServer.stop();
+        
+        shadow.close();
 
         Thread.sleep(1000);
 
-        logger.info("UV Hub server stopped.");
+        logger.info("UV Hub daemon stopped.");
     }
 
+    public List<msg_param_value> loadParams(InputStream stream) throws IOException {
+        if (stream == null) {
+            throw new IOException("Invalid parameters stream.");
+        }
+
+        List<msg_param_value> params = new ArrayList<msg_param_value>();
+        		
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+        
+        String str;
+        int index = 0;
+        boolean hlReportPeriodParamFound = false;
+        
+        while ((str = reader.readLine()) != null) {
+            if (!str.isEmpty() && !str.startsWith("#")) {
+                String[] tokens = str.split("\t");
+                if (tokens.length >= 5) { 
+                    msg_param_value param = new msg_param_value();
+                    param.sysid = Integer.valueOf(tokens[0]);
+                    param.compid = Integer.valueOf(tokens[1]);
+                    param.setParam_Id(tokens[2].trim());
+                    param.param_index = index; 
+                    param.param_value = Float.valueOf(tokens[3]);
+                    param.param_type = Short.valueOf(tokens[4]);
+                    params.add(index, param);
+                    index++;
+                    if (HL_REPORT_PERIOD_PARAM.equals(param.getParam_Id())) {
+                        hlReportPeriodParamFound = true;
+                    }
+                }
+            }
+        }
+
+        if (!hlReportPeriodParamFound) {
+            // Add HL_REPORT_PERIOD parameter
+            msg_param_value param = new msg_param_value();
+            param.sysid = 1;
+            param.compid = 190;
+            param.setParam_Id(HL_REPORT_PERIOD_PARAM);
+            param.param_index = index; 
+            param.param_value = DEFAULT_HL_REPORT_PERIOD;
+            param.param_type = MAV_PARAM_TYPE.MAV_PARAM_TYPE_REAL32;
+            params.add(index, param);
+            index++;
+        }
+
+        // Set param_count for all the parameters.
+        for (int i = 0; i < index; i++) {
+            params.get(i).param_count = index;
+        }
+        
+        return params;
+    }
 }

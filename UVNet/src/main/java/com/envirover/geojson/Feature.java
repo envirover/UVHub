@@ -22,15 +22,15 @@ package com.envirover.geojson;
 import java.util.Map;
 
 /**
+ * GeoJSON feature.
  * 
  * @author Pavel
  *
  */
 public class Feature {
-
-    private final Geometry geometry;
-
-    private final Map<String, Object> properties;
+	
+	private Geometry geometry;
+    private Map<String, Object> properties;
 
     public Feature() {
         this.geometry = null;
@@ -46,12 +46,23 @@ public class Feature {
         return "Feature";
     }
 
+    public void setType(String type) {
+    }
+    
     public Geometry getGeometry() {
         return geometry;
+    }
+    
+    public void setGeometry(Geometry geometry) {
+        this.geometry = geometry;
     }
 
     public Map<String, Object> getProperties() {
         return properties;
+    }
+
+    public void setProperties(Map<String, Object> properties) {
+        this.properties = properties;
     }
 
 }

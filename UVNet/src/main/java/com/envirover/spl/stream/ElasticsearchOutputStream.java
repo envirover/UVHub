@@ -29,8 +29,6 @@ import org.json.JSONObject;
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_high_latency;
-import com.amazonaws.protocol.json.SdkJsonGenerator.JsonGenerationException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 
 /**
  * Writes MAVLink message to Elasticsearch index 'mavlinkmessages'.
@@ -39,21 +37,21 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 public class ElasticsearchOutputStream implements MAVLinkOutputStream {
 
     // Connection properties
-    public static String ELASTICSEARCH_ENDPOINT = "envirover.elasticsearch.endpoint";
-    public static String ELASTICSEARCH_PORT     = "envirover.elasticsearch.port";
-    public static String ELASTICSEARCH_PROTOCOL = "envirover.elasticsearch.protocol";
+    public static final String ELASTICSEARCH_ENDPOINT = "envirover.elasticsearch.endpoint";
+    public static final String ELASTICSEARCH_PORT     = "envirover.elasticsearch.port";
+    public static final String ELASTICSEARCH_PROTOCOL = "envirover.elasticsearch.protocol";
+    
+    private static final String DEFAULT_ELASTICSEARCH_ENDPOINT = "localhost";
+    private static final String DEFAULT_ELASTICSEARCH_PORT     = "9200";
+    private static final String DEFAULT_ELASTICSEARCH_PROTOCOL = "http";
     
     private static final Logger logger = Logger.getLogger(ElasticsearchOutputStream.class.getName());
     
     private static ResourceBundle definitions = ResourceBundle.getBundle("com.envirover.spl.stream.definitions");
     private static final String SPL_ELASTICSEARCH_TABLE = "SPL_ELASTICSEARCH_TABLE";
     
-    private static String DEFAULT_ELASTICSEARCH_ENDPOINT = "localhost";
-    private static String DEFAULT_ELASTICSEARCH_PORT     = "9200";
-    private static String DEFAULT_ELASTICSEARCH_PROTOCOL = "http";
-    
-    private static RestHighLevelClient client = null;
-    private String tableName = "mavlinkmessages"; //must be lowercase for ES (was "MAVLinkMessages")
+    private RestHighLevelClient client = null;
+    private String tableName = "mavlinkmessages"; //must be lowercase for ES 
     
     private final String elasticsearchEndpoint;
     private final int    elasticsearchPort;
@@ -114,7 +112,7 @@ public class ElasticsearchOutputStream implements MAVLinkOutputStream {
         }
         
         IndexRequest indexRequest = org.elasticsearch.client.Requests.indexRequest(tableName);
-        indexRequest.type("spl_track");
+        indexRequest.type("_doc");
         
         JSONObject record = new JSONObject();
         
@@ -173,7 +171,7 @@ public class ElasticsearchOutputStream implements MAVLinkOutputStream {
         }
     }
     
-    private JSONObject toJSON(MAVLinkPacket packet) throws JsonGenerationException, JsonMappingException, IOException {
+    private JSONObject toJSON(MAVLinkPacket packet) throws IOException {
         if (packet != null && packet.msgid == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
             msg_high_latency msg = (msg_high_latency) packet.unpack();
             return toJSON(msg);

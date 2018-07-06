@@ -29,6 +29,7 @@ import org.apache.log4j.Logger;
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkSocket;
+import com.envirover.uvnet.shadow.UVShadow;
 
 /**
  * MAVLink TCP server that accepts connections from TCP GCS clients.
@@ -44,8 +45,10 @@ public class GCSTcpServer {
     private final Integer port;
     private final MAVLinkChannel mtMessageQueue;
     private final ExecutorService threadPool; 
+    protected final UVShadow shadow;
     private ServerSocket serverSocket;
     private Thread listenerThread;
+ 
 
     /**
      * Creates an instance of GCSTcpServer 
@@ -53,10 +56,11 @@ public class GCSTcpServer {
      * @param port TCP port used for MAVLink ground control stations connections 
      * @param mtMessageQueue Mobile-terminated messages queue
      */
-    public GCSTcpServer(Integer port, MAVLinkChannel mtMessageQueue) {
+    public GCSTcpServer(Integer port, MAVLinkChannel mtMessageQueue, UVShadow shadow) {
         this.port = port;
         this.mtMessageQueue = mtMessageQueue;
         this.threadPool = Executors.newCachedThreadPool();
+        this.shadow = shadow;
     }
 
     /**
@@ -82,7 +86,7 @@ public class GCSTcpServer {
     }
 
     protected ClientSession createClientSession(MAVLinkSocket clientSocket) {
-        return new GCSClientSession(clientSocket, mtMessageQueue);
+        return new GCSClientSession(clientSocket, mtMessageQueue, shadow);
     }
 
     /**

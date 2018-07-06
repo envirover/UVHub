@@ -19,14 +19,24 @@ along with SPLTracks.  If not, see <http://www.gnu.org/licenses/>.
 
 package com.envirover.geojson;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonSubTypes;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+
 /**
  * Geometric primitives.
  *  
  * @author Pavel
  *
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value=Point.class, name="Point"),
+    @JsonSubTypes.Type(value=LineString.class, name="LineString")
+})
 public interface Geometry {
 
+	@JsonIgnore
     public String getType();
 
 }

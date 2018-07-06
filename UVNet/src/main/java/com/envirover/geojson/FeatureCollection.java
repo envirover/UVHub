@@ -20,23 +20,23 @@ along with SPLTracks.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.geojson;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * GeoJSON feature collection. 
  * 
- * @author Pavel
+ * @author Pavel Bobov
  *
  */
 public class FeatureCollection {
 
-    private final Collection<Feature> features;
+    private List<Feature> features;
 
     public FeatureCollection() {
         this.features = new ArrayList<Feature>();
     }
     
-    public FeatureCollection(Collection<Feature> features) {
+    public FeatureCollection(List<Feature> features) {
         this.features = features;
     }
 
@@ -44,8 +44,15 @@ public class FeatureCollection {
         return "FeatureCollection";
     }
 
-    public Collection<Feature> getFeatures() {
+    public void setType(String type) {
+    }
+    
+    public List<Feature> getFeatures() {
         return features;
+    }
+
+    public void setFeatures(List<Feature> features) {
+        this.features = features;
     }
 
 }

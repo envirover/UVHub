@@ -19,6 +19,7 @@ package com.envirover.uvhub;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Date;
 
 //import org.apache.log4j.Logger;
 
@@ -26,12 +27,12 @@ import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.common.msg_command_ack;
 import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_mission_ack;
+import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_param_value;
 import com.MAVLink.common.msg_statustext;
 import com.MAVLink.enums.MAV_SEVERITY;
 import com.envirover.mavlink.MAVLinkChannel;
-import com.envirover.uvnet.UVShadow;
-import com.envirover.uvnet.UVShadowFactory;
+import com.envirover.uvnet.shadow.UVShadow;
 
 /**
  * MOMessageHandler handles mobile-originated MAVLink messages.
@@ -45,13 +46,19 @@ import com.envirover.uvnet.UVShadowFactory;
 public class MOMessageHandler implements MAVLinkChannel {
 
     private final MAVLinkChannel dst;
+    private final UVShadow shadow;
 
-    int seq = 0;
-    // private final static Logger logger =
-    // Logger.getLogger(MOMessageHandler.class);
+    //int seq = 0;
 
-    public MOMessageHandler(MAVLinkChannel dst) {
+    /**
+     * Constructs instance of MOMessageHandler.
+     * 
+     * @param dst destination channel for mobile-originated messages.
+     * @param shadow vehicle shadow
+     */
+    public MOMessageHandler(MAVLinkChannel dst, UVShadow shadow) {
         this.dst = dst;
+        this.shadow = shadow;
     }
 
     @Override
@@ -65,22 +72,27 @@ public class MOMessageHandler implements MAVLinkChannel {
             return;
         }
 
-        UVShadow shadow = UVShadowFactory.getUVShadow();
-
         switch (packet.msgid) {
         case msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY:
-            shadow.updateReportedState(packet);
+            shadow.updateReportedState(packet.unpack(), new Date().getTime());
             break;
         case msg_command_ack.MAVLINK_MSG_ID_COMMAND_ACK:
             // Replace the COMMAND_ACK message by STATUS_TEXT message.
             sendCommandAck(packet);
             break;
         case msg_param_value.MAVLINK_MSG_ID_PARAM_VALUE:
-            msg_param_value paramValue = (msg_param_value) packet.unpack();
-            shadow.setParamValue(paramValue.getParam_Id(), paramValue.param_value);
+        	msg_param_value param_value = (msg_param_value)packet.unpack();
+        	msg_param_set param = new msg_param_set();
+        	param.sysid = param_value.sysid;
+        	param.compid = param_value.compid;
+        	param.setParam_Id(param_value.getParam_Id());
+        	param.param_type = param_value.param_type;
+        	param.param_value = param_value.param_value;
+            shadow.setParam(param.sysid, param);
             break;
         case msg_mission_ack.MAVLINK_MSG_ID_MISSION_ACK:
-            shadow.missionAccepted();
+        	msg_mission_ack mission_ack = (msg_mission_ack)packet.unpack();
+            shadow.setMission(mission_ack.sysid, shadow.getDesiredMission(packet.sysid));
             break;
         default:
             dst.sendMessage(packet);
@@ -102,9 +114,9 @@ public class MOMessageHandler implements MAVLinkChannel {
         msg.setText(text);
 
         MAVLinkPacket p = msg.pack();
-        p.seq = seq++;
-        p.sysid = packet.sysid;
-        p.compid = packet.compid;
+//        p.seq = seq++;
+//        p.sysid = packet.sysid;
+//        p.compid = packet.compid;
 
         dst.sendMessage(p);
     }

@@ -22,7 +22,6 @@ along with SPLStream.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.spl.stream;
 
 import java.io.IOException;
-import java.util.Date;
 
 import org.json.JSONArray;
 

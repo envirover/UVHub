@@ -18,12 +18,9 @@
 package com.envirover.uvhub;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
-import com.envirover.spl.stream.MAVLinkOutputStream;
 
 /**
  * Handles MAVLink messages received from RadioRoom TCP client.
@@ -33,7 +30,6 @@ import com.envirover.spl.stream.MAVLinkOutputStream;
 public class RRClientSession implements ClientSession {
 
     private final MAVLinkChannel dst;
-    private final MAVLinkOutputStream stream;
     
     private boolean isOpen = false;
 
@@ -42,9 +38,8 @@ public class RRClientSession implements ClientSession {
      * 
      * @param dst destination MAVLink message channel (mobile originated message handler).
      */
-    public RRClientSession(MAVLinkChannel dst, MAVLinkOutputStream stream) {
+    public RRClientSession(MAVLinkChannel dst) {
         this.dst = dst;
-        this.stream = stream;
     }
 
     @Override
@@ -62,11 +57,11 @@ public class RRClientSession implements ClientSession {
         dst.sendMessage(packet);
         
         // Write the message to the persistent store.
-        if (stream != null) {
-        	Map<String, String> metadata = new HashMap<String, String>();
-        	metadata.put("channel", "tcp");
-        	stream.writePacket(packet, metadata);
-        }
+//        if (stream != null) {
+//        	Map<String, String> metadata = new HashMap<String, String>();
+//        	metadata.put("channel", "tcp");
+//        	stream.writePacket(packet, metadata);
+//        }
     }
 
 	@Override

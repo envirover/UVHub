@@ -20,17 +20,17 @@ along with SPLTracks.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.geojson;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 public class LineString implements Geometry {
 
-    private final Collection<Collection<Double>> coordinates;
+    private List<List<Double>> coordinates;
 
     public LineString() {
-        this.coordinates = new ArrayList<Collection<Double>>();
+        this.coordinates = new ArrayList<List<Double>>();
     }
 
-    public LineString(Collection<Collection<Double>> coordinates) {
+    public LineString(List<List<Double>> coordinates) {
         this.coordinates = coordinates;
     }
 
@@ -39,8 +39,12 @@ public class LineString implements Geometry {
         return "LineString";
     }
 
-    public Collection<Collection<Double>> getCoordinates() {
+    public List<List<Double>> getCoordinates() {
         return coordinates;
     }
 
+    public void getCoordinates(List<List<Double>> coordinates) {
+        this.coordinates = coordinates;
+    }
+    
 }

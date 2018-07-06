@@ -22,6 +22,12 @@ package com.envirover.geojson;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * GeoJSON Point.
+ * 
+ * @author Pavel Bobov
+ *
+ */
 public class Point implements Geometry {
 
     private Collection<Double> coordinates = new ArrayList<Double>();
@@ -31,11 +37,24 @@ public class Point implements Geometry {
         coordinates.add(0.0);
     }
 
+    /**
+     * Constructs 2D point.
+     * 
+     * @param x longitude
+     * @param y latitude
+     */
     public Point(Double x, Double y) {
         coordinates.add(x);
         coordinates.add(y);
     }
 
+    /**
+     * Constructs 3D point.
+     * 
+     * @param x longitude
+     * @param y latitude
+     * @param z altitude
+     */
     public Point(Double x, Double y, Double z) {
         coordinates.add(x);
         coordinates.add(y);
@@ -49,6 +68,10 @@ public class Point implements Geometry {
 
     public Collection<Double> getCoordinates() {
         return coordinates;
+    }
+    
+    public void setCoordinates(Collection<Double> coordinates) {
+        this.coordinates = coordinates;
     }
 
 }
