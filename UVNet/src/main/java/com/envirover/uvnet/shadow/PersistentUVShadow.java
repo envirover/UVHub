@@ -227,7 +227,9 @@ public class PersistentUVShadow implements UVShadow {
         	SearchRequest searchRequest = new SearchRequest(PARAMETERS_INDEX_NAME); 
         	
         	SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder(); 
-        	searchSourceBuilder.query(QueryBuilders.termQuery("param_index", paramIndex));
+        	searchSourceBuilder.query(QueryBuilders.boolQuery()
+        			.must(QueryBuilders.termQuery("sysid", sysId))
+        			.must(QueryBuilders.termQuery("param_index", paramIndex))); 
         	searchRequest.source(searchSourceBuilder);
         	
         	SearchResponse searchResponse = client.search(searchRequest);
