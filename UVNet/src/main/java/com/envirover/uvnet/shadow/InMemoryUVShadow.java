@@ -38,7 +38,7 @@ public class InMemoryUVShadow implements UVShadow {
     private msg_high_latency msgHighLatency = new msg_high_latency();
     private List<msg_param_value> params = new ArrayList<msg_param_value>();
     private ArrayList<msg_mission_item> mission = new ArrayList<msg_mission_item>();
-    private List<msg_mission_item> desiredMission = new ArrayList<msg_mission_item>();
+    private ArrayList<msg_mission_item> desiredMission = new ArrayList<msg_mission_item>();
 
     protected InMemoryUVShadow() {
     }
@@ -96,15 +96,10 @@ public class InMemoryUVShadow implements UVShadow {
     }
     
     @Override
-	public void setDesiredMission(int sysId, List<msg_mission_item> mission) throws IOException {
-		desiredMission = mission;
-	}
-	
-    @Override
-	public List<msg_mission_item> getDesiredMission(int sysId) throws IOException {
-		return desiredMission;
-	}
-	
+    public List<msg_mission_item> getDesiredMission() throws IOException {
+    	return desiredMission;
+    }
+    
     @Override
 	public List<msg_mission_item> getMission(int sysId) throws IOException {
     	return mission;

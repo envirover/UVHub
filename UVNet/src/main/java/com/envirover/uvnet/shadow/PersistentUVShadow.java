@@ -152,6 +152,7 @@ public class PersistentUVShadow implements UVShadow {
     	SearchRequest searchRequest = new SearchRequest(PARAMETERS_INDEX_NAME); 
     	SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder(); 
     	searchSourceBuilder.query(QueryBuilders.termQuery("sysid", sysId)); 
+    	searchSourceBuilder.size(10000);
     	searchRequest.source(searchSourceBuilder); 
 
     	SearchResponse searchResponse = client.search(searchRequest);
@@ -261,15 +262,10 @@ public class PersistentUVShadow implements UVShadow {
     }
     
     @Override
-	public void setDesiredMission(int sysId, List<msg_mission_item> mission) throws IOException {
-		desiredMission = mission;
-	}
-	
-    @Override
-	public List<msg_mission_item> getDesiredMission(int sysId) throws IOException {
-		return desiredMission;
-	}
-	
+    public List<msg_mission_item> getDesiredMission() throws IOException {
+    	return desiredMission;
+    }
+    
 	@Override
 	public List<msg_mission_item> getMission(int sysId) throws IOException {
 		String id = Integer.toString(sysId);
@@ -333,7 +329,9 @@ public class PersistentUVShadow implements UVShadow {
     	SearchRequest searchRequest = new SearchRequest(MESSAGES_INDEX_NAME); 
     	
     	SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder(); 
-    	searchSourceBuilder.query(QueryBuilders.termQuery("properties.msgid", msgId));
+    	searchSourceBuilder.query(QueryBuilders.boolQuery()
+    			.must(QueryBuilders.termQuery("properties.sysid", sysId))
+    			.must(QueryBuilders.termQuery("properties.msgid", msgId))); 
     	searchSourceBuilder.sort("properties.time", SortOrder.DESC);
     	searchSourceBuilder.size(1);
     	searchRequest.source(searchSourceBuilder);

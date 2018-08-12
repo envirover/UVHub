@@ -15,7 +15,6 @@
 		<module>UVNet</module>
 		<module>UVHub</module>
 		<module>distribution</module>
-		<module>UVStream</module>
 		<module>UVTracks</module>
     </modules>
 

@@ -1,4 +1,4 @@
-package com.envirover.spl.stream;
+package com.envirover.spl.tracks;
 
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerResponse;

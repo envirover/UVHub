@@ -39,6 +39,7 @@ import com.MAVLink.common.msg_mission_clear_all;
 import com.MAVLink.common.msg_mission_count;
 import com.MAVLink.common.msg_mission_current;
 import com.MAVLink.common.msg_mission_item;
+import com.MAVLink.common.msg_mission_item_int;
 import com.MAVLink.common.msg_mission_request;
 import com.MAVLink.common.msg_mission_request_list;
 import com.MAVLink.common.msg_nav_controller_output;
@@ -71,7 +72,8 @@ public class ShadowClientSession implements ClientSession {
 
     private boolean isOpen = false;
     //private int desiredMissionCount = 0;
-    //private List<msg_mission_item> desiredMission = new ArrayList<msg_mission_item>();
+    private List<msg_mission_item> desiredMission = new ArrayList<msg_mission_item>();
+    private int desiredMissionCount = 0;
     private List<msg_mission_item> reportedMission = new ArrayList<msg_mission_item>();
     private int sysId = 1;  //TODO set system Id for the client session
     
@@ -90,8 +92,14 @@ public class ShadowClientSession implements ClientSession {
             public void run() {
                 try {
                     reportState();
-                } catch (IOException | InterruptedException e) {
-                	isOpen = false;
+                } catch (IOException | InterruptedException ex) {
+                	if (ex.getMessage().equals("Software caused connection abort: socket write error")) {
+	                	try {
+							onClose();
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+                	}
                 }
             }
         };
@@ -99,6 +107,8 @@ public class ShadowClientSession implements ClientSession {
         heartbeatTimer.schedule(heartbeatTask, 0, config.getHeartbeatInterval());
         
         isOpen = true;
+        
+        logger.info("Shadow client session opened.");
     }
 
     /* (non-Javadoc)
@@ -106,13 +116,17 @@ public class ShadowClientSession implements ClientSession {
      */
     @Override
     public void onClose() throws IOException {
-    	isOpen = false;
-    	
-        heartbeatTimer.cancel();
-
-        if (src != null) {
-            src.close();
-        }
+    	if (isOpen) {
+	    	isOpen = false;
+	    	
+	        heartbeatTimer.cancel();
+	
+	        if (src != null) {
+	            src.close();
+	        }
+	        
+	        logger.info("Shadow client session closed.");
+    	}
     }
 
     /* (non-Javadoc)
@@ -156,7 +170,7 @@ public class ShadowClientSession implements ClientSession {
                 MAVLinkLogger.log(Level.INFO, "<<", packet);
 
                 msg_param_request_read request = (msg_param_request_read)packet.unpack();
-                logger.info(MessageFormat.format("Sending value of parameter ''{0}'' to MAVLink client.", request.getParam_Id()));
+                //logger.info(MessageFormat.format("Sending value of parameter ''{0}'' to MAVLink client.", request.getParam_Id()));
                 sendToSource(shadow.getParamValue(request.target_system, request.getParam_Id(), request.param_index));
                 break;
             }
@@ -165,7 +179,7 @@ public class ShadowClientSession implements ClientSession {
 
                 msg_param_set paramSet = (msg_param_set)packet.unpack();
                 shadow.setParam(paramSet.target_system, paramSet);
-                sendToSource(shadow.getParamValue(paramSet.sysid, paramSet.getParam_Id(), (short)-1));
+                sendToSource(shadow.getParamValue(paramSet.target_system, paramSet.getParam_Id(), (short)-1));
                 break;
             }
         }
@@ -177,40 +191,40 @@ public class ShadowClientSession implements ClientSession {
         }
 
         switch (packet.msgid) {
-        case msg_mission_request_list.MAVLINK_MSG_ID_MISSION_REQUEST_LIST: {
-            MAVLinkLogger.log(Level.INFO, "<<", packet);
-            msg_mission_request_list msg = (msg_mission_request_list)packet.unpack();
-            reportedMission = shadow.getMission(msg.target_system);            
-            msg_mission_count count = new msg_mission_count();
-            count.count = reportedMission != null ? reportedMission.size() : 0;
-            count.sysid = msg.target_system;
-            count.compid = msg.target_component;
-            count.target_system = (short) packet.sysid;
-            count.target_component = (short) packet.compid;
-            sendToSource(count);
-            break;
-        }
-        case msg_mission_request.MAVLINK_MSG_ID_MISSION_REQUEST: {
-            MAVLinkLogger.log(Level.INFO, "<<", packet);
-            msg_mission_request msg = (msg_mission_request)packet.unpack();
-            if (reportedMission != null && msg.seq < reportedMission.size()) {
-                msg_mission_item mission = reportedMission.get(msg.seq);
-                mission.sysid = msg.target_system;
-                mission.compid = msg.target_component;
-                sendToSource(mission);
-            }
-            break;
-        }
+	        case msg_mission_request_list.MAVLINK_MSG_ID_MISSION_REQUEST_LIST: {
+	            MAVLinkLogger.log(Level.INFO, "<<", packet);
+	            msg_mission_request_list msg = (msg_mission_request_list)packet.unpack();
+	            reportedMission = shadow.getMission(msg.target_system);            
+	            msg_mission_count count = new msg_mission_count();
+	            count.count = reportedMission != null ? reportedMission.size() : 0;
+	            count.sysid = msg.target_system;
+	            count.compid = msg.target_component;
+	            count.target_system = (short) packet.sysid;
+	            count.target_component = (short) packet.compid;
+	            sendToSource(count);
+	            break;
+	        }
+	        case msg_mission_request.MAVLINK_MSG_ID_MISSION_REQUEST: {
+	            MAVLinkLogger.log(Level.INFO, "<<", packet);
+	            msg_mission_request msg = (msg_mission_request)packet.unpack();
+	            if (reportedMission != null && msg.seq < reportedMission.size()) {
+	                msg_mission_item mission = reportedMission.get(msg.seq);
+	                mission.sysid = msg.target_system;
+	                mission.compid = msg.target_component;
+	                sendToSource(mission);
+	            }
+	            break;
+	        }
             case msg_mission_clear_all.MAVLINK_MSG_ID_MISSION_CLEAR_ALL: {
                 MAVLinkLogger.log(Level.INFO, "<<", packet);
-                msg_mission_clear_all msg = (msg_mission_clear_all)packet.unpack();
-                shadow.getDesiredMission(msg.target_system).clear();
+                desiredMission.clear();
                 break;
             }
             case msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT: {
                 MAVLinkLogger.log(Level.INFO, "<<", packet);
                 msg_mission_count msg = (msg_mission_count)packet.unpack();
-                shadow.setDesiredMission(msg.target_system, new ArrayList<msg_mission_item>(msg.count));
+                desiredMission = new ArrayList<msg_mission_item>(msg.count);
+                desiredMissionCount = msg.count;
                 msg_mission_request request = new msg_mission_request();
                 request.seq = 0;
                 request.sysid = msg.target_system;
@@ -220,11 +234,20 @@ public class ShadowClientSession implements ClientSession {
                 sendToSource(request);
                 break;
             }
+            case msg_mission_item_int.MAVLINK_MSG_ID_MISSION_ITEM_INT: {
+                MAVLinkLogger.log(Level.INFO, "<<", packet);
+                break;
+            }
             case msg_mission_item.MAVLINK_MSG_ID_MISSION_ITEM: {
                 MAVLinkLogger.log(Level.INFO, "<<", packet);
                 msg_mission_item msg = (msg_mission_item)packet.unpack();
-                shadow.getDesiredMission(msg.target_system).set(msg.seq, msg);
-                if (msg.seq + 1 < shadow.getDesiredMission(msg.target_system).size()) {
+                try {
+                	//desiredMission.set(msg.seq, msg);
+                	desiredMission.add(msg);
+                } catch(Exception e) {
+                	e.printStackTrace();
+                }
+                if (msg.seq + 1 != desiredMissionCount) {
                     msg_mission_request mission_request = new msg_mission_request();
                     mission_request.seq = msg.seq + 1;
                     mission_request.sysid = msg.target_system;
@@ -240,7 +263,7 @@ public class ShadowClientSession implements ClientSession {
                     mission_ack.target_system = (short) packet.sysid;
                     mission_ack.target_component = (short) packet.compid;
                     sendToSource(mission_ack);
-                    shadow.setMission(msg.target_system, shadow.getDesiredMission(msg.target_system));
+                    shadow.setMission(msg.target_system, desiredMission);
                 }
                 break;
             }
@@ -257,10 +280,12 @@ public class ShadowClientSession implements ClientSession {
             packet.sysid = msg.sysid;
             packet.compid = 1;
             src.sendMessage(packet);
-            MAVLinkLogger.log(Level.INFO, ">>", packet);
+            MAVLinkLogger.log(Level.DEBUG, ">>", packet);
         } catch (IOException ex) {
             ex.printStackTrace();
-            onClose();
+            if (ex.getMessage().equals("Software caused connection abort: socket write error")) {
+            	onClose();
+            }
             throw ex;
         }
     }

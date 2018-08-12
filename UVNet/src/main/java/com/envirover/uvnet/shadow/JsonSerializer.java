@@ -116,7 +116,13 @@ class JsonSerializer  {
             for (Field f : mission_item_fields) {
                 if (!Modifier.isFinal(f.getModifiers()))
 					try {
-						properties.put(f.getName(), f.get(missionItem));
+						Object val =  f.get(missionItem);
+						
+						if (val != null && val instanceof Float && Float.isNaN((Float)val)) {
+							val = null;
+						}
+						
+						properties.put(f.getName(), val);
 					} catch (IllegalArgumentException | IllegalAccessException e) {
 						e.printStackTrace();
 					}
@@ -147,19 +153,22 @@ class JsonSerializer  {
 			for (Field f : mission_item_fields) {
                 if (!Modifier.isFinal(f.getModifiers())) {
                 	Object value = feature.getProperties().get(f.getName());
-                	try {
-                		if (f.getType().equals(float.class)) {
-                			float param = ((Double)value).floatValue();
-                			f.set(missionItem, param);
-                		} else if (f.getType().equals(short.class)) {
-                			short param = ((Integer)value).shortValue();
-                			f.set(missionItem, param);
-                		} else {
-                			f.set(missionItem, value);
-                		}
-					} catch (IllegalArgumentException | IllegalAccessException e) {
-						e.printStackTrace();
-					}
+                	
+                	if (value != null) {
+	                	try {
+	                		if (f.getType().equals(float.class)) {
+	                			float param = ((Double)value).floatValue();
+	                			f.set(missionItem, param);
+	                		} else if (f.getType().equals(short.class)) {
+	                			short param = ((Integer)value).shortValue();
+	                			f.set(missionItem, param);
+	                		} else {
+	                			f.set(missionItem, value);
+	                		}
+						} catch (IllegalArgumentException | IllegalAccessException e) {
+							e.printStackTrace();
+						}
+                	}
                 }
             }
 			

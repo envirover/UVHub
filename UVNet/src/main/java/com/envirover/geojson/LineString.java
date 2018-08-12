@@ -35,8 +35,8 @@ public class LineString implements Geometry {
     }
 
     @Override
-    public String getType() {
-        return "LineString";
+    public GeometryType getType() {
+        return GeometryType.LineString;
     }
 
     public List<List<Double>> getCoordinates() {

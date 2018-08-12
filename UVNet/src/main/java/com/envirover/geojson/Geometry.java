@@ -37,6 +37,6 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 public interface Geometry {
 
 	@JsonIgnore
-    public String getType();
+    public GeometryType getType();
 
 }

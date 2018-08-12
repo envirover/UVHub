@@ -21,8 +21,6 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Date;
 
-//import org.apache.log4j.Logger;
-
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.common.msg_command_ack;
 import com.MAVLink.common.msg_high_latency;
@@ -92,7 +90,7 @@ public class MOMessageHandler implements MAVLinkChannel {
             break;
         case msg_mission_ack.MAVLINK_MSG_ID_MISSION_ACK:
         	msg_mission_ack mission_ack = (msg_mission_ack)packet.unpack();
-            shadow.setMission(mission_ack.sysid, shadow.getDesiredMission(packet.sysid));
+            shadow.setMission(mission_ack.sysid, shadow.getDesiredMission());
             break;
         default:
             dst.sendMessage(packet);

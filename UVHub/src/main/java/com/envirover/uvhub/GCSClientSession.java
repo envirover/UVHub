@@ -80,7 +80,7 @@ public class GCSClientSession implements ClientSession {
     private final UVShadow shadow;
     
     private boolean isOpen = false;
-    //private List<msg_mission_item> desiredMission = new ArrayList<msg_mission_item>();
+    private int desiredMissionCount = 0;
     private List<msg_mission_item> reportedMission = new ArrayList<msg_mission_item>();
     private int sysId = 1; //TODO set system Id for the client session
 
@@ -172,7 +172,7 @@ public class GCSClientSession implements ClientSession {
                 MAVLinkLogger.log(Level.INFO, "<<", packet);
 
                 msg_param_request_read request = (msg_param_request_read)packet.unpack();
-                logger.info(MessageFormat.format("Sending value of parameter ''{0}'' to MAVLink client.", request.getParam_Id()));
+                //logger.info(MessageFormat.format("Sending value of parameter ''{0}'' to MAVLink client.", request.param_index));
                 sendToSource(shadow.getParamValue(request.target_system, request.getParam_Id(), request.param_index));
                 break;
             }
@@ -225,13 +225,15 @@ public class GCSClientSession implements ClientSession {
             }
             case msg_mission_clear_all.MAVLINK_MSG_ID_MISSION_CLEAR_ALL: {
                 MAVLinkLogger.log(Level.INFO, "<<", packet);
-                shadow.getDesiredMission(sysId).clear();
+                shadow.getDesiredMission().clear();
+                desiredMissionCount = 0;
                 break;
             }
             case msg_mission_count.MAVLINK_MSG_ID_MISSION_COUNT: {
                 MAVLinkLogger.log(Level.INFO, "<<", packet);
                 msg_mission_count msg = (msg_mission_count)packet.unpack();
-                shadow.setDesiredMission(msg.target_system, new ArrayList<msg_mission_item>(msg.count));
+                shadow.getDesiredMission().clear();
+                desiredMissionCount = msg.count;
                 msg_mission_request request = new msg_mission_request();
                 request.seq = 0;
                 request.sysid = msg.target_system;
@@ -244,8 +246,8 @@ public class GCSClientSession implements ClientSession {
             case msg_mission_item.MAVLINK_MSG_ID_MISSION_ITEM: {
                 MAVLinkLogger.log(Level.INFO, "<<", packet);
                 msg_mission_item msg = (msg_mission_item)packet.unpack();
-                shadow.getDesiredMission(sysId).set(msg.seq, msg); 
-                if (msg.seq + 1 < shadow.getDesiredMission(sysId).size()) {
+                shadow.getDesiredMission().add(msg); 
+                if (msg.seq + 1 < desiredMissionCount) {
                     msg_mission_request mission_request = new msg_mission_request();
                     mission_request.seq = msg.seq + 1;
                     mission_request.sysid = msg.target_system;

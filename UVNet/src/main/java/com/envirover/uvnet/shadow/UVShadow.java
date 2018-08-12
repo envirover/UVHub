@@ -18,6 +18,7 @@
 package com.envirover.uvnet.shadow;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.MAVLink.Messages.MAVLinkMessage;
@@ -74,23 +75,13 @@ public interface UVShadow {
 	List<msg_param_value> getParams(int sysId) throws IOException;
 	
 	/**
-	 * Sets desired mission.
-	 * 
-	 * @param sysId system id
-	 * @param mission list of desired mission items.
-	 * @throws IOException I/O operation failed
-	 */
-	void setDesiredMission(int sysId, List<msg_mission_item> mission) throws IOException;
-	
-	/**
 	 * Returns desired mission items.
 	 * 
-	 * @param sysId system id
-	 * @return mission items in the reported state
-	 * @throws IOException I/O operation failed
+	 * @return desired mission items
+	 * @throws IOException
 	 */
-	List<msg_mission_item> getDesiredMission(int sysId) throws IOException;
-	
+    List<msg_mission_item> getDesiredMission() throws IOException;
+    
 	/**
 	 * Sets the specified mission.
 	 * 

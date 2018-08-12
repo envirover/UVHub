@@ -34,7 +34,7 @@ import com.MAVLink.common.msg_high_latency;
  * Writes MAVLink message to Elasticsearch index 'mavlinkmessages'.
  * 
  */
-public class ElasticsearchOutputStream implements MAVLinkOutputStream {
+class ElasticsearchOutputStream implements MAVLinkOutputStream {
 
     // Connection properties
     public static final String ELASTICSEARCH_ENDPOINT = "envirover.elasticsearch.endpoint";

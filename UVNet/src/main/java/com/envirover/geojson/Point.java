@@ -62,8 +62,8 @@ public class Point implements Geometry {
     }
 
     @Override
-    public String getType() {
-        return "Point";
+    public GeometryType getType() {
+        return GeometryType.Point;
     }
 
     public Collection<Double> getCoordinates() {

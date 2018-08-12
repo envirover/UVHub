@@ -38,7 +38,7 @@ import com.MAVLink.enums.MAV_PARAM_TYPE;
 
 public class PersistentUVShadowTest {
 	
-	private static int TEST_SYSTEM_ID = 1;
+	private static int TEST_SYSTEM_ID = 2;
 
 	private PersistentUVShadow shadow = null;
 	
@@ -59,7 +59,7 @@ public class PersistentUVShadowTest {
 		
 		msg_param_value param0 = new msg_param_value();
 		param0.setParam_Id("param0");
-		param0.sysid = 1;
+		param0.sysid = TEST_SYSTEM_ID;
 		param0.param_index = 0;
 		param0.param_count = 2;
 		param0.param_type = MAV_PARAM_TYPE.MAV_PARAM_TYPE_REAL32;
@@ -68,7 +68,7 @@ public class PersistentUVShadowTest {
 		
 		msg_param_value param1 = new msg_param_value();
 		param1.setParam_Id("param1");
-		param1.sysid = 1;
+		param1.sysid = TEST_SYSTEM_ID;
 		param1.param_index = 1;
 		param1.param_count = 2;
 		param1.param_type = MAV_PARAM_TYPE.MAV_PARAM_TYPE_REAL32;
@@ -79,6 +79,7 @@ public class PersistentUVShadowTest {
 		
 		msg_param_set updatedParam1 = new msg_param_set();
 		updatedParam1.setParam_Id("param1");
+		updatedParam1.sysid = TEST_SYSTEM_ID;
 		updatedParam1.param_type = MAV_PARAM_TYPE.MAV_PARAM_TYPE_REAL32;
 		updatedParam1.param_value = (float) 987.654;
 		
@@ -120,6 +121,7 @@ public class PersistentUVShadowTest {
 				TEST_SYSTEM_ID, 
 				msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY);
 		
+		assert(msg != null);
 		assert(originalMsg.latitude == msg.latitude);
 		assert(originalMsg.longitude == msg.longitude);
 	}
@@ -127,10 +129,14 @@ public class PersistentUVShadowTest {
     private MAVLinkPacket getSamplePacket() {
         msg_high_latency msg = new msg_high_latency();
         msg.latitude = 523867;
-        msg.longitude = 2938;
-        msg.sysid = TEST_SYSTEM_ID;
-        msg.compid = 0;
-        return msg.pack();
+        msg.longitude = 29380;
+//        msg.sysid = TEST_SYSTEM_ID;
+//        msg.compid = 0;
+        
+        MAVLinkPacket packet = msg.pack();
+        packet.sysid = TEST_SYSTEM_ID;
+        packet.compid = 0;
+        return packet;
     }
 
     private List<msg_mission_item> getSampleMission() {

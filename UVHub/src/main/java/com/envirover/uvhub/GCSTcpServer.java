@@ -46,8 +46,10 @@ public class GCSTcpServer {
     private final MAVLinkChannel mtMessageQueue;
     private final ExecutorService threadPool; 
     protected final UVShadow shadow;
+    
     private ServerSocket serverSocket;
     private Thread listenerThread;
+    
  
 
     /**
@@ -145,15 +147,24 @@ public class GCSTcpServer {
                         }
 
                         Thread.sleep(10);
-                    } catch (InterruptedException | IOException e) {
-                        try {
+                    } catch (InterruptedException e) {
+                    	e.printStackTrace();
+                    	try {
 							session.onClose();
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
-                        
-                        logger.info("GCS client disconnected.");
                         return;
+                    } catch (IOException e) {       	
+                    	e.printStackTrace();
+                    	if (e.getMessage().equals("Failed to receive message. The socket is closed.")) {
+                    		try {
+								session.onClose();
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
+							return;
+                    	}
                     }
                 }
             }
