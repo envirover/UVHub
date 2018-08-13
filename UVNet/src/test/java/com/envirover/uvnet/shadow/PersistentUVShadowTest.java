@@ -54,7 +54,7 @@ public class PersistentUVShadowTest {
 	}
 
 	@Test
-	public void testParameters() throws IOException {
+	public void testParameters() throws IOException, InterruptedException {
 		List<msg_param_value> params = new ArrayList<msg_param_value>();
 		
 		msg_param_value param0 = new msg_param_value();
@@ -84,6 +84,8 @@ public class PersistentUVShadowTest {
 		updatedParam1.param_value = (float) 987.654;
 		
 		shadow.setParam(TEST_SYSTEM_ID, updatedParam1);
+		
+		Thread.sleep(5000);
 		
 		assert(shadow.getParamValue(TEST_SYSTEM_ID, "param0", (short)-1).param_value == (float) 123.456);
 		assert(shadow.getParamValue(TEST_SYSTEM_ID, "param1", (short)-1).param_value == (float) 987.654);
