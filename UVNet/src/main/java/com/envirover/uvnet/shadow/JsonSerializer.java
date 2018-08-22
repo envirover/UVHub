@@ -43,7 +43,7 @@ import com.envirover.geojson.Point;
 
 /**
  * Serializes and deserializes to/from json objects used by 
- * {@link com.envirover.uvnet.shadow.PersistentUVShadoe}. 
+ * {@link com.envirover.uvnet.shadow.PersistentUVShadow}. 
  * 
  * @author Pavel Bobov
  *

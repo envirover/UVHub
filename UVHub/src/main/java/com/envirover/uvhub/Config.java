@@ -131,16 +131,11 @@ public class Config {
 
         Properties props = new Properties();
 
-        InputStream in = null;
-        try {
-            ClassLoader loader = Config.class.getClassLoader();
-            in = loader.getResourceAsStream(CONFIG_PROPERTIES_FILE);
-            if (in != null)
-              props.load(in);
-        } finally {
-            if (in != null) {
-                in.close();
-            }
+        ClassLoader loader = Config.class.getClassLoader();
+        
+        try (InputStream in = loader.getResourceAsStream(CONFIG_PROPERTIES_FILE)) {
+        	if (in != null)
+        		props.load(in);
         }
 
         if (props.getProperty(PROP_ROCKBLOCK_PORT) != null)

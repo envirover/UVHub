@@ -88,18 +88,6 @@ public class RockBlockHttpHandler implements HttpHandler {
                     dst.sendMessage(packet);
                     
                     MAVLinkLogger.log(Level.INFO, "MO", packet);
-                    
-//                    if (stream != null) {
-//                    	Map<String, String> metadata = new HashMap<String, String>();
-//                    	metadata.put("imei", message.imei);
-//                    	metadata.put("momsn", message.momsn);
-//                    	metadata.put("transmit_time", message.transmitTime);
-//                    	metadata.put("iridium_latitude", message.iridiumLatitude);
-//                    	metadata.put("iridium_longitude", message.iridiumLongitude);
-//                    	metadata.put("iridium_cep", message.iridiumCep);
-//                    	
-//                    	stream.writePacket(packet, metadata);
-//                    }
                 } else {
                     logger.warn(MessageFormat.format("Invalid MAVLink message ''{0}''.", message.toString()));
                 }
@@ -110,9 +98,10 @@ public class RockBlockHttpHandler implements HttpHandler {
             //Send response
             String response = "";
             t.sendResponseHeaders(200, response.length());
-            OutputStream os = t.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
+            
+            try (OutputStream os = t.getResponseBody()) {
+            	os.write(response.getBytes());
+            }
         } catch (DecoderException e) {
             logger.error(e.getMessage());
             throw new IOException(e.getMessage());

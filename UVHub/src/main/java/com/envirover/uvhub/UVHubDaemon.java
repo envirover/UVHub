@@ -17,12 +17,8 @@
 
 package com.envirover.uvhub;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
+import java.text.MessageFormat;
 import java.util.List;
 
 import org.apache.commons.daemon.Daemon;
@@ -32,7 +28,6 @@ import org.apache.log4j.Logger;
 import org.glassfish.tyrus.server.Server;
 
 import com.MAVLink.common.msg_param_value;
-import com.MAVLink.enums.MAV_PARAM_TYPE;
 import com.envirover.mavlink.MAVLinkMessageQueue;
 import com.envirover.rockblock.RockBlockClient;
 import com.envirover.rockblock.RockBlockHttpHandler;
@@ -46,11 +41,6 @@ import com.sun.net.httpserver.HttpServer;
  */
 @SuppressWarnings("restriction")
 public class UVHubDaemon implements Daemon {
-    private final static String DEFAULT_PARAMS_FILE = "default.params";
-    
-    protected static String HL_REPORT_PERIOD_PARAM = "HL_REPORT_PERIOD";
-    protected static float  DEFAULT_HL_REPORT_PERIOD = 1.0F; //1 second
-
     private final static Logger logger = Logger.getLogger(UVHubDaemon.class);
 
     private final Config config = Config.getInstance();
@@ -73,25 +63,20 @@ public class UVHubDaemon implements Daemon {
     public void init(DaemonContext context) throws DaemonInitException, Exception {
         if (!config.init(context.getArguments()))
             throw new DaemonInitException("Invalid configuration.");
+        
+        logger.info(MessageFormat.format("MAV Type : {0}, Autopilot class: {1}", 
+        		                         config.getMavType(), config.getAutopilot()));
 
         shadow = new PersistentUVShadow(config.getElasticsearchEndpoint(),
         		                        config.getElasticsearchPort(),
         		                        config.getElasticsearchProtocol());
         shadow.open();
         
-        // Load on-board parameters from default.params file.
-        ClassLoader loader = UVHubDaemon.class.getClassLoader();
-        InputStream paramsStream = loader.getResourceAsStream(DEFAULT_PARAMS_FILE);
-        
-        if (paramsStream != null) {
-        	List<msg_param_value> params = loadParams(paramsStream);
-        	
-        	shadow.setParams(sysId, params);
-            
-        	paramsStream.close();
-        } else {
-            logger.warn("File 'default.params' with initial parameters values not found.");
-        }
+        // Load default on-board parameters for the MAV_TYPE and AUTOPILOT
+       	List<msg_param_value> params = OnBoardParams.getDefaultParams(
+       			config.getMavType(), sysId, config.getAutopilot());
+
+       	shadow.setParams(sysId, params);
         
         // Mobile-terminated queue contains MAVLink messages to be sent to the vehicle.
         MAVLinkMessageQueue mtMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
@@ -153,11 +138,6 @@ public class UVHubDaemon implements Daemon {
 
     @Override
     public void start() throws Exception {
-//        String ip = InetAddress.getLocalHost().getHostAddress();
-//        System.out.printf("Starting RockBLOCK HTTP message handler on http://%s:%d%s...",
-//                          ip, config.getRockblockPort(), config.getHttpContext());
-//        System.out.println();
-
     	// Start all the server threads.
         gcsTcpServer.start();
         shadowServer.start();
@@ -173,7 +153,6 @@ public class UVHubDaemon implements Daemon {
 
     @Override
     public void stop() throws Exception {
-
     	// Stop all the server threads.
         wsServer.stop();
         mtMsgPumpThread.interrupt();
@@ -188,58 +167,5 @@ public class UVHubDaemon implements Daemon {
 
         logger.info("UV Hub daemon stopped.");
     }
-
-    public List<msg_param_value> loadParams(InputStream stream) throws IOException {
-        if (stream == null) {
-            throw new IOException("Invalid parameters stream.");
-        }
-
-        List<msg_param_value> params = new ArrayList<msg_param_value>();
-        		
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-        
-        String str;
-        int index = 0;
-        boolean hlReportPeriodParamFound = false;
-        
-        while ((str = reader.readLine()) != null) {
-            if (!str.isEmpty() && !str.startsWith("#")) {
-                String[] tokens = str.split("\t");
-                if (tokens.length >= 5) { 
-                    msg_param_value param = new msg_param_value();
-                    param.sysid = Integer.valueOf(tokens[0]);
-                    param.compid = Integer.valueOf(tokens[1]);
-                    param.setParam_Id(tokens[2].trim());
-                    param.param_index = index; 
-                    param.param_value = Float.valueOf(tokens[3]);
-                    param.param_type = Short.valueOf(tokens[4]);
-                    params.add(index, param);
-                    index++;
-                    if (HL_REPORT_PERIOD_PARAM.equals(param.getParam_Id())) {
-                        hlReportPeriodParamFound = true;
-                    }
-                }
-            }
-        }
-
-        if (!hlReportPeriodParamFound) {
-            // Add HL_REPORT_PERIOD parameter
-            msg_param_value param = new msg_param_value();
-            param.sysid = 1;
-            param.compid = 190;
-            param.setParam_Id(HL_REPORT_PERIOD_PARAM);
-            param.param_index = index; 
-            param.param_value = DEFAULT_HL_REPORT_PERIOD;
-            param.param_type = MAV_PARAM_TYPE.MAV_PARAM_TYPE_REAL32;
-            params.add(index, param);
-            index++;
-        }
-
-        // Set param_count for all the parameters.
-        for (int i = 0; i < index; i++) {
-            params.get(i).param_count = index;
-        }
-        
-        return params;
-    }
+   
 }

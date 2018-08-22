@@ -108,11 +108,8 @@ public class RockBlockClient implements MAVLinkChannel {
         String responseString = null;
 
         if (entity != null) {
-            InputStream responseStream = entity.getContent();
-            try {
-                responseString = IOUtils.toString(responseStream);
-            } finally {
-                responseStream.close();
+            try (InputStream responseStream = entity.getContent()) {
+            	responseString = IOUtils.toString(responseStream);
             }
         }
 
