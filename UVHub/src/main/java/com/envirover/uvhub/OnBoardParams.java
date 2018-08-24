@@ -106,7 +106,7 @@ public class OnBoardParams {
 
         List<msg_param_value> params = new ArrayList<msg_param_value>();
         		
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
         
         String str;
         int index = 0;
@@ -118,11 +118,11 @@ public class OnBoardParams {
                 if (tokens.length >= 5) { 
                     msg_param_value param = new msg_param_value();
                     param.sysid = sysId;
-                    param.compid = Integer.valueOf(tokens[1]);
+                    param.compid = Integer.parseInt(tokens[1]);
                     param.setParam_Id(tokens[2].trim());
                     param.param_index = index; 
-                    param.param_value = Float.valueOf(tokens[3]);
-                    param.param_type = Short.valueOf(tokens[4]);
+                    param.param_value = Float.parseFloat(tokens[3]);
+                    param.param_type = Short.parseShort(tokens[4]);
                     params.add(index, param);
                     index++;
                     if (HL_REPORT_PERIOD_PARAM.equals(param.getParam_Id())) {

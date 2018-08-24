@@ -79,7 +79,7 @@ public class Config {
     private final static Short   DEFAULT_AUTOPILOT      = MAV_AUTOPILOT.MAV_AUTOPILOT_ARDUPILOTMEGA;
     private final static Short   DEFAULT_MAV_TYPE       = MAV_TYPE.MAV_TYPE_GROUND_ROVER;
     private final static String  DEFAULT_ES_ENDPOINT    = "localhost";
-    private final static int     DEFAULT_ES_PORT        = 9200;
+    private final static Integer DEFAULT_ES_PORT        = 9200;
     private final static String  DEFAULT_ES_PROTOCOL    = "http";
 
     private String  rockblockUrl      = DEFAULT_ROCKBLOCK_URL;
@@ -97,7 +97,7 @@ public class Config {
     private Short   autopilot         = DEFAULT_AUTOPILOT;
     private Short   mavType           = DEFAULT_MAV_TYPE;
     private String  esEndpoint        = DEFAULT_ES_ENDPOINT;
-    private int     esPort            = DEFAULT_ES_PORT;
+    private Integer esPort            = DEFAULT_ES_PORT;
     private String  esProtocol        = DEFAULT_ES_PROTOCOL;
 
     static Config config = new Config();
@@ -245,7 +245,7 @@ public class Config {
     	return esEndpoint;
     }
     
-    public int getElasticsearchPort() {
+    public Integer getElasticsearchPort() {
     	return esPort;
     }
     

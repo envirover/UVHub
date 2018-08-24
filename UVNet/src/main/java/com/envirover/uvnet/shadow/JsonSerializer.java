@@ -142,7 +142,7 @@ class JsonSerializer  {
 	 */
 	public static List<msg_mission_item> missionsFromJSON(String json)
 			throws JsonParseException, JsonMappingException, IOException {
-		FeatureCollection features = mapper.readValue(new ByteArrayInputStream(json.getBytes()), 
+		FeatureCollection features = mapper.readValue(new ByteArrayInputStream(json.getBytes("UTF-8")), 
 				 FeatureCollection.class);
 		
 		List<msg_mission_item> missionItems = new ArrayList<msg_mission_item>(features.getFeatures().size());
@@ -220,7 +220,7 @@ class JsonSerializer  {
 	
 	public static MAVLinkMessage mavlinkMessageFromJSON(String json)
 			throws JsonParseException, JsonMappingException, IOException {
-		Feature feature = mapper.readValue(new ByteArrayInputStream(json.getBytes()), Feature.class);
+		Feature feature = mapper.readValue(new ByteArrayInputStream(json.getBytes("UTF-8")), Feature.class);
 
 		if ((int) feature.getProperties().get("msgid") == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
 			msg_high_latency msg = new msg_high_latency();
@@ -255,15 +255,16 @@ class JsonSerializer  {
 	}
 	
 	private static String bytesToString(byte[] bytes) {
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		
 		for (int i = 0; i < bytes.length; i++) {
 			if (bytes[i] == 0)
 				break;
 			
-			result = result + (char) bytes[i];
+			result.append(bytes[i]);
 		}
 		
-		return result;
+		return result.toString();
 	}
+
 }

@@ -60,9 +60,9 @@ import com.MAVLink.common.msg_param_value;
 public class PersistentUVShadow implements UVShadow {
 	
     // Elasticsearch connection properties
-    public static String ELASTICSEARCH_ENDPOINT = "envirover.elasticsearch.endpoint";
-    public static String ELASTICSEARCH_PORT     = "envirover.elasticsearch.port";
-    public static String ELASTICSEARCH_PROTOCOL = "envirover.elasticsearch.protocol";
+    public static final String ELASTICSEARCH_ENDPOINT = "envirover.elasticsearch.endpoint";
+    public static final String ELASTICSEARCH_PORT     = "envirover.elasticsearch.port";
+    public static final String ELASTICSEARCH_PROTOCOL = "envirover.elasticsearch.protocol";
     
     // Default values of Elasticsearch connection properties
     private static final String DEFAULT_ELASTICSEARCH_ENDPOINT = "localhost";
@@ -89,7 +89,7 @@ public class PersistentUVShadow implements UVShadow {
     
     public PersistentUVShadow() throws IOException {
         this.elasticsearchEndpoint = System.getProperty(ELASTICSEARCH_ENDPOINT, DEFAULT_ELASTICSEARCH_ENDPOINT);
-        this.elasticsearchPort = Integer.valueOf(System.getProperty(ELASTICSEARCH_PORT, DEFAULT_ELASTICSEARCH_PORT));
+        this.elasticsearchPort = Integer.parseInt(System.getProperty(ELASTICSEARCH_PORT, DEFAULT_ELASTICSEARCH_PORT));
         this.elasticsearchPotocol = System.getProperty(ELASTICSEARCH_PROTOCOL, DEFAULT_ELASTICSEARCH_PROTOCOL);
     }
     

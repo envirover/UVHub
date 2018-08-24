@@ -51,7 +51,7 @@ public class WSEndpoint {
 
     @OnMessage
     public void onMessage(byte[] message, Session session) throws IOException, InterruptedException, DecoderException {
-        System.out.printf("Message received. Session id: %s Message: %s", session.getId(), message.toString());
+        System.out.printf("Message received. Session id: %s Message: %s", session.getId(), new String(message, "UTF-8"));
 
         ClientSession clientSession = sessions.get(session.getId());
 

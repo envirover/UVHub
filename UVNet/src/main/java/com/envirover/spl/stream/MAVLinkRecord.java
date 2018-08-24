@@ -24,7 +24,7 @@ package com.envirover.spl.stream;
 import java.util.Date;
 import java.util.Map;
 
-public class MAVLinkRecord {
+class MAVLinkRecord {
 
     private String deviceId;
 

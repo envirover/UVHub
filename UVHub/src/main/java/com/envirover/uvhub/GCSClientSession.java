@@ -145,7 +145,7 @@ public class GCSClientSession implements ClientSession {
 		return isOpen;
 	}
 	
-    private synchronized void handleParams(MAVLinkPacket packet) throws IOException {
+    private void handleParams(MAVLinkPacket packet) throws IOException {
         if (packet == null) {
             return;
         }
@@ -193,7 +193,7 @@ public class GCSClientSession implements ClientSession {
      * @param packet MAVLink packet
      * @throws IOException I/O exception
      */
-    private synchronized void handleMissions(MAVLinkPacket packet) throws IOException {
+    private void handleMissions(MAVLinkPacket packet) throws IOException {
         if (packet == null) {
             return;
         }
@@ -304,14 +304,17 @@ public class GCSClientSession implements ClientSession {
 
     //White list message filter
     private static boolean filter(MAVLinkPacket packet) {
+    	if (packet == null) {
+    		return false;
+    	}
+    	
         if (packet.msgid == msg_command_long.MAVLINK_MSG_ID_COMMAND_LONG) {
             int command = ((msg_command_long)packet.unpack()).command;
             return command != MAV_CMD.MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES &&
                    command != 519  /* MAV_CMD_REQUEST_PROTOCOL_VERSION */;
         }
 
-        return packet != null &&
-              (packet.msgid == msg_set_mode.MAVLINK_MSG_ID_SET_MODE || 
+        return packet.msgid == msg_set_mode.MAVLINK_MSG_ID_SET_MODE || 
                packet.msgid == msg_param_set.MAVLINK_MSG_ID_PARAM_SET ||
                packet.msgid == msg_mission_write_partial_list.MAVLINK_MSG_ID_MISSION_WRITE_PARTIAL_LIST ||
                packet.msgid == msg_mission_item.MAVLINK_MSG_ID_MISSION_ITEM ||
@@ -321,7 +324,7 @@ public class GCSClientSession implements ClientSession {
                packet.msgid == msg_mission_clear_all.MAVLINK_MSG_ID_MISSION_CLEAR_ALL ||
                packet.msgid == msg_mission_item_int.MAVLINK_MSG_ID_MISSION_ITEM_INT ||
                packet.msgid == msg_command_int.MAVLINK_MSG_ID_COMMAND_INT ||
-               packet.msgid == msg_set_home_position.MAVLINK_MSG_ID_SET_HOME_POSITION);
+               packet.msgid == msg_set_home_position.MAVLINK_MSG_ID_SET_HOME_POSITION;
     }
 
     private void sendToSource(MAVLinkMessage msg) throws IOException {

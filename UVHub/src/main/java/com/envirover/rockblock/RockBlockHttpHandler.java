@@ -100,7 +100,7 @@ public class RockBlockHttpHandler implements HttpHandler {
             t.sendResponseHeaders(200, response.length());
             
             try (OutputStream os = t.getResponseBody()) {
-            	os.write(response.getBytes());
+            	os.write(response.getBytes("UTF-8"));
             }
         } catch (DecoderException e) {
             logger.error(e.getMessage());
@@ -108,7 +108,7 @@ public class RockBlockHttpHandler implements HttpHandler {
         }
     }
 
-    class IridiumMessage {
+    static class IridiumMessage {
         // HTTP POST request parameters
 
         // IMEI of the RockBLOCK
