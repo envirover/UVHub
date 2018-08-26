@@ -369,7 +369,7 @@
 
       // Request the points data
       function getPoints() {
-        var url = "/spltracks/features" + window.location.search;
+        var url = "/uvtracks/features" + window.location.search;
 
         return esriRequest(url, {
           responseType: "json"
@@ -378,7 +378,7 @@
 
       // Request the linestring data
       function getLines() {
-        var url = "/spltracks/features" + window.location.search + "&type=linestring";
+        var url = "/uvtracks/features" + window.location.search + "&type=linestring";
 
         return esriRequest(url, {
           responseType: "json"

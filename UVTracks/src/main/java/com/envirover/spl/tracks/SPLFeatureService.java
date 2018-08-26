@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response;
 
 import com.envirover.geojson.FeatureCollection;
 import com.envirover.geojson.GeometryType;
+import com.envirover.geojson.Point;
 import com.sun.jersey.api.view.Viewable;
 
 /**
@@ -61,21 +62,29 @@ public class SPLFeatureService {
             @DefaultValue("") @QueryParam("devices") String devices,
             @DefaultValue("-1") @QueryParam("startTime") long startTime,
             @DefaultValue("-1") @QueryParam("endTime") long endTime,
-            @DefaultValue("point") @QueryParam("type") String type 
+            @DefaultValue("point") @QueryParam("type") String type,
+            @DefaultValue("100") @QueryParam("top") int top 
             )
             throws Exception {
 
         String[] deviceIds = devices.split(","); //TODO why is it devices and not just device?
         
+        GeometryType geometryType = GeometryType.Point;
+        
+        if (type.equalsIgnoreCase(GeometryType.LineString.toString())) {
+        	geometryType = GeometryType.LineString;
+        }
+        
         FeatureCollection records = null; 
         
        for (String deviceId : deviceIds) {
             records = stream.queryMessages(
-                    deviceId, 
+                    Integer.parseInt(deviceId), 
                     startTime > 0 ? startTime : null,
                     endTime > 0 ? endTime : null,
                     MAVLINK_MSG_ID_HIGH_LATENCY,
-                    GeometryType.valueOf(type));
+                    geometryType, 
+                    top);
         }
         
         return records;

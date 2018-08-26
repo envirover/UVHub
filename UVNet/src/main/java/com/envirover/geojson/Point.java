@@ -20,7 +20,7 @@ along with SPLTracks.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.geojson;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * GeoJSON Point.
@@ -30,7 +30,7 @@ import java.util.Collection;
  */
 public class Point implements Geometry {
 
-    private Collection<Double> coordinates = new ArrayList<Double>();
+    private List<Double> coordinates = new ArrayList<Double>();
 
     public Point() {
         coordinates.add(0.0);
@@ -66,11 +66,11 @@ public class Point implements Geometry {
         return GeometryType.Point;
     }
 
-    public Collection<Double> getCoordinates() {
+    public List<Double> getCoordinates() {
         return coordinates;
     }
     
-    public void setCoordinates(Collection<Double> coordinates) {
+    public void setCoordinates(List<Double> coordinates) {
         this.coordinates = coordinates;
     }
 

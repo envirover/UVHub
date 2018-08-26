@@ -1,28 +1,31 @@
-/*
+
 import java.io.IOException;
 import java.text.ParseException;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 
-import com.envirover.spl.stream.MAVLinkMessagesTable;
+import com.envirover.geojson.Feature;
+import com.envirover.geojson.FeatureCollection;
+import com.envirover.geojson.GeometryType;
+import com.envirover.spl.tracks.UVShadowView;
 
-import com.envirover.spl.stream.MAVLinkRecord;
-*/
+
 
 public class MAVLinkMessagesTableTest {
 
-    /*
+    private final ObjectMapper mapper = new ObjectMapper();
     private final int MAVLINK_MSG_ID_HIGH_LATENCY = 234;
+    
     @Test
     public void testQueryMAVLinkRecords() throws ParseException, IOException {
-        MAVLinkMessagesTable stream = new MAVLinkMessagesTable();
-        Iterable<MAVLinkRecord> records = stream.query("300234064280890", null, null, MAVLINK_MSG_ID_HIGH_LATENCY);
-
-        int count = 0;
-        for (MAVLinkRecord record : records) {
-            System.out.println(Integer.toString(++count) +  " " + record.getDeviceId());
+        UVShadowView stream = new UVShadowView();
+  
+        FeatureCollection records = stream.queryMessages(1, null, null, MAVLINK_MSG_ID_HIGH_LATENCY, GeometryType.Point, 100);
+       
+        for (Feature f : records.getFeatures()) {
+        	System.out.println(mapper.writeValueAsString(f));
         }
     }
-*/
     
 }

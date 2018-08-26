@@ -22,7 +22,11 @@ along with SPLStream.  If not, see <http://www.gnu.org/licenses/>.
 package com.envirover.spl.tracks;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpHost;
@@ -43,6 +47,8 @@ import org.elasticsearch.search.sort.SortOrder;
 import com.envirover.geojson.Feature;
 import com.envirover.geojson.FeatureCollection;
 import com.envirover.geojson.GeometryType;
+import com.envirover.geojson.LineString;
+import com.envirover.geojson.Point;
 
 /**
  * Reads MAVLink messages from Elasticsearch indexes.
@@ -70,7 +76,7 @@ public class UVShadowView {
     
     private static final String DOCUMENT_TYPE      = "_doc";
     
-    private static int MAX_HITS = 10000;
+    //private static int MAX_HITS = 10000;
 
     // Properties
     private static final String ATTR_TIME = "properties.time";
@@ -93,7 +99,7 @@ public class UVShadowView {
     public void close() throws IOException {
     }
     
-     public FeatureCollection queryMessages(String deviceId, Long startTime, Long endTime, Integer msgId, GeometryType geometryType) throws IOException {
+     public FeatureCollection queryMessages(Integer deviceId, Long startTime, Long endTime, Integer msgId, GeometryType geometryType, int limit) throws IOException {
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
@@ -116,7 +122,7 @@ public class UVShadowView {
 
         sourceBuilder.query(qb);
         sourceBuilder.from(0);
-        sourceBuilder.size(MAX_HITS);
+        sourceBuilder.size(limit);
         sourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
         sourceBuilder.sort(ATTR_TIME, SortOrder.DESC);
         SearchRequest searchRequest = new SearchRequest(MESSAGES_INDEX_NAME);
@@ -134,47 +140,44 @@ public class UVShadowView {
 	            result.getFeatures().add(feature);
 	        }
         } else if (geometryType == GeometryType.LineString) {
-        	//TODO: Build line string 
+        	result = buildLineFeatures(deviceId, hits);
         }
         
         return result;
     }
      
-//     JSONArray buildLineFeatures(String deviceId, JSONArray records) throws Exception {
-//         JSONArray line = new JSONArray(); 
-//         long minTime = -1;
-//         long maxTime = -1;
-//         
-//         for (int i = 0; i < records.length(); i++) {
-//             JSONObject record = records.getJSONObject(i); //"Mon Jul 10 19:46:51 PDT 2017"
-//             long recordTime = record.getLong("time");
-//             if (minTime < 0 || recordTime < minTime) {
-//                 minTime = recordTime;
-//             }
-//             
-//             if (maxTime < 0 || recordTime > maxTime) {
-//                 maxTime = recordTime;
-//             }
-//             
-//             double longitude = record.getDouble("longitude");
-//             double latitude = record.getDouble("latitude");
-//             double altitude = record.optDouble("altitude", 0);
-//             if (longitude != 0.0 || latitude != 0.0) {
-//                 JSONArray point = new JSONArray();
-//                 point.put(longitude);
-//                 point.put(latitude);
-//                 point.put(altitude);
-//                 line.put(point);
-//             }
-//         }
-//         
-//         JSONObject properties = new JSONObject();
-//         properties.put("device_id", deviceId);
-//         properties.put("from_time", minTime);
-//         properties.put("to_time", maxTime);
-//         
-//         JSONObject lineFeature = new JSONObject().put("geometry", line).put("properties", properties); //TODO check GeoJSON and output format!
-//         return new JSONArray().put(lineFeature);
-//     }
-     
+	private FeatureCollection buildLineFeatures(int sysid, SearchHits hits) throws IOException {
+		long minTime = -1;
+		long maxTime = -1;
+		List<List<Double>> coordinates = new ArrayList<List<Double>>();
+
+		for (Iterator<SearchHit> iter = hits.iterator(); iter.hasNext();) {
+			SearchHit hit = iter.next();
+			Feature feature = mapper.readValue(hit.getSourceAsString(), Feature.class);
+
+			long recordTime = (long) feature.getProperties().get("time");
+			if (minTime < 0 || recordTime < minTime) {
+				minTime = recordTime;
+			}
+
+			if (maxTime < 0 || recordTime > maxTime) {
+				maxTime = recordTime;
+			}
+
+			coordinates.add(((Point) feature.getGeometry()).getCoordinates());
+		}
+
+		Map<String, Object> properties = new HashMap<String, Object>();
+		properties.put("sysid", sysid);
+		properties.put("from_time", minTime);
+		properties.put("to_time", maxTime);
+
+		Feature lineFeature = new Feature(new LineString(coordinates), properties);
+
+		FeatureCollection result = new FeatureCollection();
+		result.getFeatures().add(lineFeature);
+
+		return result;
+	}
+
 }
