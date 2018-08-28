@@ -21,7 +21,7 @@ public class MAVLinkMessagesTableTest {
     public void testQueryMAVLinkRecords() throws ParseException, IOException {
         UVShadowView stream = new UVShadowView();
   
-        FeatureCollection records = stream.queryMessages(1, null, null, MAVLINK_MSG_ID_HIGH_LATENCY, GeometryType.Point, 100);
+        FeatureCollection records = stream.queryMessages(1, MAVLINK_MSG_ID_HIGH_LATENCY, GeometryType.Point, null, null, 100);
        
         for (Feature f : records.getFeatures()) {
         	System.out.println(mapper.writeValueAsString(f));

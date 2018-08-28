@@ -68,8 +68,8 @@
         alias: "ObjectID",
         type: "oid"
       }, {
-        name: "device_id",
-        alias: "device_id",
+        name: "sysid",
+        alias: "sysid",
         type: "string"
       },{
           name: "time",
@@ -178,14 +178,14 @@
         alias: "ObjectID",
         type: "oid"
       }, {
-        name: "device_id",
-        alias: "device_id",
+        name: "sysid",
+        alias: "sysid",
         type: "string"
       }];
 
       // Set up popup template for the layer
       var pointsTemplate = {
-        title: "Device {device_id} at {time}",
+        title: "System {sysid} at {time}",
         content: [{
           type: "fields",
           fieldInfos: [{
@@ -290,12 +290,12 @@
 
       // Set up popup template for the layer
       var linesTemplate = {
-        title: "Device {device_id}",
+        title: "System {sysid}",
         content: [{
           type: "fields",
           fieldInfos: [{
-            fieldName: "device_id",
-            label: "device_id",
+            fieldName: "sysid",
+            label: "sysid",
             visible: true
           }]
         }]
@@ -369,7 +369,11 @@
 
       // Request the points data
       function getPoints() {
-        var url = "/uvtracks/features" + window.location.search;
+    	var q = window.location.search;
+    	
+  		q += q ? "&top=1" : "?top=1";
+
+        var url = "/uvtracks/tracks" + q;
 
         return esriRequest(url, {
           responseType: "json"
@@ -378,7 +382,11 @@
 
       // Request the linestring data
       function getLines() {
-        var url = "/uvtracks/features" + window.location.search + "&type=linestring";
+    	var q = window.location.search 
+ 		
+    	q += q ? "&type=linestring" : "?type=linestring";
+    	
+        var url = "/uvtracks/tracks" + q;
 
         return esriRequest(url, {
           responseType: "json"

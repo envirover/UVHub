@@ -1,23 +1,20 @@
 /*
-This file is part of SPLTracks application.
+ * Envirover confidential
+ * 
+ *  [2018] Envirover
+ *  All Rights Reserved.
+ * 
+ * NOTICE:  All information contained herein is, and remains the property of 
+ * Envirover and its suppliers, if any.  The intellectual and technical concepts
+ * contained herein are proprietary to Envirover and its suppliers and may be 
+ * covered by U.S. and Foreign Patents, patents in process, and are protected
+ * by trade secret or copyright law.
+ * 
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Envirover.
+ */
 
-See http://www.rock7mobile.com/downloads/RockBLOCK-Web-Services-User-Guide.pdf
-
-Copyright (C) 2017 Envirover
-
-SPLGroundControl is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-SPLStrean is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with SPLStream.  If not, see <http://www.gnu.org/licenses/>.
-*/
 
 package com.envirover.spl.tracks;
 
@@ -77,10 +74,11 @@ public class UVShadowView {
     private static final String DOCUMENT_TYPE      = "_doc";
     
     //private static int MAX_HITS = 10000;
+    private static final int SEARCH_TIMEOUT = 60; //seconds
 
     // Properties
     private static final String ATTR_TIME = "properties.time";
-    private static final String ATTR_DEVICE_ID = "properties.sysid";
+    private static final String ATTR_SYS_ID = "properties.sysid";
     private static final String ATTR_MSG_ID = "properties.msgid";
 
     private static RestHighLevelClient client = null; 
@@ -99,11 +97,24 @@ public class UVShadowView {
     public void close() throws IOException {
     }
     
-     public FeatureCollection queryMessages(Integer deviceId, Long startTime, Long endTime, Integer msgId, GeometryType geometryType, int limit) throws IOException {
+    /**
+     * Retrieves messages of the specified type reported by the specified 
+     * system and returns them in GeoJSON representation.
+     * 
+     * @param sysId MAVLink system id
+     * @param msgId MAVlink message id 
+     * @param geometryType GeoJSON geometry type
+     * @param startTime minimum reported time. No minimum  limit if 'null'.
+     * @param endTime maximum reported time. No maximum time limit if 'null'.
+     * @param top maximum number of reported points returned
+     * @return GeoJSON FeaureCollection with the reported messages
+     * @throws IOException
+     */
+     public FeatureCollection queryMessages(int sysId, int msgId, GeometryType geometryType, Long startTime, Long endTime, int top) throws IOException {
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
-        qb.must(QueryBuilders.termQuery(ATTR_DEVICE_ID, deviceId));
+        qb.must(QueryBuilders.termQuery(ATTR_SYS_ID, sysId));
         qb.must(QueryBuilders.termQuery(ATTR_MSG_ID, msgId));
            
         QueryBuilder timeIntervalQueryBuilder = null;
@@ -119,32 +130,38 @@ public class UVShadowView {
         if (timeIntervalQueryBuilder != null)
             qb.must(timeIntervalQueryBuilder);
         
-
         sourceBuilder.query(qb);
         sourceBuilder.from(0);
-        sourceBuilder.size(limit);
-        sourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
+        sourceBuilder.size(top);
+        sourceBuilder.timeout(new TimeValue(SEARCH_TIMEOUT, TimeUnit.SECONDS));
         sourceBuilder.sort(ATTR_TIME, SortOrder.DESC);
         SearchRequest searchRequest = new SearchRequest(MESSAGES_INDEX_NAME);
         searchRequest.types(DOCUMENT_TYPE);
         searchRequest.source(sourceBuilder);
         SearchResponse searchResponse = client.search(searchRequest);
         SearchHits hits = searchResponse.getHits();
-
-        FeatureCollection result = new FeatureCollection();
         
-        if (geometryType == GeometryType.Point) {
-	        for(Iterator<SearchHit> iter = hits.iterator(); iter.hasNext(); ) {
-	            SearchHit hit = iter.next();
-	            Feature feature = mapper.readValue(hit.getSourceAsString(), Feature.class);
-	            result.getFeatures().add(feature);
-	        }
-        } else if (geometryType == GeometryType.LineString) {
-        	result = buildLineFeatures(deviceId, hits);
+        switch (geometryType) {
+        case Point:
+        	return buildPointFeatures(sysId, hits);
+	    case LineString:
+        	return buildLineFeatures(sysId, hits);
+        default:
+        	throw new IllegalArgumentException("Unsupported GeoJSON geometry type.");
         }
-        
-        return result;
     }
+     
+	private FeatureCollection buildPointFeatures(int sysid, SearchHits hits) throws IOException {
+		FeatureCollection result = new FeatureCollection();
+		
+		for (Iterator<SearchHit> iter = hits.iterator(); iter.hasNext();) {
+			SearchHit hit = iter.next();
+			Feature feature = mapper.readValue(hit.getSourceAsString(), Feature.class);
+			result.getFeatures().add(feature);
+		}
+
+		return result;
+	}
      
 	private FeatureCollection buildLineFeatures(int sysid, SearchHits hits) throws IOException {
 		long minTime = -1;
@@ -153,9 +170,11 @@ public class UVShadowView {
 
 		for (Iterator<SearchHit> iter = hits.iterator(); iter.hasNext();) {
 			SearchHit hit = iter.next();
+			
 			Feature feature = mapper.readValue(hit.getSourceAsString(), Feature.class);
 
 			long recordTime = (long) feature.getProperties().get("time");
+			
 			if (minTime < 0 || recordTime < minTime) {
 				minTime = recordTime;
 			}
@@ -164,7 +183,9 @@ public class UVShadowView {
 				maxTime = recordTime;
 			}
 
-			coordinates.add(((Point) feature.getGeometry()).getCoordinates());
+			if (feature.getGeometry().getType() == GeometryType.Point) {
+				coordinates.add(((Point)feature.getGeometry()).getCoordinates());
+			}
 		}
 
 		Map<String, Object> properties = new HashMap<String, Object>();
