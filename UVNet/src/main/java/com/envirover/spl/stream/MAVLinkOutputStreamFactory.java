@@ -6,7 +6,7 @@ import java.io.IOException;
  * Instantiates MAVLinkOutputStream.
  *
  */
-public class MAVLinkOutputStreamFactory {
+class MAVLinkOutputStreamFactory {
 
     private static MAVLinkOutputStream stream = null;
 

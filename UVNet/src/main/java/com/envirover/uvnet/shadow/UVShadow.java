@@ -18,7 +18,6 @@
 package com.envirover.uvnet.shadow;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.MAVLink.Messages.MAVLinkMessage;

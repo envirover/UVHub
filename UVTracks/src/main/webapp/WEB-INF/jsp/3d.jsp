@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-  <title>UV Tracks Service Demo</title>
+  <title>UV Tracks Service 3D Demo</title>
   <style>
     html,
     body,
@@ -28,12 +28,12 @@
     }
   </style>
 
-  <link rel="stylesheet" href="https://js.arcgis.com/4.3/esri/css/main.css">
-  <script src="https://js.arcgis.com/4.3/"></script>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.8/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.8/"></script>
 
   <script>
      require([
-      "esri/views/MapView",
+      "esri/views/SceneView",
       "esri/Map",
       "esri/layers/FeatureLayer",
       "esri/layers/support/Field",
@@ -50,7 +50,7 @@
       "dojo/dom",
       "dojo/on",
       "dojo/domReady!"
-    ], function(MapView, Map, FeatureLayer, Field, Point, Polyline,
+    ], function(SceneView, Map, FeatureLayer, Field, Point, Polyline,
       SimpleRenderer, SimpleMarkerSymbol, SimpleLineSymbol, TextSymbol, SimpleRenderer, Legend, esriRequest,
       arrayUtils, dom, on
     ) {
@@ -183,6 +183,12 @@
         type: "string"
       }];
 
+      var missionLineFields = [{
+          name: "ObjectID",
+          alias: "ObjectID",
+          type: "oid"
+        }];
+      
       // Set up popup template for the layer
       var pointsTemplate = {
         title: "System {sysid} at {time}",
@@ -351,24 +357,16 @@
        **************************************************/
 
       var map = new Map({
-        basemap: "satellite"
+        basemap: "streets",
+        ground: "world-elevation"
       });
 
       // Create MapView
-      var view = new MapView({
-        container: "viewDiv",
-        map: map,
-        center: [0, 0],
-        zoom: 3,
-        // customize ui padding for legend placement
-        ui: {
-          padding: {
-            bottom: 15,
-            right: 0
-          }
-        }
-      });
-
+      var view = new SceneView({
+   	    container: "viewDiv",  // Reference to the DOM node that will contain the view
+   	    map: map  // References the map object created in step 3
+   	  });
+      
       /**************************************************
        * Define the renderer for symbolizing points
        **************************************************/
@@ -419,17 +417,17 @@
         })
       });
       
-      view.then(function() {
-        getLines()
-          .then(createLinesGraphics) // then send it to the createPointsGraphics() method
-          .then(createLinesLayer) // when graphics are created, create the layer
-          .otherwise(errback);
+      view.when(function() {
+//         getLines()
+//           .then(createLinesGraphics) // then send it to the createPointsGraphics() method
+//           .then(createLinesLayer) // when graphics are created, create the layer
+//           .otherwise(errback);
 
-        getPoints()
-          .then(createPointsGraphics) // then send it to the createPointsGraphics() method
-          .then(createPointsLayer) // when graphics are created, create the layer
-          .then(zoomToLayer)
-          .otherwise(errback);
+//         getPoints()
+//           .then(createPointsGraphics) // then send it to the createPointsGraphics() method
+//           .then(createPointsLayer) // when graphics are created, create the layer
+//           .then(zoomToLayer)
+//           .otherwise(errback);
         
         getMissionLines()
           .then(createMissionLinesGraphics) // then send it to the createPointsGraphics() method
@@ -442,7 +440,6 @@
           .then(zoomToLayer)
           .otherwise(errback);
       });
-      
       
 
       // Request the points data
@@ -494,6 +491,7 @@
           responseType: "json"
         });
       }
+      
       function zoomToLayer(layer) {
     	  view.whenLayerView(layer).then(function(layerView){
     		  layerView.watch("updating", function(val){
@@ -654,14 +652,13 @@
           linesLayer = new FeatureLayer({
             source: graphics, // autocast as an array of esri/Graphic
             // create an instance of esri/layers/support/Field for each field object
-            fields: lineFields, // This is required when creating a layer from Graphics
+            fields: missionLineFields, // This is required when creating a layer from Graphics
             objectIdField: "ObjectID", // This must be defined when creating a layer from Graphics
             renderer: linesMissionRenderer, // set the visualization on the layer
             spatialReference: {
               wkid: 4326
             },
-            geometryType: "polyline", // Must be set when creating a layer from Graphics
-            popupTemplate: linesTemplate
+            geometryType: "polyline" // Must be set when creating a layer from Graphics
           });
 
           map.add(linesLayer);

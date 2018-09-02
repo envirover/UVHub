@@ -16,7 +16,7 @@
  */
 
 
-package com.envirover.spl.tracks;
+package com.envirover.uvnet.shadow;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,6 +28,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpHost;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestClient;
@@ -46,13 +48,14 @@ import com.envirover.geojson.FeatureCollection;
 import com.envirover.geojson.GeometryType;
 import com.envirover.geojson.LineString;
 import com.envirover.geojson.Point;
+import com.envirover.uvnet.mission.Plan;
 
 /**
- * Reads MAVLink messages from Elasticsearch indexes.
+ * Implementation of UVShadowView interface that uses Elasticsearch.
  * 
- * 
+ * @author Pavel Bobov
  */
-public class UVShadowView {
+public class PersistentUVShadowView implements UVShadowView {
 	
 	private static final ObjectMapper mapper = new ObjectMapper();
     //private static final Logger logger = Logger.getLogger(UVShadowView.class.getName());
@@ -69,7 +72,7 @@ public class UVShadowView {
     
     // Elasticsearch indices
     private static final String MESSAGES_INDEX_NAME   = "reported_messages";
-    //private static final String MISSIONS_INDEX_NAME   = "reported_missions";
+    private static final String MISSIONS_INDEX_NAME   = "reported_missions";
     
     private static final String DOCUMENT_TYPE      = "_doc";
     
@@ -83,7 +86,7 @@ public class UVShadowView {
 
     private static RestHighLevelClient client = null; 
 
-    public UVShadowView() {
+    public PersistentUVShadowView() {
         client = new RestHighLevelClient(
             RestClient.builder(
                 new HttpHost(System.getProperty(ELASTICSEARCH_ENDPOINT, DEFAULT_ELASTICSEARCH_ENDPOINT), 
@@ -91,26 +94,8 @@ public class UVShadowView {
                 System.getProperty(DEFAULT_ELASTICSEARCH_PROTOCOL, DEFAULT_ELASTICSEARCH_PROTOCOL))));
     }
 
-    public void open() throws IOException {
-    }
-
-    public void close() throws IOException {
-    }
-    
-    /**
-     * Retrieves messages of the specified type reported by the specified 
-     * system and returns them in GeoJSON representation.
-     * 
-     * @param sysId MAVLink system id
-     * @param msgId MAVlink message id 
-     * @param geometryType GeoJSON geometry type
-     * @param startTime minimum reported time. No minimum  limit if 'null'.
-     * @param endTime maximum reported time. No maximum time limit if 'null'.
-     * @param top maximum number of reported points returned
-     * @return GeoJSON FeaureCollection with the reported messages
-     * @throws IOException
-     */
-     public FeatureCollection queryMessages(int sysId, int msgId, GeometryType geometryType, Long startTime, Long endTime, int top) throws IOException {
+    @Override
+	public FeatureCollection queryMessages(int sysId, int msgId, GeometryType geometryType, Long startTime, Long endTime, int top) throws IOException {
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
@@ -151,6 +136,41 @@ public class UVShadowView {
         }
     }
      
+    @Override
+	public Plan queryMissions(int sysid) throws IOException {
+		String id = Integer.toString(sysid);
+		
+		GetRequest getRequest = new GetRequest(MISSIONS_INDEX_NAME, DOCUMENT_TYPE, id);
+		
+		GetResponse getResponse = client.get(getRequest);
+		
+		if (getResponse.isExists()) {
+			String source = getResponse.getSourceAsString();
+			return new Plan(JsonSerializer.missionsFromJSON(source));
+		} else {
+			return new Plan();
+		}
+    }
+
+//	private FeatureCollection buildMissionLineString(int sysid, FeatureCollection mission) {
+//		List<List<Double>> coordinates = new ArrayList<List<Double>>();
+//
+//		for (Feature feature : mission.getFeatures()) {
+//			if (feature.getGeometry().getType() == GeometryType.Point) {
+//				coordinates.add(((Point)feature.getGeometry()).getCoordinates());
+//			}
+//		}
+//
+//		Map<String, Object> properties = new HashMap<String, Object>();
+//		properties.put("sysid", sysid);
+//
+//		Feature lineFeature = new Feature(new LineString(coordinates), properties);
+//
+//		FeatureCollection result = new FeatureCollection();
+//		result.getFeatures().add(lineFeature);
+//		return result;
+//	}
+//     
 	private FeatureCollection buildPointFeatures(int sysid, SearchHits hits) throws IOException {
 		FeatureCollection result = new FeatureCollection();
 		

@@ -29,7 +29,7 @@ import org.json.JSONArray;
  * Input stream of MAVLink records.
  *
  */
-public interface MAVLinkInputStream {
+interface MAVLinkInputStream {
 
     /**
      * Opens the stream.

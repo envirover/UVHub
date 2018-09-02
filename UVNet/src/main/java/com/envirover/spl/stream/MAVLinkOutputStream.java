@@ -30,7 +30,7 @@ import com.MAVLink.MAVLinkPacket;
  * Output stream of MAVLink packets.
  *
  */
-public interface MAVLinkOutputStream {
+interface MAVLinkOutputStream {
 
     /**
      * Opens the stream.
