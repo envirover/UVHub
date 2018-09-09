@@ -29,7 +29,6 @@ import javax.ws.rs.core.Response;
 
 import com.MAVLink.common.msg_high_latency;
 import com.envirover.geojson.FeatureCollection;
-import com.envirover.geojson.GeometryType;
 import com.envirover.uvnet.mission.Plan;
 import com.envirover.uvnet.shadow.PersistentUVShadowView;
 import com.envirover.uvnet.shadow.UVShadowView;
@@ -64,7 +63,6 @@ public class UVTracks {
 	 * @param sysid system Id. Default value is 1.
 	 * @param startTime (optional) track start time in UNIX epoch time.   
 	 * @param endTime (optional) track end time in UNIX epoch time.
-	 * @param type GeoJSON geometry type that can be either 'point' or 'linestring'. Default value is point.
 	 * @param top maximum number of points returned
 	 * @return GeoJSON feature collection 
 	 * @throws IOException on I/O error
@@ -76,13 +74,9 @@ public class UVTracks {
 			@DefaultValue(DEFAULT_SYSTEM_ID) @QueryParam("sysid") int sysid,
 			@QueryParam("startTime") Long startTime,
 			@QueryParam("endTime") Long endTime,
-			@DefaultValue("Point") @QueryParam("type") String type, 
 			@DefaultValue(DEFAULT_TOP) @QueryParam("top") int top) throws IOException {
-		GeometryType geometryType = type.equalsIgnoreCase(GeometryType.LineString.toString()) ? 
-				GeometryType.LineString : GeometryType.Point;
-		
 		return shadowView.queryMessages(sysid, msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY,
-				                    geometryType, startTime, endTime,  top);
+				                        startTime, endTime,  top);
 	}
 
 	/**

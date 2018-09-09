@@ -3,11 +3,10 @@ package com.envirover.uvnet.shadow;
 import java.io.IOException;
 
 import com.envirover.geojson.FeatureCollection;
-import com.envirover.geojson.GeometryType;
 import com.envirover.uvnet.mission.Plan;
 
 /**
- * Retrieves reported states and missions of UV as GeoJSON objects
+ * Retrieves reported states and missions of UV as JSON objects
  * 
  * @author Pavel Bobov
  *
@@ -27,7 +26,7 @@ public interface UVShadowView {
 	 * @return GeoJSON FeaureCollection with the reported messages
 	 * @throws IOException in case of I/O exception
 	 */
-	FeatureCollection queryMessages(int sysId, int msgId, GeometryType geometryType, Long startTime, Long endTime,
+	FeatureCollection queryMessages(int sysId, int msgId, Long startTime, Long endTime,
 			int top) throws IOException;
 	
 	/**

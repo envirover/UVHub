@@ -63,234 +63,74 @@
        **************************************************/
 
       var pointFields = [
-      {
-        name: "ObjectID",
-        alias: "ObjectID",
-        type: "oid"
-      }, {
-        name: "sysid",
-        alias: "sysid",
-        type: "string"
-      },{
-          name: "time",
-          alias: "time",
-          type: "integer"
-      }, {
-          name: "airspeed",
-          alias: "airspeed",
-          type: "integer"
-      }, {
-          name: "airspeed_sp",
-          alias: "airspeed_sp",
-          type: "integer"
-      }, {
-          name: "altitude_amsl",
-          alias: "altitude_amsl",
-          type: "integer"
-      }, {
-          name: "altitude_sp",
-          alias: "altitude_sp",
-          type: "integer"
-      }, {
-          name: "base_mode",
-          alias: "base_mode",
-          type: "integer"
-      }, {
-          name: "battery_remaining",
-          alias: "battery_remaining",
-          type: "integer"
-      }, {
-          name: "climb_rate",
-          alias: "climb_rate",
-          type: "integer"
-      }, {
-          name: "custom_mode",
-          alias: "custom_mode",
-          type: "integer"
-      }, {
-          name: "failsafe",
-          alias: "failsafe",
-          type: "integer"
-      }, {
-          name: "gps_fix_type",
-          alias: "gps_fix_type",
-          type: "integer"
-      }, {
-          name: "gps_nsat",
-          alias: "gps_nsat",
-          type: "integer"
-      }, {
-          name: "groundspeed",
-          alias: "groundspeed",
-          type: "integer"
-      }, {
-          name: "heading",
-          alias: "heading",
-          type: "double"
-      }, {
-          name: "heading_sp",
-          alias: "heading_sp",
-          type: "integer"
-      }, {
-          name: "landed_state",
-          alias: "landed_state",
-          type: "integer"
-      }, {
-          name: "latitude",
-          alias: "latitude",
-          type: "integer"
-      }, {
-          name: "longitude",
-          alias: "longitude",
-          type: "integer"
-      }, {
-          name: "pitch",
-          alias: "pitch",
-          type: "integer"
-      }, {
-          name: "roll",
-          alias: "roll",
-          type: "integer"
-      }, {
-          name: "temperature",
-          alias: "temperature",
-          type: "integer"
-      }, {
-          name: "temperature_air",
-          alias: "temperature_air",
-          type: "integer"
-      }, {
-          name: "throttle",
-          alias: "throttle",
-          type: "integer"
-      }, {
-          name: "wp_distance",
-          alias: "wp_distance",
-          type: "integer"
-      }, {
-          name: "wp_num",
-          alias: "wp_num",
-          type: "integer"
-      }];
+	      { name: "ObjectID", alias: "ObjectID", type: "oid" }, 
+	      { name: "sysid", alias: "sysid", type: "string" },
+	      { name: "time", alias: "time", type: "integer" },
+	      { name: "airspeed", alias: "airspeed", type: "integer" },
+	      { name: "airspeed_sp", alias: "airspeed_sp", type: "integer" }, 
+	      { name: "altitude_amsl", alias: "altitude_amsl", type: "integer" }, 
+	      { name: "altitude_sp", alias: "altitude_sp", type: "integer" }, 
+	      { name: "base_mode", alias: "base_mode", type: "integer" }, 
+	      { name: "battery_remaining", alias: "battery_remaining", type: "integer" }, 
+	      { name: "climb_rate", alias: "climb_rate", type: "integer" }, 
+	      { name: "custom_mode", alias: "custom_mode", type: "integer" }, 
+	      { name: "failsafe", alias: "failsafe", type: "integer" }, 
+	      { name: "gps_fix_type", alias: "gps_fix_type", type: "integer" }, 
+	      { name: "gps_nsat", alias: "gps_nsat", type: "integer" }, 
+	      { name: "groundspeed", alias: "groundspeed", type: "integer" }, 
+	      { name: "heading", alias: "heading", type: "double" }, 
+	      { name: "heading_sp", alias: "heading_sp", type: "integer" }, 
+	      { name: "landed_state", alias: "landed_state", type: "integer" }, 
+	      { name: "latitude", alias: "latitude", type: "integer" }, 
+	      { name: "longitude", alias: "longitude", type: "integer" },
+	      { name: "pitch", alias: "pitch", type: "integer" }, 
+	      { name: "roll", alias: "roll", type: "integer" }, 
+	      { name: "temperature", alias: "temperature", type: "integer" }, 
+	      { name: "temperature_air", alias: "temperature_air", type: "integer" }, 
+	      { name: "throttle", alias: "throttle", type: "integer" }, 
+	      { name: "wp_distance", alias: "wp_distance", type: "integer" }, 
+	      { name: "wp_num", alias: "wp_num", type: "integer" }];
 
-      var lineFields = [{
-        name: "ObjectID",
-        alias: "ObjectID",
-        type: "oid"
-      }, {
-        name: "sysid",
-        alias: "sysid",
-        type: "string"
-      }];
+      var lineFields = [
+    	  { name: "ObjectID", alias: "ObjectID", type: "oid" }, 
+    	  { name: "from_time", alias: "from_time", type: "string" }, 
+    	  { name: "to_time", alias: "to_time", type: "string" }];
 
-      var missionLineFields = [{
-          name: "ObjectID",
-          alias: "ObjectID",
-          type: "oid"
-        }];
+      var missionLineFields = [
+    	  { name: "ObjectID", alias: "ObjectID", type: "oid" }, 
+    	  { name: "cruiseSpeed", alias: "cruiseSpeed", type: "string" }, 
+    	  { name: "hooverSpeed", alias: "hooverSpeed", type: "string" }];
       
       // Set up popup template for the layer
       var pointsTemplate = {
         title: "System {sysid} at {time}",
         content: [{
           type: "fields",
-          fieldInfos: [{
-            fieldName: "airspeed",
-            label: "airspeed",
-            visible: true
-          }, {
-              fieldName: "airpeed_sp",
-              label: "airpeed_sp",
-              visible: true
-          }, {
-              fieldName: "altitude_amsl",
-              label: "altitude_amsl",
-              visible: true
-          }, {
-              fieldName: "altitude_sp",
-              label: "altitude_sp",
-              visible: true
-          }, {
-              fieldName: "base_mode",
-              label: "base_mode",
-              visible: true
-          }, {
-              fieldName: "battery_remaining",
-              label: "battery_remaining",
-              visible: true
-          }, {
-              fieldName: "climb_rate",
-              label: "climb_rate",
-              visible: true
-          }, {
-              fieldName: "custom_mode",
-              label: "custom_mode",
-              visible: true
-          }, {
-              fieldName: "failsafe",
-              label: "failsafe",
-              visible: true
-          }, {
-              fieldName: "gps_fix_type",
-              label: "gps_fix_type",
-              visible: true
-          }, {
-              fieldName: "gps_nsat",
-              label: "gps_nsat",
-              visible: true
-          }, {
-              fieldName: "groundspeed",
-              label: "groundspeed",
-              visible: true
-          }, {
-              fieldName: "heading",
-              label: "heading",
-              visible: true
-          }, {
-              fieldName: "heading_sp",
-              label: "heading_sp",
-              visible: true
-          }, {
-              fieldName: "landed_state",
-              label: "landed_state",
-              visible: true
-          }, {
-              fieldName: "latitude",
-              label: "latitude",
-              visible: true
-          }, {
-              fieldName: "longitude",
-              label: "longitude",
-              visible: true
-          }, {
-              fieldName: "pitch",
-              label: "pitch",
-              visible: true
-          }, {
-              fieldName: "roll",
-              label: "roll",
-              visible: true
-          }, {
-              fieldName: "temperature",
-              label: "temperature",
-              visible: true
-          }, {
-              fieldName: "temperature_air",
-              label: "temperature_air",
-              visible: true
-          }, {
-              fieldName: "throttle",
-              label: "throttle",
-              visible: true
-          }, {
-              fieldName: "wp_distance",
-              label: "wp_distance",
-              visible: true
-          }, {
-              fieldName: "wp_num",
-              label: "wp_num",
-              visible: true
-          }]
+          fieldInfos: [
+        	  { fieldName: "airspeed", label: "airspeed", visible: true }, 
+        	  { fieldName: "airpeed_sp", label: "airpeed_sp", visible: true }, 
+        	  { fieldName: "altitude_amsl", label: "altitude_amsl", visible: true }, 
+        	  { fieldName: "altitude_sp", label: "altitude_sp", visible: true }, 
+        	  { fieldName: "base_mode", label: "base_mode", visible: true }, 
+        	  { fieldName: "battery_remaining", label: "battery_remaining", visible: true }, 
+        	  { fieldName: "climb_rate", label: "climb_rate", visible: true }, 
+        	  { fieldName: "custom_mode", label: "custom_mode", visible: true }, 
+        	  { fieldName: "failsafe", label: "failsafe", visible: true }, 
+        	  { fieldName: "gps_fix_type", label: "gps_fix_type", visible: true }, 
+        	  { fieldName: "gps_nsat", label: "gps_nsat", visible: true }, 
+        	  { fieldName: "groundspeed", label: "groundspeed", visible: true }, 
+        	  { fieldName: "heading", label: "heading", visible: true }, 
+        	  { fieldName: "heading_sp", label: "heading_sp", visible: true }, 
+        	  { fieldName: "landed_state", label: "landed_state", visible: true }, 
+        	  { fieldName: "latitude", label: "latitude", visible: true }, 
+        	  { fieldName: "longitude", label: "longitude", visible: true }, 
+        	  { fieldName: "pitch", label: "pitch", visible: true }, 
+        	  { fieldName: "roll", label: "roll", visible: true }, 
+        	  { fieldName: "temperature", label: "voltage", visible: true }, 
+        	  { fieldName: "temperature_air", label: "current", visible: true }, 
+        	  { fieldName: "throttle", label: "throttle", visible: true }, 
+        	  { fieldName: "wp_distance", label: "wp_distance", visible: true }, 
+        	  { fieldName: "wp_num", label: "wp_num", visible: true }]
         }]
       };
 
@@ -299,56 +139,36 @@
         title: "Mission item {seq}",
         content: [{
           type: "fields",
-          fieldInfos: [{
-              fieldName: "seq",
-              label: "seq",
-              visible: true
-          },{
-            fieldName: "autocontinue",
-            label: "autocontinue",
-            visible: true
-          }, {
-              fieldName: "command",
-              label: "command",
-              visible: true
-          }, {
-              fieldName: "current",
-              label: "current",
-              visible: true
-          }, {
-              fieldName: "frame",
-              label: "frame",
-              visible: true
-          }, {
-              fieldName: "param1",
-              label: "param1",
-              visible: true
-          }, {
-              fieldName: "param2",
-              label: "param2",
-              visible: true
-          }, {
-              fieldName: "param3",
-              label: "param3",
-              visible: true
-          }, {
-              fieldName: "param4",
-              label: "param4",
-              visible: true
-          }]
+          fieldInfos: [
+        	  { fieldName: "seq", label: "seq", visible: true },
+        	  { fieldName: "autoContinue", label: "autoContinue", visible: true }, 
+        	  { fieldName: "command", label: "command", visible: true }, 
+        	  { fieldName: "doJumpId", label: "doJumpId", visible: true }, 
+        	  { fieldName: "frame", label: "frame", visible: true }, 
+        	  { fieldName: "params", label: "params", visible: true }, 
+        	  { fieldName: "type", label: "type", visible: true }]
         }]
       };
 
       // Set up popup template for the layer
       var linesTemplate = {
-        title: "System {sysid}",
+        title: "Track",
         content: [{
           type: "fields",
-          fieldInfos: [{
-            fieldName: "sysid",
-            label: "sysid",
-            visible: true
-          }]
+          fieldInfos: [
+        	  { fieldName: "from_time", label: "from_time", visible: true },
+        	  { fieldName: "to_time", label: "to_time", visible: true }]
+        }]
+      };
+      
+      // Set up popup template for the layer
+      var linesMissionTemplate = {
+        title: "Mission",
+        content: [{
+          type: "fields",
+          fieldInfos: [
+        	  { fieldName: "cruiseSpeed", label: "cruiseSpeed", visible: true },
+        	  { fieldName: "hooverSpeed", label: "hooverSpeed", visible: true }]
         }]
       };
 
@@ -357,10 +177,16 @@
        **************************************************/
 
       var map = new Map({
-        basemap: "streets",
+        basemap: "satellite",
         ground: "world-elevation"
       });
+      
+      map.ground.navigationConstraint = {
+    	type: "none"
+      };
 
+      map.ground.opacity = 0.8;
+      
       // Create MapView
       var view = new SceneView({
    	    container: "viewDiv",  // Reference to the DOM node that will contain the view
@@ -372,71 +198,115 @@
        **************************************************/
 
       var pointsRenderer = new SimpleRenderer({
-        symbol:  new TextSymbol({
-            color: [256, 0, 256],
-            text: "\ue900", // esri-icon-map-pin
-            yoffset: -3,
-            font: { // autocast as esri/symbols/Font
-              size: 16,
-              family: "CalciteWebCoreIcons",
-              weight: "bolder"
-            }
-          }),
-        visualVariables: [
-        {
-          type: "rotation",
-          field: "heading", 
-          rotation_type: "geographic"
+        symbol: {
+       	  type: "point-3d",  // autocasts as new PointSymbol3D()
+       	  symbolLayers: [{
+       	    type: "object",  // autocasts as new ObjectSymbol3DLayer()
+       	    width: 3,  // diameter of the object from east to west in meters
+       	    height: 4,  // height of the object in meters
+       	    depth: 1,  // diameter of the object from north to south in meters
+       	    resource: { primitive: "cone" },
+       	    material: { color: "magenta" }
+       	  }]
+       	},
+       	visualVariables: [{
+     	  "type": "rotation",
+          "field": "heading",
+          "axis" :"heading"
+        }, {
+       	  "type": "rotation",
+          "field": "roll",
+          "axis" :"roll"
+        }, {
+      	  "type": "rotation",
+          "field": "tilt",
+          "axis" :"tilt"
         }]
       });
 
       var linesRenderer = new SimpleRenderer({
         symbol: new SimpleLineSymbol({
-          width: 2,
+          width: 5,
           color: [256, 0, 0]
         })
       });
   
-      var pointsMissionRenderer = new SimpleRenderer({
-        symbol:  new TextSymbol({
-            color: [0, 255, 0],
-            text: "\ue613", // esri-icon-map-pin
-            yoffset: -7,
-            font: { // autocast as esri/symbols/Font
-              size: 16,
-              family: "CalciteWebCoreIcons",
-              weight: "bolder"
-            }
-          })
+      var pointsMissionRendererOld = new SimpleRenderer({
+    	  symbol: {
+	        type: "point-3d",  // autocasts as new PointSymbol3D()
+	      	symbolLayers: [{
+	      	  type: "object",  // autocasts as new ObjectSymbol3DLayer()
+	      	  width: 4,  // diameter of the object from east to west in meters
+	      	  height: 4,  // height of the object in meters
+	      	  depth: 4,  // diameter of the object from north to south in meters
+	      	  resource: { primitive: "sphere" },
+	      	  material: {  color: [255, 255, 0, 1] }
+	       }]
+	     }
       });
+      
+      var pointsMissionRenderer = {
+    		  type: "unique-value",  // autocasts as new UniqueValueRenderer()
+    		  field: "type",
+    		  defaultSymbol: {
+   		        type: "point-3d",  // autocasts as new PointSymbol3D()
+   		      	symbolLayers: [{
+   		      	  type: "object",  // autocasts as new ObjectSymbol3DLayer()
+   		      	  width: 4,  // diameter of the object from east to west in meters
+   		      	  height: 4,  // height of the object in meters
+   		      	  depth: 4,  // diameter of the object from north to south in meters
+   		      	  resource: { primitive: "sphere" },
+   		      	  material: {  color: [255, 255, 0, 1] }
+   		       }]
+    		  },  // autocasts as new SimpleFillSymbol()
+    		  uniqueValueInfos: [{
+    		    // All features with value of "North" will be blue
+    		    value: "PlannedHome",
+    		    symbol: {
+    		        type: "point-3d",  // autocasts as new PointSymbol3D()
+    		      	symbolLayers: [{
+    		      	  type: "object",  // autocasts as new ObjectSymbol3DLayer()
+    		      	  width: 4,  // diameter of the object from east to west in meters
+    		      	  height: 4,  // height of the object in meters
+    		      	  depth: 4,  // diameter of the object from north to south in meters
+    		      	  resource: { primitive: "sphere" },
+    		      	  material: {  color: [0, 255, 0, 1] }
+    		       }]
+    		     }
+    		  }]
+    		};
       
       var linesMissionRenderer = new SimpleRenderer({
         symbol: new SimpleLineSymbol({
           width: 2,
-          color: [0, 255, 0]
+          color: [255, 255, 0]
         })
       });
       
       view.when(function() {
-//         getLines()
-//           .then(createLinesGraphics) // then send it to the createPointsGraphics() method
-//           .then(createLinesLayer) // when graphics are created, create the layer
-//           .otherwise(errback);
-
-//         getPoints()
-//           .then(createPointsGraphics) // then send it to the createPointsGraphics() method
-//           .then(createPointsLayer) // when graphics are created, create the layer
-//           .then(zoomToLayer)
-//           .otherwise(errback);
+        var missionPoints = getMissionPoints();
         
-        getMissionLines()
+        missionPoints
           .then(createMissionLinesGraphics) // then send it to the createPointsGraphics() method
           .then(createMissionLinesLayer) // when graphics are created, create the layer
           .otherwise(errback);
   
-        getMissionPoints()
+        missionPoints
           .then(createMissionPointsGraphics) // then send it to the createPointsGraphics() method
           .then(createMissionPointsLayer) // when graphics are created, create the layer
+          //.then(zoomToLayer)
+          .otherwise(errback);
+        
+    	var points = getPoints();
+    	
+    	points
+          .then(createLinesGraphics) // then send it to the createPointsGraphics() method
+          .then(createLinesLayer) // when graphics are created, create the layer
+          .otherwise(errback);
+
+        points
+          .then(createPointsGraphics) // then send it to the createPointsGraphics() method
+          .then(createPointsLayer) // when graphics are created, create the layer
           .then(zoomToLayer)
           .otherwise(errback);
       });
@@ -444,66 +314,30 @@
 
       // Request the points data
       function getPoints() {
-    	var q = window.location.search;
-    	
-  		q += q ? "&top=1" : "?top=1";
-
-        var url = "/uvtracks/tracks" + q;
+        var url = "/uvtracks/tracks" + window.location.search;
 
         return esriRequest(url, {
           responseType: "json"
         });
       }
 
-      // Request the linestring data
-      function getLines() {
-    	var q = window.location.search 
- 		
-    	q += q ? "&type=linestring" : "?type=linestring";
-    	
-        var url = "/uvtracks/tracks" + q;
-
-        return esriRequest(url, {
-          responseType: "json"
-        });
-      }
-      
       // Request the points data
       function getMissionPoints() {
-    	var q = window.location.search;
-    	
-        var url = "/uvtracks/missions" + q;
+        var url = "/uvtracks/missions" + window.location.search;
 
         return esriRequest(url, {
           responseType: "json"
         });
       }
 
-      // Request the linestring data
-      function getMissionLines() {
-    	var q = window.location.search 
- 		
-    	q += q ? "&type=linestring" : "?type=linestring";
-    	
-        var url = "/uvtracks/missions" + q;
-
-        return esriRequest(url, {
-          responseType: "json"
-        });
-      }
-      
       function zoomToLayer(layer) {
     	  view.whenLayerView(layer).then(function(layerView){
-    		  layerView.watch("updating", function(val){
-    		    // wait for the layer view to finish updating
-    		    if(!val){
-    		      layerView.queryExtent().then(function(response){
-    		        // go to the extent of all the graphics in the layer view
-    		        view.goTo(response.extent);
-    		      });
-    		    }
-    		  });
-    		});
+   		      layerView.queryExtent().then(function(response){
+   		        // go to the extent of all the graphics in the layer view
+   		        view.scale = 10000;
+   		        view.goTo(response.extent);
+   		      });
+      	  });
       }
 
       /**************************************************
@@ -514,73 +348,146 @@
         // raw GeoJSON data
         var geoJson = response.data;
 
+        var feature = geoJson.features[0];
         // Create an array of Graphics from each GeoJSON feature
-        return arrayUtils.map(geoJson.features, function(feature, i) {
-          var graphics = {
-            geometry: new Point({
-              x: feature.geometry.coordinates[0],
-              y: feature.geometry.coordinates[1]
-            }),
-            attributes: feature.properties
-          };
-          graphics.attributes.latitude /= 10000000.0;
-          graphics.attributes.longitude /= 10000000.0;
-          graphics.attributes.heading /= 100.0;
-          graphics.attributes.pitch /= 100.0;
-          graphics.attributes.roll /= 100.0;
-          return graphics;
-        });
+
+        var graphics = {
+          geometry: new Point({
+            x: feature.geometry.coordinates[0],
+            y: feature.geometry.coordinates[1],
+            z: feature.geometry.coordinates[2]
+          }),
+          attributes: feature.properties
+        };
+ 
+        graphics.attributes.latitude /= 10000000.0;
+        graphics.attributes.longitude /= 10000000.0;
+        graphics.attributes.heading /= 100.0;
+        graphics.attributes.pitch /= 100.0;
+        graphics.attributes.roll /= 100.0;
+        graphics.attributes.tilt = graphics.attributes.roll - 90;
+        
+        return [graphics];
       }
 
       function createLinesGraphics(response) {
         // raw GeoJSON data
         var geoJson = response.data;
 
+		var minTime = -1;
+		var maxTime = -1;
+        var coordinates = [];
+        
+        for (i = 0; i < geoJson.features.length; i++) {
+        	var feature = geoJson.features[i];
+        	
+       		coordinates.push(feature.geometry.coordinates);
+			
+       		var recordTime = feature.properties.time;
+			
+			if (minTime < 0 || recordTime < minTime) {
+				minTime = recordTime;
+			}
+
+			if (maxTime < 0 || recordTime > maxTime) {
+				maxTime = recordTime;
+			}
+        }
+        
         // Create an array of Graphics from each GeoJSON feature
-        return arrayUtils.map(geoJson.features, function(feature, i) {
-          return {
+        return [ {
             geometry: new Polyline({
               hasZ: true,
               hasM: false,
-              paths: feature.geometry.coordinates
+              paths: coordinates
             }),
-            attributes: feature.properties
-          };
-        });
+            attributes: {
+            	from_time: minTime,
+            	to_time: maxTime
+            }
+        } ];
       }
 
       function createMissionPointsGraphics(response) {
-        // raw GeoJSON data
-        var geoJson = response.data;
+        var plan = response.data;
 
-        // Create an array of Graphics from each GeoJSON feature
-        return arrayUtils.map(geoJson.features, function(feature, i) {
-          var graphics = {
+        // Create an array of Graphics from mission items
+        var points = [];
+        
+        points.push({
             geometry: new Point({
-              x: feature.geometry.coordinates[0],
-              y: feature.geometry.coordinates[1]
+            	x: plan.mission.plannedHomePosition[1],
+            	y: plan.mission.plannedHomePosition[0],
+            	z: plan.mission.plannedHomePosition[2],
             }),
-            attributes: feature.properties
-          };
-          return graphics;
+            attributes: {
+            	seq: 0,
+            	command: 16, 
+            	autoContinue: 1,
+            	frame: 0,
+            	doJumpId: 1,
+            	type: "PlannedHome",
+            	params: []
+            }
         });
+        
+        for (i = 0; i < plan.mission.items.length; i++) {
+        	var item = plan.mission.items[i];
+        	
+        	var z = item.params[6] + plan.mission.plannedHomePosition[2];
+        	
+        	if (item.params[5] != 0 && item.params[6] != 0)
+        	points.push({
+                geometry: new Point({
+                    x: item.params[5],
+                    y: item.params[4],
+                    z: z
+                  }),
+                attributes: {
+                	seq: i + 1,
+                	command: item.command, 
+                	autoContinue: item.autoContinue,
+                	frame: item.frame,
+                	doJumpId: item.doJumpId,
+                	type: item.type,
+                	params: item.params
+                }
+           });
+        }
+        
+        return points;
       }
 
       function createMissionLinesGraphics(response) {
-        // raw GeoJSON data
-        var geoJson = response.data;
+        // raw plan data
+        var plan = response.data;
 
+        var coordinates = [];
+        
+        coordinates.push([plan.mission.plannedHomePosition[1], 
+        	              plan.mission.plannedHomePosition[0],
+        	              plan.mission.plannedHomePosition[2]]);
+        
+        for (i = 0; i < plan.mission.items.length; i++) {
+        	var item = plan.mission.items[i];
+        	var z = item.params[6] + plan.mission.plannedHomePosition[2];
+        	if (item.params[5] != 0 && item.params[6] != 0) {
+        		coordinates.push([item.params[5], item.params[4], z]);
+        	}
+        }
+        
         // Create an array of Graphics from each GeoJSON feature
-        return arrayUtils.map(geoJson.features, function(feature, i) {
-          return {
+        return [ {
             geometry: new Polyline({
               hasZ: true,
               hasM: false,
-              paths: feature.geometry.coordinates
+              paths: coordinates
             }),
-            attributes: feature.properties
-          };
-        });
+            attributes: {
+              cruiseSpeed: plan.mission.cruiseSpeed,
+              hooverSpeed: plan.mission.hooverSpeed
+            }
+        } ];
       }
       
       
@@ -658,7 +565,8 @@
             spatialReference: {
               wkid: 4326
             },
-            geometryType: "polyline" // Must be set when creating a layer from Graphics
+            geometryType: "polyline", // Must be set when creating a layer from Graphics
+            popupTemplate: linesMissionTemplate
           });
 
           map.add(linesLayer);

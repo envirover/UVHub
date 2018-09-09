@@ -19,11 +19,7 @@
 package com.envirover.uvnet.shadow;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpHost;
@@ -45,9 +41,6 @@ import org.elasticsearch.search.sort.SortOrder;
 
 import com.envirover.geojson.Feature;
 import com.envirover.geojson.FeatureCollection;
-import com.envirover.geojson.GeometryType;
-import com.envirover.geojson.LineString;
-import com.envirover.geojson.Point;
 import com.envirover.uvnet.mission.Plan;
 
 /**
@@ -95,7 +88,7 @@ public class PersistentUVShadowView implements UVShadowView {
     }
 
     @Override
-	public FeatureCollection queryMessages(int sysId, int msgId, GeometryType geometryType, Long startTime, Long endTime, int top) throws IOException {
+	public FeatureCollection queryMessages(int sysId, int msgId, Long startTime, Long endTime, int top) throws IOException {
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
@@ -126,14 +119,15 @@ public class PersistentUVShadowView implements UVShadowView {
         SearchResponse searchResponse = client.search(searchRequest);
         SearchHits hits = searchResponse.getHits();
         
-        switch (geometryType) {
-        case Point:
-        	return buildPointFeatures(sysId, hits);
-	    case LineString:
-        	return buildLineFeatures(sysId, hits);
-        default:
-        	throw new IllegalArgumentException("Unsupported GeoJSON geometry type.");
-        }
+        FeatureCollection result = new FeatureCollection();
+		
+		for (Iterator<SearchHit> iter = hits.iterator(); iter.hasNext();) {
+			SearchHit hit = iter.next();
+			Feature feature = mapper.readValue(hit.getSourceAsString(), Feature.class);
+			result.getFeatures().add(feature);
+		}
+
+		return result;
     }
      
     @Override
@@ -151,74 +145,5 @@ public class PersistentUVShadowView implements UVShadowView {
 			return new Plan();
 		}
     }
-
-//	private FeatureCollection buildMissionLineString(int sysid, FeatureCollection mission) {
-//		List<List<Double>> coordinates = new ArrayList<List<Double>>();
-//
-//		for (Feature feature : mission.getFeatures()) {
-//			if (feature.getGeometry().getType() == GeometryType.Point) {
-//				coordinates.add(((Point)feature.getGeometry()).getCoordinates());
-//			}
-//		}
-//
-//		Map<String, Object> properties = new HashMap<String, Object>();
-//		properties.put("sysid", sysid);
-//
-//		Feature lineFeature = new Feature(new LineString(coordinates), properties);
-//
-//		FeatureCollection result = new FeatureCollection();
-//		result.getFeatures().add(lineFeature);
-//		return result;
-//	}
-//     
-	private FeatureCollection buildPointFeatures(int sysid, SearchHits hits) throws IOException {
-		FeatureCollection result = new FeatureCollection();
-		
-		for (Iterator<SearchHit> iter = hits.iterator(); iter.hasNext();) {
-			SearchHit hit = iter.next();
-			Feature feature = mapper.readValue(hit.getSourceAsString(), Feature.class);
-			result.getFeatures().add(feature);
-		}
-
-		return result;
-	}
-     
-	private FeatureCollection buildLineFeatures(int sysid, SearchHits hits) throws IOException {
-		long minTime = -1;
-		long maxTime = -1;
-		List<List<Double>> coordinates = new ArrayList<List<Double>>();
-
-		for (Iterator<SearchHit> iter = hits.iterator(); iter.hasNext();) {
-			SearchHit hit = iter.next();
-			
-			Feature feature = mapper.readValue(hit.getSourceAsString(), Feature.class);
-
-			long recordTime = (long) feature.getProperties().get("time");
-			
-			if (minTime < 0 || recordTime < minTime) {
-				minTime = recordTime;
-			}
-
-			if (maxTime < 0 || recordTime > maxTime) {
-				maxTime = recordTime;
-			}
-
-			if (feature.getGeometry().getType() == GeometryType.Point) {
-				coordinates.add(((Point)feature.getGeometry()).getCoordinates());
-			}
-		}
-
-		Map<String, Object> properties = new HashMap<String, Object>();
-		properties.put("sysid", sysid);
-		properties.put("from_time", minTime);
-		properties.put("to_time", maxTime);
-
-		Feature lineFeature = new Feature(new LineString(coordinates), properties);
-
-		FeatureCollection result = new FeatureCollection();
-		result.getFeatures().add(lineFeature);
-
-		return result;
-	}
 
 }

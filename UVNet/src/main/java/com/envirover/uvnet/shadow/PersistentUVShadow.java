@@ -169,6 +169,10 @@ public class PersistentUVShadow implements UVShadow {
 	
     @Override
     public void setParams(int sysId, List<msg_param_value> params) throws IOException {
+    	if (params == null) {
+    		return;
+    	}
+    	
     	// Build a map of existing parameters.
     	Map<String, msg_param_value> existingParamsMap = new HashMap<String, msg_param_value>();
     	

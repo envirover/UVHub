@@ -10,7 +10,7 @@ public class MissionItem {
 	private final String type = "SimpleItem";
 	private boolean autoContinue = true;
 	private int command;
-	private List<Double> coordinate = new ArrayList<Double>();
+	//private List<Double> coordinate = new ArrayList<Double>();
 	private int doJumpId;
 	private int frame;
 	private List<Double> params = new ArrayList<Double>();
@@ -22,15 +22,15 @@ public class MissionItem {
 	public MissionItem(msg_mission_item missionItem) {
 		autoContinue = missionItem.autocontinue != 0 ? true : false;
 		command = missionItem.command;
-		coordinate.add((double)missionItem.y);
-		coordinate.add((double)missionItem.x);
-		coordinate.add((double)missionItem.z);
 		doJumpId = missionItem.seq + 1;
 		frame = missionItem.frame;
 		params.add((double)missionItem.param1);
 		params.add((double)missionItem.param2);
 		params.add((double)missionItem.param3);
 		params.add((double)missionItem.param4);
+		params.add((double)missionItem.x);
+		params.add((double)missionItem.y);
+		params.add((double)missionItem.z);
 	}
 	
 	public String getType() {
@@ -53,13 +53,13 @@ public class MissionItem {
 		this.command = command;
 	}
 
-	public List<Double> getCoordinate() {
-		return coordinate;
-	}
-
-	public void setCoordinate(List<Double> coordinate) {
-		this.coordinate = coordinate;
-	}
+//	public List<Double> getCoordinate() {
+//		return coordinate;
+//	}
+//
+//	public void setCoordinate(List<Double> coordinate) {
+//		this.coordinate = coordinate;
+//	}
 
 	public int getDoJumpId() {
 		return doJumpId;

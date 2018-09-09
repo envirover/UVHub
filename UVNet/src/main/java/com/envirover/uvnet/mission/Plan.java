@@ -73,8 +73,8 @@ public class Plan {
 		
     	msg_mission_item home = missionItems.get(0);
 		List<Double> plannedHomePosition = new ArrayList<Double>();
-		plannedHomePosition.add((double)home.y);
 		plannedHomePosition.add((double)home.x);
+		plannedHomePosition.add((double)home.y);
 		plannedHomePosition.add((double)home.z);
 		mission.setPlannedHomePosition(plannedHomePosition);
 		
@@ -82,10 +82,10 @@ public class Plan {
 			return;
 		}
 		
-		msg_mission_item takeoff = missionItems.get(1);
-		mission.setCruiseSpeed((int)takeoff.param2);
+//		msg_mission_item takeoff = missionItems.get(1);
+//		mission.setCruiseSpeed((int)takeoff.param2);
 		
-		for (int i = 2; i < missionItems.size(); i++) {
+		for (int i = 1; i < missionItems.size(); i++) {
 			mission.getItems().add(new MissionItem(missionItems.get(i)));
 		}
 	}
