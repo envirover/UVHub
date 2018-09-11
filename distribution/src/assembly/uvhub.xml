@@ -7,21 +7,22 @@
 		<format>tar.gz</format>
 	</formats>
 	<includeBaseDirectory>false</includeBaseDirectory>
-	<moduleSets>
-		<moduleSet>
-			<!-- Enable access to all projects in the current multimodule build! -->
-			<useAllReactorProjects>true</useAllReactorProjects>
-
-			<!-- Now, select which projects to include in this module-set. -->
+	<dependencySets>
+		<dependencySet>
+		    <useProjectArtifact>false</useProjectArtifact>
+			<outputDirectory>tomcat/webapps/</outputDirectory>
+            <includes>
+                <include>*:*:war:*</include>
+            </includes>
+		</dependencySet>
+		<dependencySet>
+			<useProjectArtifact>false</useProjectArtifact>
+			<outputDirectory>lib</outputDirectory>
 			<includes>
-				<include>com.envirover:uvhub</include>
+				<include>*:*:jar:*</include>
 			</includes>
-			<binaries>
-				<outputDirectory>lib</outputDirectory>
-				<unpack>false</unpack>
-			</binaries>
-		</moduleSet>
-	</moduleSets>
+		</dependencySet>
+	</dependencySets>
 	<fileSets>
 		<fileSet>
 			<directory>${project.basedir}/..</directory>
@@ -62,6 +63,13 @@
 			<outputDirectory>logs</outputDirectory>
 			<includes>
 				<include>*</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>${project.basedir}/tomcat</directory>
+			<outputDirectory>tomcat</outputDirectory>
+			<includes>
+				<include>*/*</include>
 			</includes>
 		</fileSet>
 	</fileSets>
