@@ -21,8 +21,9 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -34,6 +35,9 @@ import com.MAVLink.common.msg_global_position_int;
 import com.MAVLink.common.msg_gps_raw_int;
 import com.MAVLink.common.msg_heartbeat;
 import com.MAVLink.common.msg_high_latency;
+import com.MAVLink.common.msg_log_entry;
+import com.MAVLink.common.msg_log_erase;
+import com.MAVLink.common.msg_log_request_list;
 import com.MAVLink.common.msg_mission_ack;
 import com.MAVLink.common.msg_mission_clear_all;
 import com.MAVLink.common.msg_mission_count;
@@ -66,7 +70,8 @@ public class ShadowClientSession implements ClientSession {
     private final static Logger logger = Logger.getLogger(ShadowClientSession.class);
     private static final Config config = Config.getInstance();
 
-    private final Timer heartbeatTimer = new Timer();
+    private final ScheduledExecutorService heartbeatTimer;
+
     private final MAVLinkChannel src;
     private final UVShadow shadow;
 
@@ -78,6 +83,7 @@ public class ShadowClientSession implements ClientSession {
     private int sysId = 1;  //TODO set system Id for the client session
     
     public ShadowClientSession(MAVLinkChannel src, UVShadow shadow) {
+    	this.heartbeatTimer = Executors.newScheduledThreadPool(2);
         this.src = src;
         this.shadow = shadow;
     }
@@ -87,7 +93,7 @@ public class ShadowClientSession implements ClientSession {
      */
     @Override
     public void onOpen() throws IOException {
-        TimerTask heartbeatTask = new TimerTask() {
+        Runnable heartbeatTask = new Runnable() {
             @Override
             public void run() {
                 try {
@@ -104,7 +110,7 @@ public class ShadowClientSession implements ClientSession {
             }
         };
 
-        heartbeatTimer.schedule(heartbeatTask, 0, config.getHeartbeatInterval());
+        heartbeatTimer.scheduleAtFixedRate(heartbeatTask, 0, config.getHeartbeatInterval(), TimeUnit.MILLISECONDS);
         
         isOpen = true;
         
@@ -119,7 +125,7 @@ public class ShadowClientSession implements ClientSession {
     	if (isOpen) {
 	    	isOpen = false;
 	    	
-	        heartbeatTimer.cancel();
+	        heartbeatTimer.shutdownNow();
 	
 	        if (src != null) {
 	            src.close();
@@ -136,6 +142,7 @@ public class ShadowClientSession implements ClientSession {
     public void onMessage(MAVLinkPacket packet) throws IOException {
         handleParams(packet);
         handleMissions(packet);
+        handleLogs(packet);
     }
 
 	@Override
@@ -270,6 +277,39 @@ public class ShadowClientSession implements ClientSession {
         }
     }
 
+    private void handleLogs(MAVLinkPacket packet) throws IOException {
+        if (packet == null) {
+            return;
+        }
+
+        switch (packet.msgid) {
+	        case msg_log_request_list.MAVLINK_MSG_ID_LOG_REQUEST_LIST:
+	        	MAVLinkLogger.log(Level.INFO, "<<", packet);
+	        	
+	        	msg_log_request_list log_request_list = (msg_log_request_list)packet.unpack();
+	        	
+	        	List<msg_log_entry> logs = shadow.getLogs(log_request_list.target_system);
+	        	
+	        	if (logs != null) {
+		        	for (msg_log_entry log_entry : logs) {
+		        		sendToSource(log_entry);
+		        	}
+	        	}
+	        	
+	        	break;
+	        case msg_log_erase.MAVLINK_MSG_ID_LOG_ERASE:
+	        	MAVLinkLogger.log(Level.INFO, "<<", packet);
+	        	
+	        	msg_log_erase log_erase = (msg_log_erase)packet.unpack();
+	        	
+	        	shadow.eraseLogs(log_erase.target_system);
+	        	
+	        	logger.info("Messages log erased.");
+	        	
+	        	break;
+        }
+    }
+    
     private void sendToSource(MAVLinkMessage msg) throws IOException {
         if (msg == null) {
             return;
@@ -397,6 +437,5 @@ public class ShadowClientSession implements ClientSession {
         msg.throttle = msgHighLatency.throttle;
         return msg;
     }
-
 
 }

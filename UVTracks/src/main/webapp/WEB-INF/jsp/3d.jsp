@@ -57,6 +57,8 @@
 
       var pointsLayer, legend;
 
+      var elevationDelta = 0.0;
+      
       /**************************************************
        * Define the specification for each field to create
        * in the layer
@@ -246,36 +248,37 @@
       });
       
       var pointsMissionRenderer = {
-    		  type: "unique-value",  // autocasts as new UniqueValueRenderer()
-    		  field: "type",
-    		  defaultSymbol: {
-   		        type: "point-3d",  // autocasts as new PointSymbol3D()
-   		      	symbolLayers: [{
-   		      	  type: "object",  // autocasts as new ObjectSymbol3DLayer()
-   		      	  width: 4,  // diameter of the object from east to west in meters
-   		      	  height: 4,  // height of the object in meters
-   		      	  depth: 4,  // diameter of the object from north to south in meters
-   		      	  resource: { primitive: "sphere" },
-   		      	  material: {  color: [255, 255, 0, 1] }
-   		       }]
-    		  },  // autocasts as new SimpleFillSymbol()
-    		  uniqueValueInfos: [{
-    		    // All features with value of "North" will be blue
-    		    value: "PlannedHome",
-    		    symbol: {
-    		        type: "point-3d",  // autocasts as new PointSymbol3D()
-    		      	symbolLayers: [{
-    		      	  type: "object",  // autocasts as new ObjectSymbol3DLayer()
-    		      	  width: 4,  // diameter of the object from east to west in meters
-    		      	  height: 4,  // height of the object in meters
-    		      	  depth: 4,  // diameter of the object from north to south in meters
-    		      	  resource: { primitive: "sphere" },
-    		      	  material: {  color: [0, 255, 0, 1] }
-    		       }]
-    		     }
-    		  }]
-    		};
+		  type: "unique-value",  // autocasts as new UniqueValueRenderer()
+		  field: "type",
+		  defaultSymbol: {
+	        type: "point-3d",  // autocasts as new PointSymbol3D()
+	      	symbolLayers: [{
+	      	  type: "object",  // autocasts as new ObjectSymbol3DLayer()
+	      	  width: 4,  // diameter of the object from east to west in meters
+	      	  height: 4,  // height of the object in meters
+	      	  depth: 4,  // diameter of the object from north to south in meters
+	      	  resource: { primitive: "sphere" },
+	      	  material: {  color: [255, 255, 0, 1] }
+	       }]
+		  },  // autocasts as new SimpleFillSymbol()
+		  uniqueValueInfos: [{
+		    // All features with value of "North" will be blue
+		    value: "PlannedHome",
+		    symbol: {
+		        type: "point-3d",  // autocasts as new PointSymbol3D()
+		      	symbolLayers: [{
+		      	  type: "object",  // autocasts as new ObjectSymbol3DLayer()
+		      	  width: 4,  // diameter of the object from east to west in meters
+		      	  height: 4,  // height of the object in meters
+		      	  depth: 4,  // diameter of the object from north to south in meters
+		      	  resource: { primitive: "sphere" },
+		      	  material: {  color: [0, 255, 0, 1] }
+		       }]
+		     }
+		  }]
+		};
       
+       
       var linesMissionRenderer = new SimpleRenderer({
         symbol: new SimpleLineSymbol({
           width: 2,
@@ -283,21 +286,41 @@
         })
       });
       
+      var labelClass = {
+  		  // autocasts as new LabelClass()
+  		  symbol: {
+  		    type: "text",  // autocasts as new TextSymbol()
+  		    color: "white",
+  		    haloColor: "black",
+  		    font: {  // autocast as new Font()
+  		      family: "playfair-display",
+  		      size: 12,
+  		      weight: "bold"
+  		    }
+  		  },
+  		  labelPlacement: "above-center",
+  		  labelExpressionInfo: {
+  		    expression: "$feature.seq"
+  		  }
+  	  };
+     
       view.when(function() {
-        var missionPoints = getMissionPoints();
+        var missions = getMissions()
+          .then(fixHomeAltitude);
         
-        missionPoints
+        missions
           .then(createMissionLinesGraphics) // then send it to the createPointsGraphics() method
           .then(createMissionLinesLayer) // when graphics are created, create the layer
           .otherwise(errback);
-  
-        missionPoints
-          .then(createMissionPointsGraphics) // then send it to the createPointsGraphics() method
-          .then(createMissionPointsLayer) // when graphics are created, create the layer
-          //.then(zoomToLayer)
-          .otherwise(errback);
+      
+        missions
+	      .then(createMissionPointsGraphics) // then send it to the createPointsGraphics() method
+	      .then(createMissionPointsLayer) // when graphics are created, create the layer
+	      .otherwise(errback);
         
-    	var points = getPoints();
+    	var points = missions
+    	  .then(getTracks)
+    	  .then(fixTracksAltitude);
     	
     	points
           .then(createLinesGraphics) // then send it to the createPointsGraphics() method
@@ -313,7 +336,7 @@
       
 
       // Request the points data
-      function getPoints() {
+      function getTracks() {
         var url = "/uvtracks/tracks" + window.location.search;
 
         return esriRequest(url, {
@@ -322,7 +345,7 @@
       }
 
       // Request the points data
-      function getMissionPoints() {
+      function getMissions() {
         var url = "/uvtracks/missions" + window.location.search;
 
         return esriRequest(url, {
@@ -330,6 +353,35 @@
         });
       }
 
+      async function fixHomeAltitude(response) {
+    	  var plan = response.data;
+    	  
+    	  var home =  new Point({
+          	x: plan.mission.plannedHomePosition[1],
+        	y: plan.mission.plannedHomePosition[0],
+        	z: plan.mission.plannedHomePosition[2],
+          });
+    	  
+          var elevation = await map.ground.layers.items[0].queryElevation(home);
+      	
+          elevationDelta = elevation.geometry.z - plan.mission.plannedHomePosition[2];
+          
+          plan.mission.plannedHomePosition[2] = elevation.geometry.z;
+          
+          return plan;
+      }
+      
+      function fixTracksAltitude(response) {
+    	  var geoJson = response.data;
+    	  
+    	  for (i = 0; i < geoJson.features.length; i++) {
+          	var feature = geoJson.features[i];
+          	feature.geometry.coordinates[2] += elevationDelta;
+    	  }
+    	  
+    	  return geoJson;
+      }
+      
       function zoomToLayer(layer) {
     	  view.whenLayerView(layer).then(function(layerView){
    		      layerView.queryExtent().then(function(response){
@@ -344,10 +396,7 @@
        * Create graphics with returned geojson data
        **************************************************/
 
-      function createPointsGraphics(response) {
-        // raw GeoJSON data
-        var geoJson = response.data;
-
+      function createPointsGraphics(geoJson) {
         var feature = geoJson.features[0];
         // Create an array of Graphics from each GeoJSON feature
 
@@ -370,10 +419,7 @@
         return [graphics];
       }
 
-      function createLinesGraphics(response) {
-        // raw GeoJSON data
-        var geoJson = response.data;
-
+      function createLinesGraphics(geoJson) {
 		var minTime = -1;
 		var maxTime = -1;
         var coordinates = [];
@@ -381,7 +427,7 @@
         for (i = 0; i < geoJson.features.length; i++) {
         	var feature = geoJson.features[i];
         	
-       		coordinates.push(feature.geometry.coordinates);
+      		coordinates.push(feature.geometry.coordinates);
 			
        		var recordTime = feature.properties.time;
 			
@@ -409,7 +455,7 @@
       }
 
       function createMissionPointsGraphics(response) {
-        var plan = response.data;
+        var plan = response;
 
         // Create an array of Graphics from mission items
         var points = [];
@@ -434,25 +480,34 @@
         for (i = 0; i < plan.mission.items.length; i++) {
         	var item = plan.mission.items[i];
         	
-        	var z = item.params[6] + plan.mission.plannedHomePosition[2];
-        	
-        	if (item.params[5] != 0 && item.params[6] != 0)
-        	points.push({
-                geometry: new Point({
-                    x: item.params[5],
-                    y: item.params[4],
-                    z: z
-                  }),
-                attributes: {
-                	seq: i + 1,
-                	command: item.command, 
-                	autoContinue: item.autoContinue,
-                	frame: item.frame,
-                	doJumpId: item.doJumpId,
-                	type: item.type,
-                	params: item.params
-                }
-           });
+        	if (item.params[5] != 0 && item.params[6] != 0) {
+	        	var point = new Point({
+	                x: item.params[5],
+	                y: item.params[4],
+	                z: item.params[6] + points[0].geometry.z
+	              });
+	        	
+        	    if (item.command == 22) { //takeoff
+        	    	point = new Point({
+    	                x: points[0].geometry.x,
+    	                y: points[0].geometry.y,
+    	                z: points[0].geometry.z + item.params[6]
+    	              });
+        	    }
+        	    
+	        	points.push({
+	                geometry: point,
+	                attributes: {
+	                	seq: i + 1,
+	                	command: item.command, 
+	                	autoContinue: item.autoContinue,
+	                	frame: item.frame,
+	                	doJumpId: item.doJumpId,
+	                	type: item.type,
+	                	params: item.params
+	                }
+	           });
+            }
         }
         
         return points;
@@ -460,7 +515,7 @@
 
       function createMissionLinesGraphics(response) {
         // raw plan data
-        var plan = response.data;
+        var plan = response;
 
         var coordinates = [];
         
@@ -472,7 +527,10 @@
         	var item = plan.mission.items[i];
         	var z = item.params[6] + plan.mission.plannedHomePosition[2];
         	if (item.params[5] != 0 && item.params[6] != 0) {
-        		coordinates.push([item.params[5], item.params[4], z]);
+        		if (item.command == 22) //takeoff
+        			coordinates.push([plan.mission.plannedHomePosition[1], plan.mission.plannedHomePosition[0], z]);
+        		else
+        		    coordinates.push([item.params[5], item.params[4], z]);
         	}
         }
         
@@ -546,7 +604,8 @@
               wkid: 4326
             },
             geometryType: "point", // Must be set when creating a layer from Graphics
-            popupTemplate: missionPointsTemplate
+            popupTemplate: missionPointsTemplate,
+            labelingInfo: [ labelClass ]
           });
 
           map.add(pointsLayer);
@@ -584,7 +643,7 @@
 
       // Executes if data retrieval was unsuccessful.
       function errback(error) {
-        console.error("Creating legend failed. ", error);
+        console.error("Error. ", error);
       }
 
     });

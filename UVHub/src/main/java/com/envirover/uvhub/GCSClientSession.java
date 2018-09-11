@@ -21,8 +21,9 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -74,7 +75,7 @@ public class GCSClientSession implements ClientSession {
     private final static Logger logger = Logger.getLogger(GCSClientSession.class);
     private static final Config config = Config.getInstance();
 
-    private final Timer heartbeatTimer = new Timer();
+    private final ScheduledExecutorService heartbeatTimer;
     private final MAVLinkChannel src;
     private final MAVLinkChannel dst;
     private final UVShadow shadow;
@@ -85,6 +86,7 @@ public class GCSClientSession implements ClientSession {
     private int sysId = 1; //TODO set system Id for the client session
 
     public GCSClientSession(MAVLinkChannel src, MAVLinkChannel mtMessageQueue, UVShadow shadow) {
+    	this.heartbeatTimer = Executors.newScheduledThreadPool(2);
         this.src = src;
         this.dst = mtMessageQueue;
         this.shadow = shadow;
@@ -95,7 +97,7 @@ public class GCSClientSession implements ClientSession {
      */
     @Override
     public void onOpen() throws IOException {
-        TimerTask heartbeatTask = new TimerTask() {
+        Runnable heartbeatTask = new Runnable() {
             @Override
             public void run() {
                 try {
@@ -107,7 +109,7 @@ public class GCSClientSession implements ClientSession {
             }
         };
 
-        heartbeatTimer.schedule(heartbeatTask, 0, config.getHeartbeatInterval());
+        heartbeatTimer.scheduleAtFixedRate(heartbeatTask, 0, config.getHeartbeatInterval(), TimeUnit.MILLISECONDS);
         
         isOpen = true;
     }
@@ -119,7 +121,7 @@ public class GCSClientSession implements ClientSession {
     public void onClose() throws IOException {
     	isOpen = false;
     	
-        heartbeatTimer.cancel();
+        heartbeatTimer.shutdownNow();
 
         if (src != null) {
             src.close();

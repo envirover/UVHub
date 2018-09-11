@@ -38,6 +38,7 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.Requests;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
@@ -47,6 +48,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 
 import com.MAVLink.Messages.MAVLinkMessage;
+import com.MAVLink.common.msg_log_entry;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_param_value;
@@ -352,15 +354,60 @@ public class PersistentUVShadow implements UVShadow {
     	return JsonSerializer.mavlinkMessageFromJSON(source);
 	}
    
+	@Override
+	public List<msg_log_entry> getLogs(int sysId) throws IOException {
+		SearchRequest searchRequest = new SearchRequest(MESSAGES_INDEX_NAME); 
+    	
+    	SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder(); 
+    	searchSourceBuilder.query(QueryBuilders.termQuery("properties.sysid", sysId)); 
+    	searchSourceBuilder.sort("properties.time", SortOrder.DESC);
+    	searchSourceBuilder.size(1);
+    	searchRequest.source(searchSourceBuilder);
+    	
+    	SearchResponse searchResponse = client.search(searchRequest);
+    	
+  		List<msg_log_entry> logs = new ArrayList<msg_log_entry>();
+
+  		for (SearchHit hit : searchResponse.getHits()) {
+			msg_log_entry log_entry = new msg_log_entry();
+	    	log_entry.sysid = sysId;
+	    	log_entry.compid = 0;
+	    	log_entry.id = 1;
+	    	log_entry.last_log_num = 1;
+	    	log_entry.num_logs = 1;
+    		log_entry.time_utc = Long.parseLong(hit.getId()) / 1000;
+	    	log_entry.size = searchResponse.getHits().getTotalHits() * hit.getSourceAsString().length();
+	    	
+	    	logs.add(log_entry);
+  		}
+    	
+		return logs;
+	}
+
+	@Override
+	public void eraseLogs(int sysId) throws IOException {
+		try {
+			client.indices().delete(Requests.deleteIndexRequest(MESSAGES_INDEX_NAME));
+			
+	    	CreateIndexRequest createIndexRequest = Requests.createIndexRequest(MESSAGES_INDEX_NAME);
+	       	String mapping = mappings.getString("ReportedMessagesMapping");
+	    	createIndexRequest.mapping(DOCUMENT_TYPE, mapping, XContentType.JSON);
+	    	client.indices().create(createIndexRequest);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			throw new IOException(ex);
+		}
+	}
+    
 	private void indexParamValue(int sysId, msg_param_value paramValue)
 			throws JsonGenerationException, JsonMappingException, IOException {
 		String id = String.format("%d_%s", sysId, paramValue.getParam_Id());
 		String source = JsonSerializer.toJSON(paramValue);
 
-		IndexRequest indexRequest = org.elasticsearch.client.Requests.indexRequest(PARAMETERS_INDEX_NAME)
+		IndexRequest indexRequest = Requests.indexRequest(PARAMETERS_INDEX_NAME)
 				.type(DOCUMENT_TYPE).id(id).source(source, XContentType.JSON);
  	       
 		client.index(indexRequest);
 	}
-    
+
 }

@@ -23,6 +23,7 @@ import java.util.List;
 
 import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_high_latency;
+import com.MAVLink.common.msg_log_entry;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_param_value;
@@ -122,5 +123,14 @@ public class InMemoryUVShadow implements UVShadow {
 	public MAVLinkMessage getLastMessage(int sysId, int msgId) throws IOException {
         return msgHighLatency;
     }
+
+	@Override
+	public List<msg_log_entry> getLogs(int sysId) throws IOException {
+		return null;
+	}
+
+	@Override
+	public void eraseLogs(int sysId) throws IOException {
+	}
     
 }

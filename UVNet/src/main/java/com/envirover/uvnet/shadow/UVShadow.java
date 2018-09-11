@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.MAVLink.Messages.MAVLinkMessage;
+import com.MAVLink.common.msg_log_entry;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_param_value;
@@ -109,7 +110,7 @@ public interface UVShadow {
 	void updateReportedState(MAVLinkMessage msg, long timestamp) throws IOException;
 
 	/**
-	 * Returns last reported MAVLink message of the specified type from the specyfied system.
+	 * Returns last reported MAVLink message of the specified type from the specified system.
 	 * 
 	 * @param sysId system ID
 	 * @param msgId MAVLink message ID
@@ -117,4 +118,22 @@ public interface UVShadow {
 	 * @throws IOException I/O operation failed
 	 */
 	MAVLinkMessage getLastMessage(int sysId, int msgId) throws IOException;
+	
+	/**
+	 * Returns list of available logs.
+	 * 
+	 * @param sysId system ID
+	 * @return list of available logs
+	 * @throws IOException I/O operation failed
+	 */
+	List<msg_log_entry> getLogs(int sysId) throws IOException;
+	
+	/**
+	 * Erases all logs.
+	 * 
+	 * @param sysId system ID
+	 * @throws IOException I/O error
+	 */
+	void eraseLogs(int sysId) throws IOException;
+	
 }
