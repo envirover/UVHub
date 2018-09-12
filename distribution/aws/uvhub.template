@@ -1,11 +1,12 @@
 {
   "AWSTemplateFormatVersion" : "2010-09-09",
-  "Description" : "AWS CloudFormation template for UV Hub server. **WARNING** This template creates an Amazon EC2 instance. You will be billed for the AWS resources used if you create a stack from this template.",
+  "Description" : "AWS CloudFormation template for UV Hub server. You will be billed for the AWS resources used if you create a stack from this template.",
   "Parameters" : {
     "KeyName" : {
       "Description" : "Name of an existing EC2 KeyPair to enable SSH access to the instances",
       "Type" : "AWS::EC2::KeyPair::KeyName",
-      "ConstraintDescription" : "must be the name of an existing EC2 KeyPair."
+      "AllowedPattern" : ".+",
+      "ConstraintDescription" : "Must be the name of an existing EC2 KeyPair."
     },
     "InstanceType" : {
       "Description" : "EC2 instance type",
@@ -15,7 +16,7 @@
       "ConstraintDescription" : "must be a valid EC2 instance type."
     },
     "ClientCIDR" : {
-      "Description" : "CIDR IP address range of MAVLink clients and SSH",
+      "Description" : "CIDR IP address range of GCS clients and SSH",
       "Type" : "String",
       "MinLength" : "9",
       "MaxLength" : "18",
@@ -42,28 +43,62 @@
       "AllowedPattern" : "^(?!\\s*$).+",
       "ConstraintDescription" : "RockBLOCK password is required"
     },
-    "SPLArchiveURL" : {
-      "Description" : "URL of SPLGroundControl distribution archive",
-      "Type" : "String",
-      "Default" : "https://s3-us-west-2.amazonaws.com/envirover/UVHub/uvhub-2.0-bin.zip"
-    },
-    "MAVParametersURL" : {
-      "Description" : "URL of default.params file with initial on-board parameters values.",
-      "Type" : "String",
-      "Default" : "https://s3-us-west-2.amazonaws.com/envirover/spl/default.params"
-    },
     "MAVAutopilot" : {
-      "Description" : "Autopilot class from MAV_AUTOPILOT enumeration (3 - ARDUPILOTMEGA, 12 - PX4).",
-      "Type" : "Number",
-      "Default" : "3"
+      "Description" : "Autopilot class",
+      "Type" : "String",
+      "AllowedValues" : ["ArduPilot", "PX4"],
+      "Default" : "ArduPilot"
     },
     "MAVType" : {
-      "Description" : "Vehicle type from MAV_TYPE enumeration (1 - FIXED_WING, 2 - QUADROTOR, 10 - GROUND_ROVER, 12 - SUBMARINE).",
-      "Type" : "Number",
-      "Default" : "10"
-    }
+      "Description" : "Vehicle type",
+      "Type" : "String",
+      "AllowedValues" : ["PLANE", "COAXIAL", "HELICOPTER", "QUADROTOR", "HEXAROTOR", "OCTAROTOR", "ROVER", "BOAT", "SUBMARINE"],
+      "Default" : "QUADROTOR"
+    },
+    "UVHubArchiveURL" : {
+      "Description" : "URL of UVHub distribution archive",
+      "Type" : "String",
+      "Default" : "https://s3-us-west-2.amazonaws.com/envirover/UVHub/uvhub-2.0-bin.zip"
+    }   
   },
   "Mappings" : {
+    "MAVAutopilotMap" : {
+      "ArduPilot" : {
+        "code" : "3"
+      },
+      "PX4" : {
+        "code" : "12"
+      }
+    },
+    "MAVTypeMap" : {
+      "PLANE" : {
+        "code" : "1"
+      },
+      "QUADROTOR" : {
+        "code" : "2"
+      },
+      "COAXIAL" : {
+        "code" : "3"
+      },     
+      "HELICOPTER" : {
+        "code" : "4"
+      },
+      "ROVER" : {
+        "code" : "10"
+      },  
+      "BOAT" : {
+        "code" : "11"
+      }, 
+      "SUBMARINE" : {
+        "code" : "12"
+      },
+      "HEXAROTOR" : {
+        "code" : "13"
+      },
+      "OCTAROTOR" : {
+        "code" : "14"
+      }
+    },
     "RegionMap" : {
       "us-east-1" : {
         "AMI" : "ami-0b33d91d"
@@ -106,6 +141,43 @@
       }
     }
   },
+  "Metadata" : {
+	"AWS::CloudFormation::Interface" : {
+	  "ParameterGroups" : [
+     	{
+	      "Label" : { "default" : "Autopilot and Vehicle" },
+	      "Parameters" : [ "MAVAutopilot", "MAVType" ]
+	    },
+	    {
+	      "Label" : { "default" : "Amazon EC2 Configuration" },
+	      "Parameters" : [ "KeyName", "InstanceType" ]
+	    },
+	    {
+	      "Label" : { "default" : "RockBLOCK info" },
+	      "Parameters" : [ "RockBlockIMEI", "RockBlockUsername", "RockBlockPassword" ]
+	    },
+     	{
+	      "Label" : { "default" : "UVHub Software" },
+	      "Parameters" : [ "UVHubArchiveURL" ]
+	    },
+     	{
+	      "Label" : { "default" : "Access Control" },
+	      "Parameters" : [ "ClientCIDR" ]
+	    }
+	  ],
+	  "ParameterLabels" : {
+	    "MAVAutopilot" : { "default" : "MAV Autopilot" },
+        "MAVType" : { "default" : "MAV Type" },
+        "KeyName" : { "default" : "Key Name" },
+        "InstanceType" : { "default" : "Instance Type" },
+        "RockBlockIMEI" : { "default" : "RockBLOCK IMEI" },
+        "RockBlockUsername" : { "default" : "RockBLOCK Username" },
+        "RockBlockPassword" : { "default" : "RockBLOCK Password" },
+        "UVHubArchiveURL" : { "default" : "UVHub Archive URL" },
+        "ClientCIDR" : { "default" : "Client CIDR" }
+	  }
+    }
+  },
   "Resources" : {
     "SecurityGroup" : {
       "Type" : "AWS::EC2::SecurityGroup",
@@ -117,12 +189,10 @@
           "ToPort" : "8080",
           "CidrIp" : "0.0.0.0/0"
         }, {
-          "IpProtocol" : "tcp",
-          "FromPort" : "8000",
-          "ToPort" : "8000",
-          "CidrIp" : {
-            "Ref" : "ClientCIDR"
-          }
+          "IpProtocol" : "http",
+          "FromPort" : "80",
+          "ToPort" : "80",
+          "CidrIp" : "0.0.0.0/0"
         }, {
           "IpProtocol" : "tcp",
           "FromPort" : "5760",
@@ -181,8 +251,37 @@
         "Roles" : [ { "Ref" : "LogRole" } ]
       }
     },
+    "ElasticsearchDomain": {
+	  "Type": "AWS::Elasticsearch::Domain",
+	  "Properties": {
+	    "DomainName": "uvhub",
+        "ElasticsearchVersion" : "6.2",
+	    "ElasticsearchClusterConfig": {
+	      "InstanceCount": "1",
+	      "InstanceType": "t2.small.elasticsearch"
+	    },
+	    "EBSOptions": {
+	      "EBSEnabled": true,
+	      "Iops": 0,
+	      "VolumeSize": 10,
+	      "VolumeType": "gp2"
+	    },
+	    "AccessPolicies": {
+	      "Version": "2012-10-17",
+	      "Statement": [{
+	        "Effect": "Allow",
+	        "Principal": {
+	          "AWS": "*"
+	        },
+	        "Action": "es:*",
+	        "Resource": "arn:aws:es:*:*:domain/uvhub/*"
+	      }]
+	    }
+	  }
+	},
     "SPLServer" : {
       "Type" : "AWS::EC2::Instance",
+      "DependsOn" : "ElasticsearchDomain",
       "Properties" : {
         "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "AMI" ] },
         "InstanceType" : { "Ref" : "InstanceType" },
@@ -197,15 +296,16 @@
             "yum install -y awslogs\n",
             "mkdir /opt/spl\n", 
             "cd /opt/spl\n",
-            "wget ", { "Ref" : "SPLArchiveURL" }, " -O spl-bin.tar.gz\n",
+            "wget ", { "Ref" : "UVHubArchiveURL" }, " -O spl-bin.tar.gz\n",
             "tar -xvzf spl-bin.tar.gz\n", 
             "export SPL_HOME=$(pwd)\n",
             "export JAVA_HOME=/usr/lib/jvm/jre\n",
-            "wget ", { "Ref" : "MAVParametersURL" }, " -O conf/default.params\n",
             "/opt/aws/bin/cfn-init -s ", { "Ref" : "AWS::StackId" }, " -r SPLServer ", " --region ", { "Ref" : "AWS::Region" }, " || error_exit 'Failed to run cfn-init'\n",
             "service awslogs start\n",
             "yum install -y jsvc*\n", 
-            "/usr/bin/jsvc -server -cp $SPL_HOME/conf:$SPL_HOME/lib/* -pidfile $SPL_HOME/jsvc.pid -home $JAVA_HOME com.envirover.spl.SPLDaemon -i ", { "Ref" : "RockBlockIMEI" }, " -u ", { "Ref" : "RockBlockUsername" }, " -p ", { "Ref" : "RockBlockPassword" }, " -a ", { "Ref" : "MAVAutopilot" }, " -t ", { "Ref" : "MAVType" }, "\n",
+            "/usr/bin/jsvc -server -cp $SPL_HOME/conf:$SPL_HOME/lib/* -pidfile $SPL_HOME/jsvc.pid -home $JAVA_HOME com.envirover.spl.SPLDaemon -i ", { "Ref" : "RockBlockIMEI" }, 
+            " -u ", { "Ref" : "RockBlockUsername" }, " -p ", { "Ref" : "RockBlockPassword" }, " -a ", { "Fn::FindInMap" : [ "MAVAutopilotMap", { "Ref" : "MAVAutopilot" }, "code" ] }, 
+            " -t ", { "Fn::FindInMap" : [ "MAVTypeMap", { "Ref" : "MAVType" }, "code" ] }, " -e ", { "Fn::GetAtt" : [ "ElasticsearchDomain", "DomainEndpoint" ] },"\n",
             "/opt/aws/bin/cfn-signal -e $? --stack ", { "Ref" : "AWS::StackName" }, " --region ", { "Ref" : "AWS::Region" }, " --resource SPLServer\n" ] ]
           }
         }
@@ -272,6 +372,10 @@
     }
   },
   "Outputs" : {
+    "UVTracksURL" : {
+      "Value" : { "Fn::Join" : [ "", [ "http://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ] }, "/uvtracks" ] ] },
+      "Description" : "HTTP handler URL for mobile-originated RockBLOCK messages"
+    },
     "RockBLOCKHandlerURL" : {
       "Value" : { "Fn::Join" : [ "", [ "http://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ] }, ":8080/mo" ] ] },
       "Description" : "HTTP handler URL for mobile-originated RockBLOCK messages"
@@ -291,10 +395,6 @@
     "CloudWatchLogs" : {
       "Value" : { "Fn::Join" : [ "", [ "https://console.aws.amazon.com/cloudwatch/home?region=", { "Ref" : "AWS::Region" }, "#logStream:group=", { "Ref" : "LogGroup" } ] ] },
       "Description" : "SPLGroundControl logs"
-    },
-    "WSMAVLinkClientURL" : {
-      "Value" : { "Fn::Join" : [ "", [ "ws://", { "Fn::GetAtt" : [ "SPLServer", "PublicIp" ] }, ":8000/gcs/ws" ] ] },
-      "Description" : "MAVLink client WebSocket connection URL"
     }
   }
 }

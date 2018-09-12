@@ -62,9 +62,9 @@ import com.MAVLink.common.msg_param_value;
 public class PersistentUVShadow implements UVShadow {
 	
     // Elasticsearch connection properties
-    public static final String ELASTICSEARCH_ENDPOINT = "envirover.elasticsearch.endpoint";
-    public static final String ELASTICSEARCH_PORT     = "envirover.elasticsearch.port";
-    public static final String ELASTICSEARCH_PROTOCOL = "envirover.elasticsearch.protocol";
+    public static final String ELASTICSEARCH_ENDPOINT = "elasticsearch.endpoint";
+    public static final String ELASTICSEARCH_PORT     = "elasticsearch.port";
+    public static final String ELASTICSEARCH_PROTOCOL = "elasticsearch.protocol";
     
     // Default values of Elasticsearch connection properties
     private static final String DEFAULT_ELASTICSEARCH_ENDPOINT = "localhost";
@@ -90,9 +90,9 @@ public class PersistentUVShadow implements UVShadow {
     private List<msg_mission_item> desiredMission = new ArrayList<msg_mission_item>();
     
     public PersistentUVShadow() throws IOException {
-        this.elasticsearchEndpoint = System.getProperty(ELASTICSEARCH_ENDPOINT, DEFAULT_ELASTICSEARCH_ENDPOINT);
-        this.elasticsearchPort = Integer.parseInt(System.getProperty(ELASTICSEARCH_PORT, DEFAULT_ELASTICSEARCH_PORT));
-        this.elasticsearchPotocol = System.getProperty(ELASTICSEARCH_PROTOCOL, DEFAULT_ELASTICSEARCH_PROTOCOL);
+        this.elasticsearchEndpoint = getConfigProperty(ELASTICSEARCH_ENDPOINT, DEFAULT_ELASTICSEARCH_ENDPOINT);
+        this.elasticsearchPort = Integer.parseInt(getConfigProperty(ELASTICSEARCH_PORT, DEFAULT_ELASTICSEARCH_PORT));
+        this.elasticsearchPotocol = getConfigProperty(ELASTICSEARCH_PROTOCOL, DEFAULT_ELASTICSEARCH_PROTOCOL);
     }
     
     public PersistentUVShadow(String elasticsearchEndpoint, int elasticsearchPort, String elasticsearchPotocol) throws IOException {
@@ -410,4 +410,14 @@ public class PersistentUVShadow implements UVShadow {
 		client.index(indexRequest);
 	}
 
+	private String getConfigProperty(String key, String def) {
+		String prop = System.getenv(key);
+		
+		if (prop == null) {
+			prop = System.getProperty(key, def);
+		}
+		
+		return prop;
+	}
+	
 }

@@ -65,6 +65,7 @@ public class Config {
     private final static String CLI_OPTION_PASSWORD     = "p";
     private final static String CLI_OPTION_AUTOPILOT    = "a";
     private final static String CLI_OPTION_MAV_TYPE     = "t";
+    private final static String CLI_OPTION_ES_ENDPOINT  = "e";
 
     // default property values
     private final static String  DEFAULT_ROCKBLOCK_URL  = "https://core.rock7.com/rockblock/MT";
@@ -121,6 +122,8 @@ public class Config {
         options.addOption(CLI_OPTION_PASSWORD, true, "Rock 7 Core password");
         options.addOption(CLI_OPTION_AUTOPILOT, true, "Autopilot code");
         options.addOption(CLI_OPTION_MAV_TYPE, true, "MAV type");
+        options.addOption(CLI_OPTION_ES_ENDPOINT, true, "Elasticsearch endpoint");
+        
         CommandLineParser parser = new BasicParser();
         CommandLine cmd = parser.parse( options, args);
 
@@ -180,6 +183,8 @@ public class Config {
         autopilot = Short.valueOf(cmd.getOptionValue(CLI_OPTION_AUTOPILOT, props.getProperty(PROP_MAV_AUTOPILOT, DEFAULT_AUTOPILOT.toString())));
 
         mavType = Short.valueOf(cmd.getOptionValue(CLI_OPTION_MAV_TYPE, props.getProperty(PROP_MAV_TYPE, DEFAULT_MAV_TYPE.toString())));
+        
+        esEndpoint = cmd.getOptionValue(CLI_OPTION_ES_ENDPOINT, props.getProperty(PROP_ES_ENDPOINT, DEFAULT_ES_ENDPOINT));
         
         return true;
     }

@@ -43,7 +43,7 @@
 				<version>3.1.0</version>
 				<executions>
 					<execution>
-						<id>distro-assembly</id>
+						<id>uvhub</id>
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
@@ -56,6 +56,20 @@
 							</descriptors>
 						</configuration>
 					</execution>
+					<execution>
+						<id>uvtracks</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>uvtracks-${project.version}</finalName>
+							<tarLongFileMode>posix</tarLongFileMode> 
+							<descriptors>
+								<descriptor>src/assembly/uvtracks.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>					
 				</executions>
 			</plugin>
 		</plugins>

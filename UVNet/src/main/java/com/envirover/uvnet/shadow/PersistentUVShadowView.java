@@ -54,9 +54,9 @@ public class PersistentUVShadowView implements UVShadowView {
     //private static final Logger logger = Logger.getLogger(UVShadowView.class.getName());
 
     // Elasticsearch connection properties
-    public static String ELASTICSEARCH_ENDPOINT = "envirover.elasticsearch.endpoint";
-    public static String ELASTICSEARCH_PORT     = "envirover.elasticsearch.port";
-    public static String ELASTICSEARCH_PROTOCOL = "envirover.elasticsearch.protocol";
+    public static String ELASTICSEARCH_ENDPOINT = "elasticsearch.endpoint";
+    public static String ELASTICSEARCH_PORT     = "elasticsearch.port";
+    public static String ELASTICSEARCH_PROTOCOL = "elasticsearch.protocol";
     
     // Default values of Elasticsearch connection properties
     private static final String DEFAULT_ELASTICSEARCH_ENDPOINT = "localhost";
@@ -82,9 +82,9 @@ public class PersistentUVShadowView implements UVShadowView {
     public PersistentUVShadowView() {
         client = new RestHighLevelClient(
             RestClient.builder(
-                new HttpHost(System.getProperty(ELASTICSEARCH_ENDPOINT, DEFAULT_ELASTICSEARCH_ENDPOINT), 
-                Integer.valueOf(System.getProperty(ELASTICSEARCH_PORT, DEFAULT_ELASTICSEARCH_PORT)), 
-                System.getProperty(DEFAULT_ELASTICSEARCH_PROTOCOL, DEFAULT_ELASTICSEARCH_PROTOCOL))));
+                new HttpHost(getConfigProperty(ELASTICSEARCH_ENDPOINT, DEFAULT_ELASTICSEARCH_ENDPOINT), 
+                Integer.valueOf(getConfigProperty(ELASTICSEARCH_PORT, DEFAULT_ELASTICSEARCH_PORT)), 
+                getConfigProperty(DEFAULT_ELASTICSEARCH_PROTOCOL, DEFAULT_ELASTICSEARCH_PROTOCOL))));
     }
 
     @Override
@@ -146,4 +146,14 @@ public class PersistentUVShadowView implements UVShadowView {
 		}
     }
 
+	private String getConfigProperty(String key, String def) {
+		String prop = System.getenv(key);
+		
+		if (prop == null) {
+			prop = System.getProperty(key, def);
+		}
+		
+		return prop;
+	}
+	
 }

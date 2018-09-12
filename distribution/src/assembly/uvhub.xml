@@ -9,13 +9,6 @@
 	<includeBaseDirectory>false</includeBaseDirectory>
 	<dependencySets>
 		<dependencySet>
-		    <useProjectArtifact>false</useProjectArtifact>
-			<outputDirectory>tomcat/webapps/</outputDirectory>
-            <includes>
-                <include>*:*:war:*</include>
-            </includes>
-		</dependencySet>
-		<dependencySet>
 			<useProjectArtifact>false</useProjectArtifact>
 			<outputDirectory>lib</outputDirectory>
 			<includes>
@@ -63,13 +56,6 @@
 			<outputDirectory>logs</outputDirectory>
 			<includes>
 				<include>*</include>
-			</includes>
-		</fileSet>
-		<fileSet>
-			<directory>${project.basedir}/tomcat</directory>
-			<outputDirectory>tomcat</outputDirectory>
-			<includes>
-				<include>*/*</include>
 			</includes>
 		</fileSet>
 	</fileSets>
