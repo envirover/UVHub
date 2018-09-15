@@ -63,7 +63,7 @@ import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
 import com.MAVLink.common.msg_high_latency;
 import com.envirover.mavlink.MAVLinkLogger;
-import com.envirover.uvhub.Config;
+import com.envirover.uvnet.Config;
 import com.envirover.uvhub.UVHub;
 import com.envirover.uvhub.UVHubDaemon;
 

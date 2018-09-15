@@ -25,6 +25,7 @@ import com.MAVLink.common.msg_log_entry;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_param_value;
+import com.envirover.geojson.FeatureCollection;
 
 /**
  * UVShadow stores the reported state of the vehicle.
@@ -118,6 +119,22 @@ public interface UVShadow {
 	 * @throws IOException I/O operation failed
 	 */
 	MAVLinkMessage getLastMessage(int sysId, int msgId) throws IOException;
+	
+	/**
+	 * Retrieves messages of the specified type reported by the specified 
+	 * system and returns them in GeoJSON representation.
+	 * 
+	 * @param sysId MAVLink system id
+	 * @param msgId MAVlink message id 
+	 * @param geometryType GeoJSON geometry type
+	 * @param startTime minimum reported time. No minimum  limit if 'null'.
+	 * @param endTime maximum reported time. No maximum time limit if 'null'.
+	 * @param top maximum number of reported points returned
+	 * @return GeoJSON FeaureCollection with the reported messages
+	 * @throws IOException in case of I/O exception
+	 */
+	FeatureCollection queryMessages(int sysId, int msgId, Long startTime, Long endTime,
+			int top) throws IOException;
 	
 	/**
 	 * Returns list of available logs.

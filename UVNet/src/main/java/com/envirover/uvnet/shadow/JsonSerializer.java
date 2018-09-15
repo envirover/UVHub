@@ -98,6 +98,11 @@ class JsonSerializer  {
 		return parameterValue;
 	}
 	
+	public static Feature featureFromJSON(String json)
+			throws JsonParseException, JsonMappingException, IOException {
+		 return mapper.readValue(json, Feature.class);
+	}
+	
 	/**
 	 * Converts this list of mission items to JSON string.
 	 * 

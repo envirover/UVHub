@@ -63,7 +63,7 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
-							<finalName>uvtracks-${project.version}</finalName>
+							<finalName>uvtracks</finalName>
 							<tarLongFileMode>posix</tarLongFileMode> 
 							<descriptors>
 								<descriptor>src/assembly/uvtracks.xml</descriptor>

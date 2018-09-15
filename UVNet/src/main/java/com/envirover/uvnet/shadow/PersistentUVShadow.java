@@ -21,10 +21,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpHost;
 import org.codehaus.jackson.JsonGenerationException;
@@ -41,9 +43,13 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 
@@ -52,6 +58,9 @@ import com.MAVLink.common.msg_log_entry;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_param_value;
+import com.envirover.geojson.Feature;
+import com.envirover.geojson.FeatureCollection;
+import com.envirover.uvnet.Config;
 
 /**
  * Stores the vehicle shadow in Elasticsearch.
@@ -61,22 +70,19 @@ import com.MAVLink.common.msg_param_value;
  */
 public class PersistentUVShadow implements UVShadow {
 	
-    // Elasticsearch connection properties
-    public static final String ELASTICSEARCH_ENDPOINT = "elasticsearch.endpoint";
-    public static final String ELASTICSEARCH_PORT     = "elasticsearch.port";
-    public static final String ELASTICSEARCH_PROTOCOL = "elasticsearch.protocol";
-    
-    // Default values of Elasticsearch connection properties
-    private static final String DEFAULT_ELASTICSEARCH_ENDPOINT = "localhost";
-    private static final String DEFAULT_ELASTICSEARCH_PORT     = "9200";
-    private static final String DEFAULT_ELASTICSEARCH_PROTOCOL = "http";
-    
     // Elasticsearch indices
     private static final String MESSAGES_INDEX_NAME   = "reported_messages";
     private static final String MISSIONS_INDEX_NAME   = "reported_missions";
     private static final String PARAMETERS_INDEX_NAME = "reported_params";
     
     private static final String DOCUMENT_TYPE      = "_doc";
+    
+    private static final int SEARCH_TIMEOUT = 60; //seconds
+    
+    // Properties
+    private static final String ATTR_TIME = "properties.time";
+    private static final String ATTR_SYS_ID = "properties.sysid";
+    private static final String ATTR_MSG_ID = "properties.msgid";
     
     //private static final Logger logger = Logger.getLogger(PersistentUVShadow.class.getName());
     
@@ -90,9 +96,9 @@ public class PersistentUVShadow implements UVShadow {
     private List<msg_mission_item> desiredMission = new ArrayList<msg_mission_item>();
     
     public PersistentUVShadow() throws IOException {
-        this.elasticsearchEndpoint = getConfigProperty(ELASTICSEARCH_ENDPOINT, DEFAULT_ELASTICSEARCH_ENDPOINT);
-        this.elasticsearchPort = Integer.parseInt(getConfigProperty(ELASTICSEARCH_PORT, DEFAULT_ELASTICSEARCH_PORT));
-        this.elasticsearchPotocol = getConfigProperty(ELASTICSEARCH_PROTOCOL, DEFAULT_ELASTICSEARCH_PROTOCOL);
+        this.elasticsearchEndpoint = Config.getInstance().getElasticsearchEndpoint();
+        this.elasticsearchPort = Config.getInstance().getElasticsearchPort();
+        this.elasticsearchPotocol = Config.getInstance().getElasticsearchProtocol();
     }
     
     public PersistentUVShadow(String elasticsearchEndpoint, int elasticsearchPort, String elasticsearchPotocol) throws IOException {
@@ -354,6 +360,48 @@ public class PersistentUVShadow implements UVShadow {
     	return JsonSerializer.mavlinkMessageFromJSON(source);
 	}
    
+    @Override
+	public FeatureCollection queryMessages(int sysId, int msgId, Long startTime, Long endTime, int top) throws IOException {
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        
+        BoolQueryBuilder qb = QueryBuilders.boolQuery();
+        qb.must(QueryBuilders.termQuery(ATTR_SYS_ID, sysId));
+        qb.must(QueryBuilders.termQuery(ATTR_MSG_ID, msgId));
+           
+        QueryBuilder timeIntervalQueryBuilder = null;
+        if (startTime == null && endTime == null)
+            timeIntervalQueryBuilder = null;
+        else if (startTime == null && endTime != null)
+            timeIntervalQueryBuilder = QueryBuilders.rangeQuery(ATTR_TIME).to(endTime, true).includeUpper(true);
+        else if (startTime != null && endTime == null)
+            timeIntervalQueryBuilder = QueryBuilders.rangeQuery(ATTR_TIME).from(startTime, true).includeLower(true);
+        else
+            timeIntervalQueryBuilder = QueryBuilders.rangeQuery(ATTR_TIME).from(startTime, true).to(endTime, true).includeLower(true).includeUpper(true);
+        
+        if (timeIntervalQueryBuilder != null)
+            qb.must(timeIntervalQueryBuilder);
+        
+        sourceBuilder.query(qb);
+        sourceBuilder.from(0);
+        sourceBuilder.size(top);
+        sourceBuilder.timeout(new TimeValue(SEARCH_TIMEOUT, TimeUnit.SECONDS));
+        sourceBuilder.sort(ATTR_TIME, SortOrder.DESC);
+        SearchRequest searchRequest = new SearchRequest(MESSAGES_INDEX_NAME);
+        searchRequest.types(DOCUMENT_TYPE);
+        searchRequest.source(sourceBuilder);
+        SearchResponse searchResponse = client.search(searchRequest);
+        SearchHits hits = searchResponse.getHits();
+        
+        FeatureCollection result = new FeatureCollection();
+		
+		for (Iterator<SearchHit> iter = hits.iterator(); iter.hasNext();) {
+			Feature feature = JsonSerializer.featureFromJSON(iter.next().getSourceAsString());
+			result.getFeatures().add(feature);
+		}
+
+		return result;
+    }
+     
 	@Override
 	public List<msg_log_entry> getLogs(int sysId) throws IOException {
 		SearchRequest searchRequest = new SearchRequest(MESSAGES_INDEX_NAME); 
@@ -410,14 +458,4 @@ public class PersistentUVShadow implements UVShadow {
 		client.index(indexRequest);
 	}
 
-	private String getConfigProperty(String key, String def) {
-		String prop = System.getenv(key);
-		
-		if (prop == null) {
-			prop = System.getProperty(key, def);
-		}
-		
-		return prop;
-	}
-	
 }

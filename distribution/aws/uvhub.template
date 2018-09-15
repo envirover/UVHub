@@ -303,7 +303,7 @@
             "/opt/aws/bin/cfn-init -s ", { "Ref" : "AWS::StackId" }, " -r SPLServer ", " --region ", { "Ref" : "AWS::Region" }, " || error_exit 'Failed to run cfn-init'\n",
             "service awslogs start\n",
             "yum install -y jsvc*\n", 
-            "/usr/bin/jsvc -server -cp $SPL_HOME/conf:$SPL_HOME/lib/* -pidfile $SPL_HOME/jsvc.pid -home $JAVA_HOME com.envirover.spl.SPLDaemon -i ", { "Ref" : "RockBlockIMEI" }, 
+            "/usr/bin/jsvc -server -cp $SPL_HOME/conf:$SPL_HOME/lib/* -pidfile $SPL_HOME/jsvc.pid -home $JAVA_HOME com.envirover.uvhub.UVHubDaemon -i ", { "Ref" : "RockBlockIMEI" }, 
             " -u ", { "Ref" : "RockBlockUsername" }, " -p ", { "Ref" : "RockBlockPassword" }, " -a ", { "Fn::FindInMap" : [ "MAVAutopilotMap", { "Ref" : "MAVAutopilot" }, "code" ] }, 
             " -t ", { "Fn::FindInMap" : [ "MAVTypeMap", { "Ref" : "MAVType" }, "code" ] }, " -e ", { "Fn::GetAtt" : [ "ElasticsearchDomain", "DomainEndpoint" ] },"\n",
             "/opt/aws/bin/cfn-signal -e $? --stack ", { "Ref" : "AWS::StackName" }, " --region ", { "Ref" : "AWS::Region" }, " --resource SPLServer\n" ] ]

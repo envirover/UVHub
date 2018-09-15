@@ -15,7 +15,7 @@
  * from Envirover.
  */
 
-package com.envirover.spl.tracks;
+package com.envirover.spl.rest;
 
 import java.io.IOException;
 
@@ -25,35 +25,35 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import com.MAVLink.common.msg_high_latency;
 import com.envirover.geojson.FeatureCollection;
 import com.envirover.uvnet.mission.Plan;
-import com.envirover.uvnet.shadow.PersistentUVShadowView;
-import com.envirover.uvnet.shadow.UVShadowView;
-import com.sun.jersey.api.view.Viewable;
+import com.envirover.uvnet.shadow.PersistentUVShadow;
+import com.envirover.uvnet.shadow.UVShadow;
 
 /**
  * A REST service that provides access to vehicle tracks and missions.
  * 
  */
+
 @Path("/")
 public class UVTracks {
 	
 	private final static String DEFAULT_SYSTEM_ID = "1";
 	private final static String DEFAULT_TOP = "100";
 
-	private final UVShadowView shadowView = new PersistentUVShadowView();
+	private final PersistentUVShadow shadow = new PersistentUVShadow();
 
 	public UVTracks() throws IOException {
+		shadow.open();
 	}
 
-	@GET
-	@Produces(MediaType.TEXT_HTML)
-	public Response index() {
-		return Response.ok(new Viewable("/3d.jsp")).build();
-	}
+//	@GET
+//	@Produces(MediaType.TEXT_HTML)
+//	public Response index() {
+//		return Response.ok(new Viewable("/3d.jsp")).build();
+//	}
 
 	/**
 	 * Returns track of the specified system as GeoJSON feature collection of points or a line string. 
@@ -75,8 +75,8 @@ public class UVTracks {
 			@QueryParam("startTime") Long startTime,
 			@QueryParam("endTime") Long endTime,
 			@DefaultValue(DEFAULT_TOP) @QueryParam("top") int top) throws IOException {
-		return shadowView.queryMessages(sysid, msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY,
-				                        startTime, endTime,  top);
+		return shadow.queryMessages(sysid, msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY,
+				                    startTime, endTime,  top);
 	}
 
 	/**
@@ -90,7 +90,7 @@ public class UVTracks {
 	@Path("/missions")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Plan getMissions(@DefaultValue(DEFAULT_SYSTEM_ID) @QueryParam("sysid") int sysid) throws IOException {
-		return shadowView.queryMissions(sysid);
+		return new Plan(shadow.getMission(sysid));
 	}
 	
 }
