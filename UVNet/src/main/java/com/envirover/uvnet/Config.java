@@ -83,6 +83,7 @@ public class Config {
     private final static String  DEFAULT_ES_ENDPOINT    = "localhost";
     private final static Integer DEFAULT_ES_PORT        = 9200;
     private final static String  DEFAULT_ES_PROTOCOL    = "http";
+    private final static Float   DEFAULT_HL_REPORT_PERIOD = 60.0F; //1 minute
 
     private String  rockblockUrl      = DEFAULT_ROCKBLOCK_URL;
     private String  httpContext       = DEFAULT_HTTP_CONTEXT;
@@ -259,4 +260,7 @@ public class Config {
     	return esProtocol;
     }
     
+    public Float getDefaultHLReportPeriod() {
+    	return DEFAULT_HL_REPORT_PERIOD;
+    }
 }

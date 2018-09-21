@@ -10,18 +10,18 @@
 	<dependencySets>
 		<dependencySet>
 		    <useProjectArtifact>false</useProjectArtifact>
-			<outputDirectory>tomcat/webapps/</outputDirectory>
+			<outputDirectory>jetty/uvtracks-base/webapps/</outputDirectory>
             <includes>
-                <include>*:*:war:*</include>
+                <include>*:*:war</include>
             </includes>
 		</dependencySet>
 	</dependencySets>
 	<fileSets>
 		<fileSet>
-			<directory>${project.basedir}/tomcat</directory>
-			<outputDirectory>tomcat</outputDirectory>
+			<directory>${project.basedir}/jetty</directory>
+			<outputDirectory>jetty</outputDirectory>
 			<includes>
-				<include>*/*</include>
+				<include>**/*</include>
 			</includes>
 		</fileSet>
 	</fileSets>

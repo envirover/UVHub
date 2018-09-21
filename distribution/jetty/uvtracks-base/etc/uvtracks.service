@@ -1,0 +1,18 @@
+[Unit]
+Description=UV Tracks Server
+After=syslog.target network.target
+
+[Service]
+Type=simple
+
+#ExecStart=/opt/spl/jetty/bin/jetty.sh start
+#ExecStop=/opt/spl/jetty/bin/jetty.sh stop
+#ExecReload=/opt/spl/jetty/bin/jetty.sh restart
+ExecStart=/usr/bin/java -jar /opt/spl/jetty/start.jar jetty.home=/opt/spl/jetty jetty.base=/opt/spl/jetty/uvtracks-base jetty.http.port=80
+ExecStop=/bin/kill ${MAINPID}
+SuccessExitStatus=143
+TimeoutStartSec=5min
+Environment="JETTY_BASE=/opt/spl/jetty/uvtracks-base"
+
+[Install]
+WantedBy=multi-user.target

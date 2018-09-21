@@ -25,8 +25,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
@@ -54,6 +55,7 @@ import com.MAVLink.common.msg_param_value;
 import com.MAVLink.common.msg_sys_status;
 import com.MAVLink.common.msg_vfr_hud;
 import com.MAVLink.enums.MAV_MISSION_RESULT;
+import com.MAVLink.enums.MAV_MODE;
 import com.MAVLink.enums.MAV_STATE;
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkLogger;
@@ -68,7 +70,7 @@ import com.envirover.uvnet.shadow.UVShadow;
  */
 public class ShadowClientSession implements ClientSession {
 
-    private final static Logger logger = Logger.getLogger(ShadowClientSession.class);
+    private final static Logger logger = LogManager.getLogger(ShadowClientSession.class);
     private static final Config config = Config.getInstance();
 
     private final ScheduledExecutorService heartbeatTimer;
@@ -355,17 +357,31 @@ public class ShadowClientSession implements ClientSession {
 
     private MAVLinkMessage getHeartbeatMsg(msg_high_latency msgHighLatency) {
         msg_heartbeat msg = new msg_heartbeat();
-        msg.sysid = msgHighLatency.sysid;
-        msg.compid = msgHighLatency.compid;
-        msg.base_mode = msgHighLatency.base_mode;
-        msg.custom_mode = msgHighLatency.custom_mode;
+        
+    	if (msgHighLatency != null) {
+	        msg.sysid = msgHighLatency.sysid;
+	        msg.compid = msgHighLatency.compid;
+	        msg.base_mode = msgHighLatency.base_mode;
+	        msg.custom_mode = msgHighLatency.custom_mode;
+    	} else {
+    		msg.sysid = sysId;
+    		msg.compid = 0;
+    		msg.base_mode = MAV_MODE.MAV_MODE_PREFLIGHT;
+    		msg.custom_mode = 0;
+    	}
+    	
         msg.system_status = MAV_STATE.MAV_STATE_ACTIVE;
         msg.autopilot = config.getAutopilot();
         msg.type = config.getMavType();
+      
         return msg;
     }
 
     private MAVLinkMessage getSysStatusMsg(msg_high_latency msgHighLatency) {
+    	if (msgHighLatency == null) {
+    		return null;
+    	}
+    	
         msg_sys_status msg = new msg_sys_status();
         msg.sysid = msgHighLatency.sysid;
         msg.compid = msgHighLatency.compid;
@@ -373,10 +389,15 @@ public class ShadowClientSession implements ClientSession {
         msg.voltage_battery = msgHighLatency.temperature * 1000;
         msg.current_battery = msgHighLatency.temperature_air < 0 ? 
                 -1 : (short)(msgHighLatency.temperature_air * 100);
+        
         return msg;
     }
 
     private MAVLinkMessage getGpsRawIntMsg(msg_high_latency msgHighLatency) {
+    	if (msgHighLatency == null) {
+    		return null;
+    	}
+    	
         msg_gps_raw_int msg = new msg_gps_raw_int();
         msg.sysid = msgHighLatency.sysid;
         msg.compid = msgHighLatency.compid;
@@ -385,20 +406,30 @@ public class ShadowClientSession implements ClientSession {
         msg.lat = msgHighLatency.latitude;
         msg.lon = msgHighLatency.longitude;
         msg.alt = msgHighLatency.altitude_amsl;
+        
         return msg;
     }
 
     private MAVLinkMessage getAttitudeMsg(msg_high_latency msgHighLatency) {
+    	if (msgHighLatency == null) {
+    		return null;
+    	}
+    	
         msg_attitude msg = new msg_attitude();
         msg.sysid = msgHighLatency.sysid;
         msg.compid = msgHighLatency.compid;
         msg.yaw = (float)Math.toRadians(msgHighLatency.heading / 100.0);
         msg.pitch = (float)Math.toRadians(msgHighLatency.pitch / 100.0);
         msg.roll = (float)Math.toRadians(msgHighLatency.roll / 100.0);
+        
         return msg;
     }
 
     private MAVLinkMessage getGlobalPositionIntMsg(msg_high_latency msgHighLatency) {
+    	if (msgHighLatency == null) {
+    		return null;
+    	}
+    	
         msg_global_position_int msg = new msg_global_position_int();
         msg.sysid = msgHighLatency.sysid;
         msg.compid = msgHighLatency.compid;
@@ -407,26 +438,41 @@ public class ShadowClientSession implements ClientSession {
         msg.lon = msgHighLatency.longitude;
         msg.hdg = msgHighLatency.heading;
         msg.relative_alt = msgHighLatency.altitude_sp;
+        
         return msg;
     }
 
     private MAVLinkMessage getMissionCurrentMsg(msg_high_latency msgHighLatency) {
+    	if (msgHighLatency == null) {
+    		return null;
+    	}
+    	
         msg_mission_current msg = new msg_mission_current();
         msg.sysid = msgHighLatency.sysid;
         msg.compid = msgHighLatency.compid;
         msg.seq = msgHighLatency.wp_num;
+        
         return msg;
     }
 
     private MAVLinkMessage getNavControllerOutputMsg(msg_high_latency msgHighLatency) {
+    	if (msgHighLatency == null) {
+    		return null;
+    	}
+    	
         msg_nav_controller_output msg = new msg_nav_controller_output();
         msg.sysid = msgHighLatency.sysid;
         msg.compid = msgHighLatency.compid;
         msg.nav_bearing = (short)(msgHighLatency.heading_sp / 100);
+        
         return msg;
     }
  
     private MAVLinkMessage getVfrHudMsg(msg_high_latency msgHighLatency) {
+    	if (msgHighLatency == null) {
+    		return null;
+    	}
+    	
         msg_vfr_hud msg = new msg_vfr_hud();
         msg.sysid = msgHighLatency.sysid;
         msg.compid = msgHighLatency.compid;
@@ -436,6 +482,7 @@ public class ShadowClientSession implements ClientSession {
         msg.groundspeed = msgHighLatency.groundspeed;
         msg.heading = (short)(msgHighLatency.heading / 100);
         msg.throttle = msgHighLatency.throttle;
+        
         return msg;
     }
 

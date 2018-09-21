@@ -24,10 +24,12 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.common.msg_param_value;
 import com.MAVLink.enums.MAV_PARAM_TYPE;
+import com.envirover.uvnet.Config;
 
 /**
  * Loads on-board parameters form file in QGroundControl parameters file format.
@@ -41,9 +43,9 @@ public class OnBoardParams {
 	private final static String PARAMS_FILE_FORMAT  = "mavtype_%d_autopilot_%d.params";
     
     private final static String HL_REPORT_PERIOD_PARAM = "HL_REPORT_PERIOD";
-    private final static float  DEFAULT_HL_REPORT_PERIOD = 1.0F; //1 second
+ 
     
-    private final static Logger logger = Logger.getLogger(UVHubDaemon.class);
+    private final static Logger logger = LogManager.getLogger(UVHubDaemon.class);
     
     /**
      * Returns list of default on-board parameters for the specified MAV type and autopilot class.
@@ -139,7 +141,7 @@ public class OnBoardParams {
             param.compid = 190;
             param.setParam_Id(HL_REPORT_PERIOD_PARAM);
             param.param_index = index; 
-            param.param_value = DEFAULT_HL_REPORT_PERIOD;
+            param.param_value = Config.getInstance().getDefaultHLReportPeriod();
             param.param_type = MAV_PARAM_TYPE.MAV_PARAM_TYPE_REAL32;
             params.add(index, param);
             index++;

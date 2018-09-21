@@ -22,8 +22,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
@@ -36,7 +37,7 @@ import com.MAVLink.Parser;
  */
 public class MAVLinkSocket implements MAVLinkChannel {
 
-    private final static Logger logger = Logger.getLogger(MAVLinkSocket.class);
+    private final static Logger logger = LogManager.getLogger(MAVLinkSocket.class);
 
     private final Socket socket;
     private final DataInputStream in;

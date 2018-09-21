@@ -22,8 +22,9 @@ import java.nio.ByteBuffer;
 
 import javax.websocket.Session;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 
@@ -35,7 +36,7 @@ import com.MAVLink.MAVLinkPacket;
  */
 public class MAVLinkWebSocket implements MAVLinkChannel {
 
-    private final static Logger logger = Logger.getLogger(MAVLinkWebSocket.class);
+    private final static Logger logger = LogManager.getLogger(MAVLinkWebSocket.class);
     private final Session session;
     private final Object sendLock = new Object();
 

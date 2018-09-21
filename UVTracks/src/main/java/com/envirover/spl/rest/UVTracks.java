@@ -26,8 +26,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.cli.ParseException;
+
 import com.MAVLink.common.msg_high_latency;
 import com.envirover.geojson.FeatureCollection;
+import com.envirover.uvnet.Config;
 import com.envirover.uvnet.mission.Plan;
 import com.envirover.uvnet.shadow.PersistentUVShadow;
 import com.envirover.uvnet.shadow.UVShadow;
@@ -47,6 +50,12 @@ public class UVTracks {
 
 	public UVTracks() throws IOException {
 		shadow.open();
+		
+		try {
+			Config.getInstance().init();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
 	}
 
 //	@GET

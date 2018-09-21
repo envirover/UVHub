@@ -1,0 +1,13 @@
+[Unit]
+Description=UV Hub Service
+Documentation=http://envirover.com/docs/spl.html
+
+[Service]
+Type=simple
+ExecStart=/usr/lib/jvm/jre/bin/java -cp /opt/spl/conf:/opt/spl/lib/* com.envirover.uvhub.UVHub
+StandardOutput=null
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

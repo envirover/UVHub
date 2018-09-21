@@ -24,7 +24,8 @@ import java.util.List;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.glassfish.tyrus.server.Server;
 
 import com.MAVLink.common.msg_param_value;
@@ -42,7 +43,7 @@ import com.sun.net.httpserver.HttpServer;
  */
 @SuppressWarnings("restriction")
 public class UVHubDaemon implements Daemon {
-    private final static Logger logger = Logger.getLogger(UVHubDaemon.class);
+    private final static Logger logger = LogManager.getLogger(UVHubDaemon.class);
 
     private final Config config = Config.getInstance();
     private final int sysId = 1;  //TODO set system Id for the client session

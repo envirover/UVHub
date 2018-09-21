@@ -25,8 +25,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
@@ -73,7 +74,8 @@ import com.envirover.uvnet.shadow.UVShadow;
  */
 public class GCSClientSession implements ClientSession {
 
-    private final static Logger logger = Logger.getLogger(GCSClientSession.class);
+    private final static Logger logger = LogManager.getLogger(GCSClientSession.class);
+    
     private static final Config config = Config.getInstance();
 
     private final ScheduledExecutorService heartbeatTimer;

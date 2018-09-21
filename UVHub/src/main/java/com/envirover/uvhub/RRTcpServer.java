@@ -24,7 +24,8 @@ import java.text.MessageFormat;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
@@ -39,7 +40,7 @@ import com.envirover.mavlink.MAVLinkSocket;
  */
 public class RRTcpServer {
 
-    private final static Logger logger = Logger.getLogger(RRTcpServer.class);
+    private final static Logger logger = LogManager.getLogger(RRTcpServer.class);
 
     private final Integer port;
     private final MAVLinkChannel dst;

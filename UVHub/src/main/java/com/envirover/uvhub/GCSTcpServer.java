@@ -24,7 +24,8 @@ import java.text.MessageFormat;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
@@ -40,7 +41,7 @@ import com.envirover.uvnet.shadow.UVShadow;
  */
 public class GCSTcpServer {
 
-    private final static Logger logger = Logger.getLogger(GCSTcpServer.class);
+    private final static Logger logger = LogManager.getLogger(GCSTcpServer.class);
 
     private final Integer port;
     private final MAVLinkChannel mtMessageQueue;

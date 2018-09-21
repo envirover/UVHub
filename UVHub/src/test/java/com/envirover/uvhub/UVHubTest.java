@@ -50,10 +50,12 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.layout.PatternLayout;
+
 import org.glassfish.tyrus.client.ClientManager;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -75,13 +77,17 @@ public class UVHubTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         //Configure log4j
-        ConsoleAppender console = new ConsoleAppender(); 
-        String PATTERN = "%d [%p|%c|%C{1}] %m%n";
-        console.setLayout(new PatternLayout(PATTERN)); 
-        console.setThreshold(Level.DEBUG);
-        console.activateOptions();
-
-        Logger.getRootLogger().addAppender(console);
+//    	String PATTERN = "%d [%p|%c|%C{1}] %m%n";
+ //   	new PatternLayout(PATTERN)
+        ConsoleAppender console = ConsoleAppender.createDefaultAppenderForLayout(PatternLayout.createDefaultLayout()); 
+ 
+        //console.setLayout(new PatternLayout(PATTERN)); 
+        //console.setThreshold(Level.DEBUG);
+        //console.activateOptions();
+        org.apache.logging.log4j.core.Logger coreLogger
+        = (org.apache.logging.log4j.core.Logger)LogManager.getRootLogger();
+   
+        coreLogger.addAppender(console);
 
         System.out.println("SETUP: Starting UV Hub...");
         config.init(args);

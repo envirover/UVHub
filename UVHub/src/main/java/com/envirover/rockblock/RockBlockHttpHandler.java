@@ -31,8 +31,9 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
@@ -49,7 +50,7 @@ import com.sun.net.httpserver.HttpHandler;
 @SuppressWarnings("restriction")
 public class RockBlockHttpHandler implements HttpHandler {
 
-    private final static Logger logger = Logger.getLogger(RockBlockHttpHandler.class);
+    private final static Logger logger = LogManager.getLogger(RockBlockHttpHandler.class);
 
     private final MAVLinkChannel dst;
     private final String imei;
