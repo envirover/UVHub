@@ -95,13 +95,13 @@ public class PersistentUVShadow implements UVShadow {
     private RestHighLevelClient client = null;
     private List<msg_mission_item> desiredMission = new ArrayList<msg_mission_item>();
     
-    public PersistentUVShadow() throws IOException {
+    public PersistentUVShadow() {
         this.elasticsearchEndpoint = Config.getInstance().getElasticsearchEndpoint();
         this.elasticsearchPort = Config.getInstance().getElasticsearchPort();
         this.elasticsearchPotocol = Config.getInstance().getElasticsearchProtocol();
     }
     
-    public PersistentUVShadow(String elasticsearchEndpoint, int elasticsearchPort, String elasticsearchPotocol) throws IOException {
+    public PersistentUVShadow(String elasticsearchEndpoint, int elasticsearchPort, String elasticsearchPotocol) {
         this.elasticsearchEndpoint = elasticsearchEndpoint;
         this.elasticsearchPort = elasticsearchPort;
         this.elasticsearchPotocol = elasticsearchPotocol;
@@ -113,41 +113,43 @@ public class PersistentUVShadow implements UVShadow {
      * 
      * @throws IOException I/O exception
      */
-    public void open() throws IOException  {
-        client = new RestHighLevelClient(
-                RestClient.builder(new HttpHost(elasticsearchEndpoint, elasticsearchPort, elasticsearchPotocol)));
-       
-        try {
-        	CreateIndexRequest createIndexRequest = new CreateIndexRequest(MISSIONS_INDEX_NAME);
-        	client.indices().create(createIndexRequest);			
-		} catch (ElasticsearchStatusException e) {
-			if (!e.getDetailedMessage().contains("resource_already_exists_exception")) {
-				e.printStackTrace();
+    public synchronized void open() throws IOException  {
+    	if (client == null) {
+	        client = new RestHighLevelClient(
+	                RestClient.builder(new HttpHost(elasticsearchEndpoint, elasticsearchPort, elasticsearchPotocol)));
+	       
+	        try {
+	        	CreateIndexRequest createIndexRequest = new CreateIndexRequest(MISSIONS_INDEX_NAME);
+	        	client.indices().create(createIndexRequest);			
+			} catch (ElasticsearchStatusException e) {
+				if (!e.getDetailedMessage().contains("resource_already_exists_exception")) {
+					e.printStackTrace();
+				}
 			}
-		}
-        
-        try {
-        	CreateIndexRequest createIndexRequest = new CreateIndexRequest(PARAMETERS_INDEX_NAME);
-        	client.indices().create(createIndexRequest);
-		} catch (ElasticsearchStatusException e) {
-			if (!e.getDetailedMessage().contains("resource_already_exists_exception")) {
-				e.printStackTrace();
-			}
-		} 
-        
-        try {
-        	CreateIndexRequest createIndexRequest = new CreateIndexRequest(MESSAGES_INDEX_NAME);
-           	String mapping = mappings.getString("ReportedMessagesMapping");
-        	createIndexRequest.mapping(DOCUMENT_TYPE, mapping, XContentType.JSON);
-        	client.indices().create(createIndexRequest);
-		} catch (ElasticsearchStatusException e) {
-			if (!e.getDetailedMessage().contains("resource_already_exists_exception")) {
-				e.printStackTrace();
-			}
-		} 
+	        
+	        try {
+	        	CreateIndexRequest createIndexRequest = new CreateIndexRequest(PARAMETERS_INDEX_NAME);
+	        	client.indices().create(createIndexRequest);
+			} catch (ElasticsearchStatusException e) {
+				if (!e.getDetailedMessage().contains("resource_already_exists_exception")) {
+					e.printStackTrace();
+				}
+			} 
+	        
+	        try {
+	        	CreateIndexRequest createIndexRequest = new CreateIndexRequest(MESSAGES_INDEX_NAME);
+	           	String mapping = mappings.getString("ReportedMessagesMapping");
+	        	createIndexRequest.mapping(DOCUMENT_TYPE, mapping, XContentType.JSON);
+	        	client.indices().create(createIndexRequest);
+			} catch (ElasticsearchStatusException e) {
+				if (!e.getDetailedMessage().contains("resource_already_exists_exception")) {
+					e.printStackTrace();
+				}
+			} 
+    	}
     }
     
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
     	if (client != null) {
     		client.close();
     		client = null;
@@ -156,6 +158,8 @@ public class PersistentUVShadow implements UVShadow {
     
 	@Override
 	public List<msg_param_value> getParams(int sysId) throws IOException {
+		open();
+		
      	// Get all parameters from mavlinkparameters index 
     	SearchRequest searchRequest = new SearchRequest(PARAMETERS_INDEX_NAME); 
     	SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder(); 
@@ -180,6 +184,8 @@ public class PersistentUVShadow implements UVShadow {
     	if (params == null) {
     		return;
     	}
+    	
+    	open();
     	
     	// Build a map of existing parameters.
     	Map<String, msg_param_value> existingParamsMap = new HashMap<String, msg_param_value>();
@@ -223,6 +229,8 @@ public class PersistentUVShadow implements UVShadow {
 
     @Override
  	public msg_param_value getParamValue(int sysId, String paramId, short paramIndex)  throws IOException {
+    	open();
+    	
     	if (paramIndex < 0) {
     		String id = String.format("%d_%s", sysId, paramId);
     		GetRequest getRequest = new GetRequest(PARAMETERS_INDEX_NAME, DOCUMENT_TYPE, id);
@@ -262,6 +270,8 @@ public class PersistentUVShadow implements UVShadow {
     
     @Override
 	public void setParam(int sysId, msg_param_set parameter) throws IOException {
+    	open();
+    	
     	msg_param_value paramValue = getParamValue(sysId, parameter.getParam_Id(), (short)-1);
     	
     	if (paramValue != null) { 
@@ -282,6 +292,8 @@ public class PersistentUVShadow implements UVShadow {
     
 	@Override
 	public List<msg_mission_item> getMission(int sysId) throws IOException {
+		open();
+		
 		String id = Integer.toString(sysId);
 		
 		GetRequest getRequest = new GetRequest(MISSIONS_INDEX_NAME, DOCUMENT_TYPE, id);
@@ -304,6 +316,8 @@ public class PersistentUVShadow implements UVShadow {
 			return;
 		}
 			
+		open();
+		
         IndexRequest indexRequest = org.elasticsearch.client.Requests.indexRequest(MISSIONS_INDEX_NAME);
         indexRequest.type(DOCUMENT_TYPE);
         
@@ -323,6 +337,8 @@ public class PersistentUVShadow implements UVShadow {
 
 	@Override
 	public void updateReportedState(MAVLinkMessage msg, long timestamp) throws IOException {
+		open();
+		
 		// Save the message to the persistent store
         IndexRequest indexRequest = org.elasticsearch.client.Requests.indexRequest(MESSAGES_INDEX_NAME);
         indexRequest.type(DOCUMENT_TYPE);
@@ -340,6 +356,8 @@ public class PersistentUVShadow implements UVShadow {
 
 	@Override
 	public MAVLinkMessage getLastMessage(int sysId, int msgId) throws IOException {
+		open();
+		
     	SearchRequest searchRequest = new SearchRequest(MESSAGES_INDEX_NAME); 
     	
     	SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder(); 
@@ -362,6 +380,8 @@ public class PersistentUVShadow implements UVShadow {
    
     @Override
 	public FeatureCollection queryMessages(int sysId, int msgId, Long startTime, Long endTime, int top) throws IOException {
+    	open();
+    	
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
@@ -404,6 +424,8 @@ public class PersistentUVShadow implements UVShadow {
      
 	@Override
 	public List<msg_log_entry> getLogs(int sysId) throws IOException {
+		open();
+		
 		SearchRequest searchRequest = new SearchRequest(MESSAGES_INDEX_NAME); 
     	
     	SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder(); 
@@ -434,6 +456,8 @@ public class PersistentUVShadow implements UVShadow {
 
 	@Override
 	public void eraseLogs(int sysId) throws IOException {
+		open();
+		
 		try {
 			client.indices().delete(Requests.deleteIndexRequest(MESSAGES_INDEX_NAME));
 			

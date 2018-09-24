@@ -6,15 +6,11 @@
 
 	<servlet>
 		<servlet-name>com.envirover.spl.uvtracks.UVTracksApp</servlet-name>
-		<init-param>
-			<param-name>jersey.config.servlet.filter.staticContentRegex</param-name>
-			<param-value>/.*html</param-value>
-		</init-param>
 	</servlet>
 
 	<servlet-mapping>
 		<servlet-name>com.envirover.spl.uvtracks.UVTracksApp</servlet-name>
-		<url-pattern>/*</url-pattern>
+		<url-pattern>/api/*</url-pattern>
 	</servlet-mapping>
 
 	<welcome-file-list>

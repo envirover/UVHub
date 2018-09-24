@@ -40,29 +40,23 @@ import com.envirover.uvnet.shadow.UVShadow;
  * 
  */
 
-@Path("/")
+@Path("/v1")
 public class UVTracks {
 	
 	private final static String DEFAULT_SYSTEM_ID = "1";
 	private final static String DEFAULT_TOP = "100";
 
-	private final PersistentUVShadow shadow = new PersistentUVShadow();
+	private final UVShadow shadow;
 
-	public UVTracks() throws IOException {
-		shadow.open();
-		
+	public UVTracks() {
 		try {
 			Config.getInstance().init();
-		} catch (ParseException e) {
+		} catch (ParseException | IOException e) {
 			e.printStackTrace();
-		}
+		} 
+		
+		shadow = new PersistentUVShadow();
 	}
-
-//	@GET
-//	@Produces(MediaType.TEXT_HTML)
-//	public Response index() {
-//		return Response.ok(new Viewable("/3d.jsp")).build();
-//	}
 
 	/**
 	 * Returns track of the specified system as GeoJSON feature collection of points or a line string. 

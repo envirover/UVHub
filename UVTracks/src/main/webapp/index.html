@@ -337,7 +337,7 @@
 
       // Request the points data
       function getTracks() {
-        var url = "/uvtracks/tracks" + window.location.search;
+        var url = "/uvtracks/api/v1/tracks" + window.location.search;
 
         return esriRequest(url, {
           responseType: "json"
@@ -346,7 +346,7 @@
 
       // Request the points data
       function getMissions() {
-        var url = "/uvtracks/missions" + window.location.search;
+        var url = "/uvtracks/api/v1//missions" + window.location.search;
 
         return esriRequest(url, {
           responseType: "json"
