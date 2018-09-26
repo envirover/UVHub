@@ -162,31 +162,31 @@
     }
   },
   "Metadata" : {
-	"AWS::CloudFormation::Interface" : {
-	  "ParameterGroups" : [
-     	{
-	      "Label" : { "default" : "Autopilot and Vehicle" },
-	      "Parameters" : [ "MAVAutopilot", "MAVType" ]
-	    },
-	    {
-	      "Label" : { "default" : "Amazon EC2 Configuration" },
-	      "Parameters" : [ "KeyName", "InstanceType" ]
-	    },
-	    {
-	      "Label" : { "default" : "RockBLOCK info" },
-	      "Parameters" : [ "RockBlockIMEI", "RockBlockUsername", "RockBlockPassword" ]
-	    },
-     	{
-	      "Label" : { "default" : "SPL Software Download URLs" },
-	      "Parameters" : [ "UVHubArchiveURL", "UVTracksArchiveURL" ]
-	    },
-     	{
-	      "Label" : { "default" : "Access Control" },
-	      "Parameters" : [ "ClientCIDR" ]
-	    }
-	  ],
-	  "ParameterLabels" : {
-	    "MAVAutopilot" : { "default" : "MAV Autopilot" },
+    "AWS::CloudFormation::Interface" : {
+      "ParameterGroups" : [
+        {
+         "Label" : { "default" : "Autopilot and Vehicle" },
+          "Parameters" : [ "MAVAutopilot", "MAVType" ]
+        },
+        {
+          "Label" : { "default" : "Amazon EC2 Configuration" },
+          "Parameters" : [ "KeyName", "InstanceType" ]
+        },
+        {
+          "Label" : { "default" : "RockBLOCK info" },
+          "Parameters" : [ "RockBlockIMEI", "RockBlockUsername", "RockBlockPassword" ]
+        },
+         {
+          "Label" : { "default" : "SPL Software Download URLs" },
+          "Parameters" : [ "UVHubArchiveURL", "UVTracksArchiveURL" ]
+        },
+         {
+          "Label" : { "default" : "Access Control" },
+          "Parameters" : [ "ClientCIDR" ]
+        }
+      ],
+      "ParameterLabels" : {
+        "MAVAutopilot" : { "default" : "MAV Autopilot" },
         "MAVType" : { "default" : "MAV Type" },
         "KeyName" : { "default" : "Key Name" },
         "InstanceType" : { "default" : "Instance Type" },
@@ -195,19 +195,24 @@
         "RockBlockPassword" : { "default" : "RockBLOCK Password" },
         "UVHubArchiveURL" : { "default" : "UVHub Archive URL" },
         "ClientCIDR" : { "default" : "Client CIDR" }
-	  }
+      }
     }
   },
   "Resources" : {
     "UVHubSecurityGroup" : {
       "Type" : "AWS::EC2::SecurityGroup",
       "Properties" : {
-        "GroupDescription" : "Enable HTTP access on port 8080, MAVLink GCS access on ports 5757/5760, and SSH access on port 22",
+        "GroupDescription" : "Enable Rock7Mobile access on port 8080, RadioRoom on port 5060, MAVLink GCS access on ports 5757/5760, and SSH access on port 22",
         "SecurityGroupIngress" : [ {
           "IpProtocol" : "tcp",
           "FromPort" : "8080",
           "ToPort" : "8080",
-          "CidrIp" : "0.0.0.0/0"
+          "CidrIp" : "109.74.196.135/32"
+        }, {
+          "IpProtocol" : "tcp",
+          "FromPort" : "8080",
+          "ToPort" : "8080",
+          "CidrIp" : "212.71.235.32/32"
         }, {
           "IpProtocol" : "tcp",
           "FromPort" : "5060",
@@ -281,93 +286,93 @@
                "Action" : [ "cloudformation:*" ],
                "Resource" : [ "arn:aws:cloudformation:*:*:*" ]
               },
-	          {
-	            "Effect": "Allow",
-	            "Action": [
-	                "ssm:DescribeAssociation",
-	                "ssm:GetDeployablePatchSnapshotForInstance",
-	                "ssm:GetDocument",
-	                "ssm:GetManifest",
-	                "ssm:GetParameters",
-	                "ssm:ListAssociations",
-	                "ssm:ListInstanceAssociations",
-	                "ssm:PutInventory",
-	                "ssm:PutComplianceItems",
-	                "ssm:PutConfigurePackageResult",
-	                "ssm:UpdateAssociationStatus",
-	                "ssm:UpdateInstanceAssociationStatus",
-	                "ssm:UpdateInstanceInformation"
-	            ],
-	            "Resource": "*"
-	        },
-	        {
-	            "Effect": "Allow",
-	            "Action": [
-	                "ssmmessages:CreateControlChannel",
-	                "ssmmessages:CreateDataChannel",
-	                "ssmmessages:OpenControlChannel",
-	                "ssmmessages:OpenDataChannel"
-	            ],
-	            "Resource": "*"
-	        },
-	        {
-	            "Effect": "Allow",
-	            "Action": [
-	                "ec2messages:AcknowledgeMessage",
-	                "ec2messages:DeleteMessage",
-	                "ec2messages:FailMessage",
-	                "ec2messages:GetEndpoint",
-	                "ec2messages:GetMessages",
-	                "ec2messages:SendReply"
-	            ],
-	            "Resource": "*"
-	        },
-	        {
-	            "Effect": "Allow",
-	            "Action": [
-	                "cloudwatch:PutMetricData"
-	            ],
-	            "Resource": "*"
-	        },
-	        {
-	            "Effect": "Allow",
-	            "Action": [
-	                "ec2:DescribeInstanceStatus"
-	            ],
-	            "Resource": "*"
-	        },
-	        {
-	            "Effect": "Allow",
-	            "Action": [
-	                "ds:CreateComputer",
-	                "ds:DescribeDirectories"
-	            ],
-	            "Resource": "*"
-	        },
-	        {
-	            "Effect": "Allow",
-	            "Action": [
-	                "logs:CreateLogGroup",
-	                "logs:CreateLogStream",
-	                "logs:DescribeLogGroups",
-	                "logs:DescribeLogStreams",
-	                "logs:PutLogEvents"
-	            ],
-	            "Resource": "*"
-	        },
-	        {
-	            "Effect": "Allow",
-	            "Action": [
-	                "s3:PutObject",
-	                "s3:GetObject",
-	                "s3:GetEncryptionConfiguration",
-	                "s3:AbortMultipartUpload",
-	                "s3:ListMultipartUploadParts",
-	                "s3:ListBucket",
-	                "s3:ListBucketMultipartUploads"
-	            ],
-	            "Resource": "*"
-	        } ]
+              {
+                "Effect": "Allow",
+                "Action": [
+                    "ssm:DescribeAssociation",
+                    "ssm:GetDeployablePatchSnapshotForInstance",
+                    "ssm:GetDocument",
+                    "ssm:GetManifest",
+                    "ssm:GetParameters",
+                    "ssm:ListAssociations",
+                    "ssm:ListInstanceAssociations",
+                    "ssm:PutInventory",
+                    "ssm:PutComplianceItems",
+                    "ssm:PutConfigurePackageResult",
+                    "ssm:UpdateAssociationStatus",
+                    "ssm:UpdateInstanceAssociationStatus",
+                    "ssm:UpdateInstanceInformation"
+                ],
+                "Resource": "*"
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "ssmmessages:CreateControlChannel",
+                    "ssmmessages:CreateDataChannel",
+                    "ssmmessages:OpenControlChannel",
+                    "ssmmessages:OpenDataChannel"
+                ],
+                "Resource": "*"
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "ec2messages:AcknowledgeMessage",
+                    "ec2messages:DeleteMessage",
+                    "ec2messages:FailMessage",
+                    "ec2messages:GetEndpoint",
+                    "ec2messages:GetMessages",
+                    "ec2messages:SendReply"
+                ],
+                "Resource": "*"
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "cloudwatch:PutMetricData"
+                ],
+                "Resource": "*"
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "ec2:DescribeInstanceStatus"
+                ],
+                "Resource": "*"
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "ds:CreateComputer",
+                    "ds:DescribeDirectories"
+                ],
+                "Resource": "*"
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:DescribeLogGroups",
+                    "logs:DescribeLogStreams",
+                    "logs:PutLogEvents"
+                ],
+                "Resource": "*"
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "s3:PutObject",
+                    "s3:GetObject",
+                    "s3:GetEncryptionConfiguration",
+                    "s3:AbortMultipartUpload",
+                    "s3:ListMultipartUploadParts",
+                    "s3:ListBucket",
+                    "s3:ListBucketMultipartUploads"
+                ],
+                "Resource": "*"
+            } ]
           }
         } ]
       }
@@ -380,95 +385,126 @@
       }
     },
     "ElasticsearchDomain": {
-	  "Type": "AWS::Elasticsearch::Domain",
-	  "Properties": {
-	    "DomainName": {"Ref" : "AWS::StackName"},
+      "Type": "AWS::Elasticsearch::Domain",
+      "Properties": {
+        "DomainName": {"Ref" : "AWS::StackName"},
         "ElasticsearchVersion" : "6.2",
-	    "ElasticsearchClusterConfig": {
-	      "InstanceCount": "1",
-	      "InstanceType": "t2.small.elasticsearch"
-	    },
-	    "EBSOptions": {
-	      "EBSEnabled": true,
-	      "Iops": 0,
-	      "VolumeSize": 10,
-	      "VolumeType": "gp2"
-	    },
-	    "AccessPolicies": {
-	      "Version": "2012-10-17",
-	      "Statement": [{
-	        "Effect": "Allow",
-	        "Principal": {
-	          "AWS": "*"
-	        },
-	        "Action": "es:*",
-	        "Resource": { "Fn::Join" : [ "", ["arn:aws:es:", { "Ref" : "AWS::Region" }, ":", {"Ref" : "AWS::AccountId"}, ":domain/", {"Ref" : "AWS::StackName"}, "/*"] ] },
-	        "Condition": {
-	          "IpAddress": {
-	            "aws:SourceIp": "0.0.0.0/0"
-	          }
-	        }
-	      }]
-	    }
-	  }
-	},
+        "ElasticsearchClusterConfig": {
+          "InstanceCount": "1",
+          "InstanceType": "t2.small.elasticsearch"
+        },
+        "EBSOptions": {
+          "EBSEnabled": true,
+          "Iops": 0,
+          "VolumeSize": 10,
+          "VolumeType": "gp2"
+        },
+        "AccessPolicies": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": {
+              "AWS": "*"
+            },
+            "Action": "es:*",
+            "Resource": { "Fn::Join" : [ "", ["arn:aws:es:", { "Ref" : "AWS::Region" }, ":", {"Ref" : "AWS::AccountId"}, ":domain/", {"Ref" : "AWS::StackName"}, "/*"] ] },
+            "Condition": {
+              "IpAddress": {
+                "aws:SourceIp": [ { "Fn::GetAtt" : [ "UVHubInstance", "PublicIp" ] }, 
+                                  { "Fn::GetAtt" : [ "UVTracksInstance", "PublicIp" ] } ]
+              }
+            }
+          }]
+        }
+      }
+    },
     "UVHubInstance" : {
       "Type" : "AWS::EC2::Instance",
-      "DependsOn" : "ElasticsearchDomain",
       "Properties" : {
         "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "AMI" ] },
         "InstanceType" : { "Ref" : "InstanceType" },
         "SecurityGroups" : [ { "Ref" : "UVHubSecurityGroup" } ],
         "IamInstanceProfile" : { "Ref" : "IAMInstanceProfile" },
         "KeyName" : { "Ref" : "KeyName" },
-        "Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-uvhub"]] } } ],
-        "UserData" : {
-          "Fn::Base64" : { "Fn::Join" : [ "", [ 
-            "#!/bin/bash\n", 
-            "yum install -y java-1.8.0\n",
-            "yum update -y\n", 
-            "yum install -y awslogs\n",
-            "mkdir /opt/spl\n", 
-            "cd /opt/spl\n",
-            "wget ", { "Ref" : "UVHubArchiveURL" }, " -O uvhub-bin.tar.gz\n",
-            "tar -xvzf uvhub-bin.tar.gz\n", 
-            "cp /opt/spl/conf/uvhub.service /etc/systemd/system/\n",
-            "chmod 755 /etc/systemd/system/uvhub.service\n",
-            "/opt/aws/bin/cfn-init -s ", { "Ref" : "AWS::StackId" }, " -r UVHubInstance ", " --region ", { "Ref" : "AWS::Region" }, " || error_exit 'Failed to run cfn-init'\n",
-            "systemctl start awslogsd.service\n",
-            "systemctl daemon-reload\n",
-            "systemctl enable uvhub.service\n",
-            "systemctl start uvhub.service\n",
-            "/opt/aws/bin/cfn-signal -e $? --stack ", { "Ref" : "AWS::StackName" }, " --region ", { "Ref" : "AWS::Region" }, " --resource UVHubInstance\n" ] ]
+        "Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-uvhub"]] } } ]
+      }
+    },
+    "UVHubInit" : {
+      "Type" : "AWS::SSM::Document",
+      "Properties" : {
+        "DocumentType" : "Command",
+         "Content" : {
+           "schemaVersion":"2.2",
+           "description":"UVHub EC2 instance init",
+           "parameters":{
+             "UVHubArchiveURL" : {
+               "type":"String",
+               "default": { "Ref" : "UVHubArchiveURL" }
+             },
+             "StackId" : {
+               "type":"String",
+               "default": { "Ref" : "AWS::StackId" }
+             },
+             "Region" : {
+               "type":"String",
+               "default": { "Ref" : "AWS::Region" }
+             },
+             "StackName" : {
+               "type":"String",
+               "default": { "Ref" : "AWS::StackName" }
+             },
+             "WaitHandle" : {
+               "type":"String",
+               "default": { "Ref" : "UVHubWaitHandle" }
+             }
+           },
+           "mainSteps":[ {
+                 "action":"aws:runShellScript",
+                 "name":"UVHubInit",
+                 "inputs":{
+                    "runCommand":[
+                        "#!/bin/bash", 
+                        "yum install -y java-1.8.0",
+                        "yum update -y", 
+                        "yum install -y awslogs",
+                        "mkdir /opt/spl", 
+                        "cd /opt/spl",
+                        "wget {{UVHubArchiveURL}} -O uvhub-bin.tar.gz",
+                        "tar -xvzf uvhub-bin.tar.gz", 
+                        "cp /opt/spl/conf/uvhub.service /etc/systemd/system/",
+                        "chmod 755 /etc/systemd/system/uvhub.service",
+                        "/opt/aws/bin/cfn-init -s {{StackId}} -r UVHubInit --region {{Region}} || error_exit 'Failed to run cfn-init'",
+                        "systemctl start awslogsd.service",
+                        "systemctl daemon-reload",
+                        "systemctl enable uvhub.service",
+                        "systemctl start uvhub.service",
+                        "/opt/aws/bin/cfn-signal -e $? --stack '{{StackName}}' --region {{Region}} '{{WaitHandle}}'" 
+                       ]
+                 }
+             } ]
           }
-        }
-      },
-      "CreationPolicy" : {
-        "ResourceSignal" : {
-          "Timeout" : "PT10M"
-        }
-      },
-      "Metadata" : {
+       },
+       "Metadata" : {
         "AWS::CloudFormation::Init" : {
           "config" : {
             "files" : {
               "/opt/spl/conf/app.properties" : {
                 "content" : {
                   "Fn::Join" : [ "", [
-					"rockblock.port=8080\n", 
-					"radioroom.port=5060\n", 
-					"mavlink.port=5760\n", 
-					"shadow.port=5757\n", 
-					"ws.port=8000\n", 
-					"heartbeat.interval=1000\n", 
-					"rockblock.imei=", { "Ref" : "RockBlockIMEI" }, "\n", 
-					"rockblock.username=", { "Ref" : "RockBlockUsername" }, "\n", 
-					"rockblock.password=", { "Ref" : "RockBlockPassword" }, "\n", 
-					"mav.autopilot=", { "Fn::FindInMap" : [ "MAVAutopilotMap", { "Ref" : "MAVAutopilot" }, "code" ] }, "\n", 
-					"mav.type=", { "Fn::FindInMap" : [ "MAVTypeMap", { "Ref" : "MAVType" }, "code" ] }, "\n",
-					"elasticsearch.endpoint=", { "Fn::GetAtt" : [ "ElasticsearchDomain", "DomainEndpoint" ] }, "\n",
-					"elasticsearch.port=443\n",
-					"elasticsearch.protocol=https\n"
+                    "rockblock.port=8080\n", 
+                    "radioroom.port=5060\n", 
+                    "mavlink.port=5760\n", 
+                    "shadow.port=5757\n", 
+                    "ws.port=8000\n", 
+                    "heartbeat.interval=1000\n", 
+                    "rockblock.imei=", { "Ref" : "RockBlockIMEI" }, "\n", 
+                    "rockblock.username=", { "Ref" : "RockBlockUsername" }, "\n", 
+                    "rockblock.password=", { "Ref" : "RockBlockPassword" }, "\n", 
+                    "mav.autopilot=", { "Fn::FindInMap" : [ "MAVAutopilotMap", { "Ref" : "MAVAutopilot" }, "code" ] }, "\n", 
+                    "mav.type=", { "Fn::FindInMap" : [ "MAVTypeMap", { "Ref" : "MAVType" }, "code" ] }, "\n",
+                    "elasticsearch.endpoint=", { "Fn::GetAtt" : [ "ElasticsearchDomain", "DomainEndpoint" ] }, "\n",
+                    "elasticsearch.port=443\n",
+                    "elasticsearch.protocol=https\n"
                   ] ]
                 },
                 "mode" : "000444"
@@ -501,26 +537,26 @@
                 "content" : {
                   "Fn::Join" : [ "", [ 
                     "filter.threshold.type=ThresholdFilter\n",
-					"filter.threshold.level=debug\n",
-					"appender.console.type=Console\n",
-					"appender.console.name=STDOUT\n",
-					"appender.console.layout.type=PatternLayout\n",
-					"appender.console.layout.pattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %m%n\n",
-					"appender.console.filter.threshold.type=ThresholdFilter\n",
-					"appender.console.filter.threshold.level=info\n",
-     				"appender.rolling.type=RollingFile\n",
-					"appender.rolling.name=RollingFile\n",
-					"appender.rolling.fileName=/var/log/uvhub.log\n",
-					"appender.rolling.filePattern=/var/log/uvhub-%d{MM-dd-yy-HH-mm-ss}-%i.log.gz\n",
-					"appender.rolling.layout.type=PatternLayout\n",
-					"appender.rolling.layout.pattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %m%n\n",
-					"appender.rolling.policies.type=Policies\n",
-					"appender.rolling.policies.size.type=SizeBasedTriggeringPolicy\n",
-					"appender.rolling.policies.size.size=100MB\n",
-					"appender.rolling.strategy.type=DefaultRolloverStrategy\n",
-					"appender.rolling.strategy.max=5\n",
-       				"rootLogger.level=info\n",
-					"rootLogger.appenderRef.stdout.ref=STDOUT\n",
+                    "filter.threshold.level=debug\n",
+                    "appender.console.type=Console\n",
+                    "appender.console.name=STDOUT\n",
+                    "appender.console.layout.type=PatternLayout\n",
+                    "appender.console.layout.pattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %m%n\n",
+                    "appender.console.filter.threshold.type=ThresholdFilter\n",
+                    "appender.console.filter.threshold.level=info\n",
+                     "appender.rolling.type=RollingFile\n",
+                    "appender.rolling.name=RollingFile\n",
+                    "appender.rolling.fileName=/var/log/uvhub.log\n",
+                    "appender.rolling.filePattern=/var/log/uvhub-%d{MM-dd-yy-HH-mm-ss}-%i.log.gz\n",
+                    "appender.rolling.layout.type=PatternLayout\n",
+                    "appender.rolling.layout.pattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %m%n\n",
+                    "appender.rolling.policies.type=Policies\n",
+                    "appender.rolling.policies.size.type=SizeBasedTriggeringPolicy\n",
+                    "appender.rolling.policies.size.size=100MB\n",
+                    "appender.rolling.strategy.type=DefaultRolloverStrategy\n",
+                    "appender.rolling.strategy.max=5\n",
+                       "rootLogger.level=info\n",
+                    "rootLogger.appenderRef.stdout.ref=STDOUT\n",
                     "rootLogger.appenderRef.rolling.ref=RollingFile\n" ] ]
                 },
                 "mode" : "000444"
@@ -530,42 +566,98 @@
         }
       }
     },
+    "UVHubWaitHandle" : {
+       "Type" : "AWS::CloudFormation::WaitConditionHandle"
+    },
+    "UVHubWaitCondition" : {
+       "Type" : "AWS::CloudFormation::WaitCondition",
+       "Properties" : {
+          "Handle"  : { "Ref" : "UVHubWaitHandle" },
+          "Timeout" : "1800",
+          "Count"   : 1
+       }
+    },  
+    "UVHubInitAssociation": {
+      "Type": "AWS::SSM::Association",
+      "DependsOn" : "ElasticsearchDomain",
+      "Properties": {
+        "Name": {
+          "Ref": "UVHubInit"
+        },
+        "Targets": [{
+          "Key": "InstanceIds",
+          "Values": [{
+            "Ref": "UVHubInstance"
+          }]
+        }]
+      }
+    },
     "UVTracksInstance" : {
       "Type" : "AWS::EC2::Instance",
-      "DependsOn" : "ElasticsearchDomain",
       "Properties" : {
         "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "AMI" ] },
         "InstanceType" : { "Ref" : "InstanceType" },
         "SecurityGroups" : [ { "Ref" : "UVTracksSecurityGroup" } ],
         "IamInstanceProfile" : { "Ref" : "IAMInstanceProfile" },
         "KeyName" : { "Ref" : "KeyName" },
-        "Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-uvtracks"]] } } ],
-        "UserData" : {
-          "Fn::Base64" : { "Fn::Join" : [ "", [ 
-            "#!/bin/bash\n", 
-            "mkdir /opt/spl\n",
-            "yum install -y java-1.8.0\n",
-            "yum update -y\n", 
-            "yum install -y awslogs\n",            
-            "cd /opt/spl\n",
-            "wget ", { "Ref" : "UVTracksArchiveURL" }, " -O uvtracks-bin.tar.gz\n",
-            "tar -xvzf uvtracks-bin.tar.gz\n",
-            "cp /opt/spl/jetty/uvtracks-base/etc/uvtracks.service /etc/systemd/system/\n",
-            "chmod 755 /etc/systemd/system/uvtracks.service\n",
-            "/opt/aws/bin/cfn-init -s ", { "Ref" : "AWS::StackId" }, " -r UVTracksInstance ", " --region ", { "Ref" : "AWS::Region" }, " || error_exit 'Failed to run cfn-init'\n",
-            "systemctl start awslogsd.service\n",
-            "systemctl daemon-reload\n",
-            "systemctl enable uvtracks.service\n",
-            "systemctl start uvtracks.service\n",
-            "/opt/aws/bin/cfn-signal -e $? --stack ", { "Ref" : "AWS::StackName" }, " --region ", { "Ref" : "AWS::Region" }, " --resource UVTracksInstance\n" ] ]
+        "Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-uvtracks"]] } } ]
+       }
+    },
+    "UVTracksInit" : {
+      "Type" : "AWS::SSM::Document",
+      "Properties" : {
+        "DocumentType" : "Command",
+         "Content" : {
+           "schemaVersion":"2.2",
+           "description":"UVTracks EC2 instance init",
+           "parameters":{
+             "UVTracksArchiveURL" : {
+               "type":"String",
+               "default": { "Ref" : "UVTracksArchiveURL" }
+             },
+             "StackId" : {
+               "type":"String",
+               "default": { "Ref" : "AWS::StackId" }
+             },
+             "Region" : {
+               "type":"String",
+               "default": { "Ref" : "AWS::Region" }
+             },
+             "StackName" : {
+               "type":"String",
+               "default": { "Ref" : "AWS::StackName" }
+             },
+             "WaitHandle" : {
+               "type":"String",
+               "default": { "Ref" : "UVTracksWaitHandle" }
+             }
+           },
+           "mainSteps":[ {
+                 "action":"aws:runShellScript",
+                 "name":"UVTracksInit",
+                 "inputs":{
+                    "runCommand":[
+                        "#!/bin/bash", 
+                        "mkdir /opt/spl",
+                        "yum install -y java-1.8.0",
+                        "yum update -y", 
+                        "yum install -y awslogs",            
+                        "cd /opt/spl",
+                        "wget {{UVTracksArchiveURL}} -O uvtracks-bin.tar.gz",
+                        "tar -xvzf uvtracks-bin.tar.gz",
+                        "cp /opt/spl/jetty/uvtracks-base/etc/uvtracks.service /etc/systemd/system/",
+                        "chmod 755 /etc/systemd/system/uvtracks.service",
+                        "/opt/aws/bin/cfn-init -s {{StackId}} -r UVTracksInit --region {{Region}} || error_exit 'Failed to run cfn-init'",
+                        "systemctl start awslogsd.service",
+                        "systemctl daemon-reload",
+                        "systemctl enable uvtracks.service",
+                        "systemctl start uvtracks.service",
+                        "/opt/aws/bin/cfn-signal -e $? --stack '{{StackName}}' --region {{Region}} '{{WaitHandle}}'" 
+                       ]
+                 }
+             } ]
           }
-        }
-      },
-      "CreationPolicy" : {
-        "ResourceSignal" : {
-          "Timeout" : "PT10M"
-        }
-      },
+       },
       "Metadata" : {
         "AWS::CloudFormation::Init" : {
           "config" : {
@@ -573,9 +665,9 @@
               "/opt/spl/jetty/uvtracks-base/resources/app.properties" : {
                 "content" : {
                   "Fn::Join" : [ "", [
-					"elasticsearch.endpoint=", { "Fn::GetAtt" : [ "ElasticsearchDomain", "DomainEndpoint" ] }, "\n",
-					"elasticsearch.port=443\n",
-					"elasticsearch.protocol=https\n"
+                    "elasticsearch.endpoint=", { "Fn::GetAtt" : [ "ElasticsearchDomain", "DomainEndpoint" ] }, "\n",
+                    "elasticsearch.port=443\n",
+                    "elasticsearch.protocol=https\n"
                   ] ]
                 },
                 "mode" : "000444"
@@ -608,26 +700,26 @@
                 "content" : {
                   "Fn::Join" : [ "", [ 
                     "filter.threshold.type=ThresholdFilter\n",
-					"filter.threshold.level=debug\n",
-					"appender.console.type=Console\n",
-					"appender.console.name=STDOUT\n",
-					"appender.console.layout.type=PatternLayout\n",
-					"appender.console.layout.pattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %m%n\n",
-					"appender.console.filter.threshold.type=ThresholdFilter\n",
-					"appender.console.filter.threshold.level=info\n",
-     				"appender.rolling.type=RollingFile\n",
-					"appender.rolling.name=RollingFile\n",
-					"appender.rolling.fileName=/var/log/uvtracks.log\n",
-					"appender.rolling.filePattern=/var/log/uvtracks-%d{MM-dd-yy-HH-mm-ss}-%i.log.gz\n",
-					"appender.rolling.layout.type=PatternLayout\n",
-					"appender.rolling.layout.pattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %m%n\n",
-					"appender.rolling.policies.type=Policies\n",
-					"appender.rolling.policies.size.type=SizeBasedTriggeringPolicy\n",
-					"appender.rolling.policies.size.size=100MB\n",
-					"appender.rolling.strategy.type=DefaultRolloverStrategy\n",
-					"appender.rolling.strategy.max=5\n",
-       				"rootLogger.level=info\n",
-					"rootLogger.appenderRef.stdout.ref=STDOUT\n",
+                    "filter.threshold.level=debug\n",
+                    "appender.console.type=Console\n",
+                    "appender.console.name=STDOUT\n",
+                    "appender.console.layout.type=PatternLayout\n",
+                    "appender.console.layout.pattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %m%n\n",
+                    "appender.console.filter.threshold.type=ThresholdFilter\n",
+                    "appender.console.filter.threshold.level=info\n",
+                     "appender.rolling.type=RollingFile\n",
+                    "appender.rolling.name=RollingFile\n",
+                    "appender.rolling.fileName=/var/log/uvtracks.log\n",
+                    "appender.rolling.filePattern=/var/log/uvtracks-%d{MM-dd-yy-HH-mm-ss}-%i.log.gz\n",
+                    "appender.rolling.layout.type=PatternLayout\n",
+                    "appender.rolling.layout.pattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %m%n\n",
+                    "appender.rolling.policies.type=Policies\n",
+                    "appender.rolling.policies.size.type=SizeBasedTriggeringPolicy\n",
+                    "appender.rolling.policies.size.size=100MB\n",
+                    "appender.rolling.strategy.type=DefaultRolloverStrategy\n",
+                    "appender.rolling.strategy.max=5\n",
+                       "rootLogger.level=info\n",
+                    "rootLogger.appenderRef.stdout.ref=STDOUT\n",
                     "rootLogger.appenderRef.rolling.ref=RollingFile\n" ] ]
                 },
                 "mode" : "000444"
@@ -635,6 +727,28 @@
             }
           }
         }
+      }
+    },
+    "UVTracksWaitHandle" : {
+       "Type" : "AWS::CloudFormation::WaitConditionHandle"
+    },
+    "UVTracksWaitCondition" : {
+       "Type" : "AWS::CloudFormation::WaitCondition",
+       "Properties" : {
+          "Handle"  : { "Ref" : "UVTracksWaitHandle" },
+          "Timeout" : "1800",
+          "Count"   : 1
+       }
+    },  
+    "UVTracksInitAssociation": {
+      "Type": "AWS::SSM::Association",
+      "DependsOn" : "ElasticsearchDomain",
+      "Properties": {
+        "Name": { "Ref": "UVTracksInit" },
+        "Targets": [ {
+          "Key": "InstanceIds",
+          "Values": [ { "Ref": "UVTracksInstance" } ]
+        } ]
       }
     },
     "LogGroup" : {
