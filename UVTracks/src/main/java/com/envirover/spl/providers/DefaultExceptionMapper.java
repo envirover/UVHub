@@ -15,25 +15,22 @@
  * from Envirover.
  */
 
-package com.envirover.uvnet.mission;
+package com.envirover.spl.providers;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
 
-public class RallyPoints {
+import com.envirover.spl.uvtracks.RestError;
 
-    private final int version = 1;
-    private List<List<Double>> points = new ArrayList<List<Double>>();
+@Provider
+public class DefaultExceptionMapper implements ExceptionMapper<Exception> {
 
-    public int getVersion() {
-        return version;
+    @Override
+    public Response toResponse(Exception ex) {
+        return Response.status(Response.Status.OK)
+                .entity(new RestError(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ex.getMessage()))
+                .build();
     }
 
-    public List<List<Double>> getPoints() {
-        return points;
-    }
-
-    public void setPoints(List<List<Double>> points) {
-        this.points = points;
-    }
 }

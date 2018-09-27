@@ -15,25 +15,40 @@
  * from Envirover.
  */
 
-package com.envirover.uvnet.mission;
+package com.envirover.spl.uvtracks;
 
-import java.util.ArrayList;
-import java.util.List;
+/**
+ * REST service error object.
+ * 
+ * @author Pavel Bobov
+ *
+ */
+public class RestError {   
 
-public class RallyPoints {
+    private final int code;
+    private final String message;
 
-    private final int version = 1;
-    private List<List<Double>> points = new ArrayList<List<Double>>();
-
-    public int getVersion() {
-        return version;
+    public RestError(int code, String message) {
+        this.code = code;
+        this.message = message;
     }
 
-    public List<List<Double>> getPoints() {
-        return points;
+    /**
+     * Returns HTTP error code.
+     * 
+     * @return HTTP error code
+     */
+    public int getCode() {
+        return code;
     }
 
-    public void setPoints(List<List<Double>> points) {
-        this.points = points;
+    /**
+     * Returns error message.
+     * 
+     * @return error message
+     */
+    public String getMessage() {
+        return message;
     }
+
 }
