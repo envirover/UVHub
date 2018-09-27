@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion" : "2010-09-09",
-  "Description" : "AWS CloudFormation template for UV Hub server. You will be billed for the AWS resources used if you create a stack from this template.",
+  "Description" : "AWS CloudFormation template for UV Hub and UV Tracks servers of SPL Global Telemetry System. You will be billed for the AWS resources used if you create a stack from this template.",
   "Parameters" : {
     "KeyName" : {
       "Description" : "Name of an existing EC2 KeyPair to enable SSH access to the instances",
@@ -12,8 +12,7 @@
       "Description" : "EC2 instance type",
       "Type" : "String",
       "Default" : "t2.micro",
-      "AllowedValues" : [ "t2.micro", "t2.small", "t2.medium", "t3.micro", "t3.small", "t3.medium"  ],
-      "ConstraintDescription" : "Must be a valid EC2 instance type."
+      "AllowedValues" : [ "t2.micro", "t2.small", "t2.medium", "t3.micro", "t3.small", "t3.medium"  ]
     },
     "ClientCIDR" : {
       "Description" : "CIDR IP address range of GCS clients and SSH",
@@ -22,7 +21,7 @@
       "MaxLength" : "18",
       "Default" : "0.0.0.0/0",
       "AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
-      "ConstraintDescription" : "must be a valid IP CIDR range of the form x.x.x.x/x."
+      "ConstraintDescription" : "Must be a valid IP CIDR range of the form x.x.x.x/x."
     },
     "RockBlockIMEI" : {
       "Description" : "Unique IMEI of your RockBLOCK",
@@ -105,59 +104,59 @@
       }
     },
     "RegionMap" : {
-      "us-east-1" : {
-        "AMI" : "ami-00b94673edfccb7ca"
+      "ap-northeast-1" : {
+        "AMI" : "ami-08847abae18baa040"
       },
-      "us-east-2" : {
-        "AMI" : "ami-05ea59e90e2c10a56"
-      },
-      "us-west-1" : {
-        "AMI" : "ami-02b2f7285ba6579ed"
-      },
-      "us-west-2" : {
-        "AMI" : "ami-99dafbe1"
-      },
-      "eu-west-1" : {
-        "AMI" : "ami-020d43be7e7841de4"
-      },
-      "eu-west-2" : {
-        "AMI" : "ami-8f7481e8"
-      },
-      "eu-west-3" : {
-        "AMI" : "ami-06879bb67c688e7eb"
-      },
-      "eu-central-1" : {
-        "AMI" : "ami-0bfa8b98c4ff06eed"
-      },
-      "ap-southeast-1" : {
-        "AMI" : "ami-00cc30e1735b3268b"
+      "ap-northeast-2" : {
+        "AMI" : "ami-012566705322e9a8e"
       },
       "ap-northeast-3" : {
-        "AMI" : "ami-0c376da6d144c5890"
-      },      
-      "ap-northeast-2" : {
-        "AMI" : "ami-0c5cc56ce20a39938"
-      },
-      "ap-northeast-1" : {
-        "AMI" : "ami-0957b42d2e60d8654"
-      },
-      "ap-southeast-2" : {
-        "AMI" : "ami-0b1a7767bce29a01a"
+        "AMI" : "ami-00f7ef6bf92e8f916"
       },
       "ap-south-1" : {
-        "AMI" : "ami-0a6bfb6ec493fec48"
+        "AMI" : "ami-00b6a8a2bd28daf19"
       },
-      "sa-east-1" : {
-        "AMI" : "ami-0f57b63a449295354"
+      "ap-southeast-1" : {
+        "AMI" : "ami-01da99628f381e50a"
+      },
+      "ap-southeast-2" : {
+        "AMI" : "ami-00e17d1165b9dd3ec"
       },
       "ca-central-1" : {
-        "AMI" : "ami-cd1b96a9"
+        "AMI" : "ami-ce1b96aa"
       },
       "cn-north-1" : {
-        "AMI" : "ami-9906def4"
+        "AMI" : "ami-9a06def7"
       },
       "cn-northwest-1" : {
-        "AMI" : "ami-bc6a7dde"
+        "AMI" : "ami-116a7d73"
+      },
+      "eu-central-1" : {
+        "AMI" : "ami-0f5dbc86dd9cbf7a8"
+      },
+      "eu-west-1" : {
+        "AMI" : "ami-0bdb1d6c15a40392c"
+      },
+      "eu-west-2" : {
+        "AMI" : "ami-e1768386"
+      },
+      "eu-west-3" : {
+        "AMI" : "ami-06340c8c12baa6a09"
+      },
+      "sa-east-1" : {
+        "AMI" : "ami-0ad7b0031d41ed4b9"
+      },
+      "us-east-1" : {
+        "AMI" : "ami-04681a1dbd79675a5"
+      },
+      "us-east-2" : {
+        "AMI" : "ami-0cf31d971a3ca20d6"
+      },
+      "us-west-1" : {
+        "AMI" : "ami-0782017a917e973e7"
+      },
+      "us-west-2" : {
+        "AMI" : "ami-6cd6f714"
       }
     }
   },
@@ -429,6 +428,24 @@
         "Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-uvhub"]] } } ]
       }
     },
+    "UVHubInstanceRecoveryAlarm" : {
+      "Type" : "AWS::CloudWatch::Alarm",
+      "Properties" : {
+        "AlarmDescription" : "Trigger a recovery when instance status check fails for 5 consecutive minutes.",
+        "MetricName" : "StatusCheckFailed_System",
+        "Namespace" : "AWS/EC2",
+        "Statistic" : "Minimum",
+        "Period" : "60",
+        "EvaluationPeriods" : "5",
+        "Threshold" : "0",
+        "ComparisonOperator" : "GreaterThanThreshold",
+        "AlarmActions" : [ {"Fn::Join" : ["", ["arn:", {"Ref" : "AWS::Partition"}, ":automate:", { "Ref" : "AWS::Region" }, ":ec2:recover" ]]} ],
+        "Dimensions" : [ {
+            "Name" : "InstanceId",
+            "Value" : {"Ref" : "UVHubInstance"}
+        } ]
+      }
+    },
     "UVHubInit" : {
       "Type" : "AWS::SSM::Document",
       "Properties" : {
@@ -603,6 +620,24 @@
         "Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-uvtracks"]] } } ]
        }
     },
+    "UVTracksInstanceRecoveryAlarm" : {
+      "Type" : "AWS::CloudWatch::Alarm",
+      "Properties" : {
+        "AlarmDescription" : "Trigger a recovery when instance status check fails for 5 consecutive minutes.",
+        "MetricName" : "StatusCheckFailed_System",
+        "Namespace" : "AWS/EC2",
+        "Statistic" : "Minimum",
+        "Period" : "60",
+        "EvaluationPeriods" : "5",
+        "Threshold" : "0",
+        "ComparisonOperator" : "GreaterThanThreshold",
+        "AlarmActions" : [ {"Fn::Join" : ["", ["arn:", {"Ref" : "AWS::Partition"}, ":automate:", { "Ref" : "AWS::Region" }, ":ec2:recover" ]]} ],
+        "Dimensions" : [ {
+            "Name" : "InstanceId",
+            "Value" : {"Ref" : "UVTracksInstance"}
+        } ]
+      }
+    },
     "UVTracksInit" : {
       "Type" : "AWS::SSM::Document",
       "Properties" : {
@@ -760,7 +795,7 @@
   },
   "Outputs" : {
     "UVTracksURL" : {
-      "Value" : { "Fn::Join" : [ "", [ "http://", { "Fn::GetAtt" : [ "UVTracksInstance", "PublicIp" ] }, "/uvtracks/index.html" ] ] },
+      "Value" : { "Fn::Join" : [ "", [ "http://", { "Fn::GetAtt" : [ "UVTracksInstance", "PublicIp" ] }, "/uvtracks" ] ] },
       "Description" : "UV Tracks service URL"
     },
     "RockBLOCKHandlerURL" : {
