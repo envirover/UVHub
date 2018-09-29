@@ -700,6 +700,8 @@
               "/opt/spl/jetty/uvtracks-base/resources/app.properties" : {
                 "content" : {
                   "Fn::Join" : [ "", [
+                    "mav.autopilot=", { "Fn::FindInMap" : [ "MAVAutopilotMap", { "Ref" : "MAVAutopilot" }, "code" ] }, "\n", 
+                    "mav.type=", { "Fn::FindInMap" : [ "MAVTypeMap", { "Ref" : "MAVType" }, "code" ] }, "\n",
                     "elasticsearch.endpoint=", { "Fn::GetAtt" : [ "ElasticsearchDomain", "DomainEndpoint" ] }, "\n",
                     "elasticsearch.port=443\n",
                     "elasticsearch.protocol=https\n"
@@ -808,15 +810,15 @@
     },
     "ShadowClientURL" : {
       "Value" : { "Fn::Join" : [ "", [ "tcp://", { "Fn::GetAtt" : [ "UVHubInstance", "PublicIp" ] }, ":5757" ] ] },
-      "Description" : "GCS client TCP/IP connection URL used to update parameters and missions in the reported state of the vehicle's shadow."
+      "Description" : "GCS client TCP/IP connection URL used to update parameters and missions in the reported state of the vehicle's shadow"
     },
     "RadioRoomClientURL" : {
       "Value" : { "Fn::Join" : [ "", [ "tcp://", { "Fn::GetAtt" : [ "UVHubInstance", "PublicIp" ] }, ":5060" ] ] },
-      "Description" : "Host and port that must be specified in radioroom.conf file in  SPL RadioRoom if TCP comm link is enabled."
+      "Description" : "Host and port that must be specified in radioroom.conf file in RadioRoom, if TCP comm link is enabled"
     },
     "CloudWatchLogs" : {
       "Value" : { "Fn::Join" : [ "", [ "https://console.aws.amazon.com/cloudwatch/home?region=", { "Ref" : "AWS::Region" }, "#logStream:group=", { "Ref" : "LogGroup" } ] ] },
-      "Description" : "SPLGroundControl logs"
+      "Description" : "CloudWatch logs of UV Hub and UV Tracks servers"
     }
   }
 }

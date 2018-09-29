@@ -98,7 +98,9 @@ public class UVTracksResource {
     @Path("/missions")
     @Produces(MediaType.APPLICATION_JSON)
     public Plan getMissions(@DefaultValue(DEFAULT_SYSTEM_ID) @QueryParam("sysid") int sysid) throws IOException {
-        return new Plan(shadow.getMission(sysid));
+        Plan plan = new Plan(shadow.getMission(sysid));
+        plan.getMission().setVehicleType(Config.getInstance().getMavType());
+        return plan;
     }
 
 }
