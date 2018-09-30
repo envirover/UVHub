@@ -1,4 +1,4 @@
-﻿$stackName  = "test2"
+﻿$stackName  = "test"
 
 $bucketName = "envirover"
 $keyPrefix  = "test"
