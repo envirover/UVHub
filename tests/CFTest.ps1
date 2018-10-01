@@ -2,8 +2,8 @@
 
 $bucketName = "envirover"
 $keyPrefix  = "test"
-$uvhubgz    = "uvhub-2.0-bin.tar.gz"
-$uvtracksgz = "uvtracks-2.0-bin.tar.gz"
+$uvhubgz    = "uvhub-2.1-bin.tar.gz"
+$uvtracksgz = "uvtracks-2.1-bin.tar.gz"
 
 Remove-CFNStack -StackName $stackName -Region us-west-2 -Force 
 
