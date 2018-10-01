@@ -86,7 +86,6 @@ public class GCSClientSession implements ClientSession {
     private boolean isOpen = false;
     private int desiredMissionCount = 0;
     private List<msg_mission_item> reportedMission = new ArrayList<msg_mission_item>();
-    private int sysId = 1; //TODO set system Id for the client session
 
     public GCSClientSession(MAVLinkChannel src, MAVLinkChannel mtMessageQueue, UVShadow shadow) {
     	this.heartbeatTimer = Executors.newScheduledThreadPool(2);
@@ -159,15 +158,15 @@ public class GCSClientSession implements ClientSession {
             case msg_param_request_list.MAVLINK_MSG_ID_PARAM_REQUEST_LIST: {
                 MAVLinkLogger.log(Level.INFO, "<<", packet);
 
-                List<msg_param_value> params = shadow.getParams(sysId);
+                List<msg_param_value> params = shadow.getParams(Config.getInstance().getSystemId());
                 for (msg_param_value param : params) {
                     sendToSource(param);
     
                     try {
-						Thread.sleep(10);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 logger.info(MessageFormat.format("{0} on-board parameters sent to the MAVLink client.", params.size()));
@@ -360,7 +359,8 @@ public class GCSClientSession implements ClientSession {
      */
     private synchronized void reportState() throws IOException, InterruptedException {
         msg_high_latency msgHighLatency = (msg_high_latency)shadow.getLastMessage(
-        		sysId, msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY);
+                                           Config.getInstance().getSystemId(),
+                                           msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY);
 
         sendToSource(getHeartbeatMsg(msgHighLatency));
         sendToSource(getSysStatusMsg(msgHighLatency));

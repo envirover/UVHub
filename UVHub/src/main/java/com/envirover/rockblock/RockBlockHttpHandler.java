@@ -84,10 +84,10 @@ public class RockBlockHttpHandler implements HttpHandler {
                 logger.info(MessageFormat.format("Empty MO message received ''{0}''.", message.toString()));
             } else if (message.imei.equalsIgnoreCase(imei)) {
                 MAVLinkPacket packet = message.getPacket();
-    
+
                 if (packet != null) {
                     dst.sendMessage(packet);
-                    
+
                     MAVLinkLogger.log(Level.INFO, "MO", packet);
                 } else {
                     logger.warn(MessageFormat.format("Invalid MAVLink message ''{0}''.", message.toString()));
@@ -96,12 +96,12 @@ public class RockBlockHttpHandler implements HttpHandler {
                 logger.warn(MessageFormat.format("Invalid IMEI ''{0}''.", message.imei));
             }
 
-            //Send response
+            // Send response
             String response = "";
             t.sendResponseHeaders(200, response.length());
-            
+
             try (OutputStream os = t.getResponseBody()) {
-            	os.write(response.getBytes("UTF-8"));
+                os.write(response.getBytes("UTF-8"));
             }
         } catch (DecoderException e) {
             logger.error(e.getMessage());
@@ -113,19 +113,19 @@ public class RockBlockHttpHandler implements HttpHandler {
         // HTTP POST request parameters
 
         // IMEI of the RockBLOCK
-        private final static String PARAM_IMEI = "imei"; 
+        private final static String PARAM_IMEI = "imei";
         // Message Sequence Number
-        private final static String PARAM_MOMSN = "momsn"; 
+        private final static String PARAM_MOMSN = "momsn";
         // UTC date & time
-        private final static String PARAM_TRANSMIT_TIME = "transmit_time"; 
+        private final static String PARAM_TRANSMIT_TIME = "transmit_time";
         // Approximate latitude of the RockBLOCK
-        private final static String PARAM_IRIDIUM_LATITUDE = "iridium_latitude"; 
+        private final static String PARAM_IRIDIUM_LATITUDE = "iridium_latitude";
         // Approximate longitude of the RockBLOCK
         private final static String PARAM_IRIDIUM_LONGITUDE = "iridium_longitude";
         // Estimate of the accuracy (in km) of the position
-        private final static String PARAM_IRIDIUM_CEP = "iridium_cep"; 
+        private final static String PARAM_IRIDIUM_CEP = "iridium_cep";
         // Hex-encoded message.
-        private final static String PARAM_DATA = "data"; 
+        private final static String PARAM_DATA = "data";
 
         private String imei = null;
         private String momsn = null;
@@ -138,27 +138,27 @@ public class RockBlockHttpHandler implements HttpHandler {
         public IridiumMessage(List<NameValuePair> params) {
             for (NameValuePair param : params) {
                 switch (param.getName()) {
-                    case PARAM_IMEI:
-                        imei = param.getValue();
-                        break;
-                    case PARAM_MOMSN:
-                        momsn = param.getValue();
-                        break;
-                    case PARAM_TRANSMIT_TIME:
-                        transmitTime = param.getValue();
-                        break;
-                    case PARAM_IRIDIUM_LATITUDE:
-                        iridiumLatitude = param.getValue();
-                        break;
-                    case PARAM_IRIDIUM_LONGITUDE:
-                        iridiumLongitude = param.getValue();
-                        break;
-                    case PARAM_IRIDIUM_CEP:
-                        iridiumCep = param.getValue();
-                        break;
-                    case PARAM_DATA:
-                        data = param.getValue();
-                        break;
+                case PARAM_IMEI:
+                    imei = param.getValue();
+                    break;
+                case PARAM_MOMSN:
+                    momsn = param.getValue();
+                    break;
+                case PARAM_TRANSMIT_TIME:
+                    transmitTime = param.getValue();
+                    break;
+                case PARAM_IRIDIUM_LATITUDE:
+                    iridiumLatitude = param.getValue();
+                    break;
+                case PARAM_IRIDIUM_LONGITUDE:
+                    iridiumLongitude = param.getValue();
+                    break;
+                case PARAM_IRIDIUM_CEP:
+                    iridiumCep = param.getValue();
+                    break;
+                case PARAM_DATA:
+                    data = param.getValue();
+                    break;
                 }
             }
         }
@@ -176,9 +176,8 @@ public class RockBlockHttpHandler implements HttpHandler {
 
         @Override
         public String toString() {
-            return String.format("%s %s %s %s %s %s %s",
-                                 imei, momsn, transmitTime, iridiumLatitude,
-                                 iridiumLongitude, iridiumCep, data);
+            return String.format("%s %s %s %s %s %s %s", imei, momsn, transmitTime, iridiumLatitude, iridiumLongitude,
+                    iridiumCep, data);
         }
     }
 

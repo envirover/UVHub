@@ -46,8 +46,7 @@ public class UVHubDaemon implements Daemon {
     private final static Logger logger = LogManager.getLogger(UVHubDaemon.class);
 
     private final Config config = Config.getInstance();
-    private final int sysId = 1;  //TODO set system Id for the client session
-    
+
     private PersistentUVShadow shadow = null;
     private GCSTcpServer gcsTcpServer = null;
     private RRTcpServer rrTcpServer = null;
@@ -65,20 +64,19 @@ public class UVHubDaemon implements Daemon {
     public void init(DaemonContext context) throws DaemonInitException, Exception {
         if (!config.init(context.getArguments()))
             throw new DaemonInitException("Invalid configuration.");
-        
-        logger.info(MessageFormat.format("MAV Type : {0}, Autopilot class: {1}", 
-        		                         config.getMavType(), config.getAutopilot()));
 
-        shadow = new PersistentUVShadow(config.getElasticsearchEndpoint(),
-        		                        config.getElasticsearchPort(),
-        		                        config.getElasticsearchProtocol());
+        logger.info(MessageFormat.format("MAV Type : {0}, Autopilot class: {1}", config.getMavType(),
+                config.getAutopilot()));
+
+        shadow = new PersistentUVShadow(config.getElasticsearchEndpoint(), config.getElasticsearchPort(),
+                config.getElasticsearchProtocol());
         shadow.open();
-        
-        // Load default on-board parameters for the MAV_TYPE and AUTOPILOT
-       	List<msg_param_value> params = OnBoardParams.getDefaultParams(
-       			config.getMavType(), sysId, config.getAutopilot());
 
-       	shadow.setParams(sysId, params);
+        // Load default on-board parameters for the MAV_TYPE and AUTOPILOT
+        List<msg_param_value> params = OnBoardParams.getDefaultParams(config.getMavType(),
+                Config.getInstance().getSystemId(), config.getAutopilot());
+
+        shadow.setParams(Config.getInstance().getSystemId(), params);
         
         // Mobile-terminated queue contains MAVLink messages to be sent to the vehicle.
         MAVLinkMessageQueue mtMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
@@ -110,7 +108,7 @@ public class UVHubDaemon implements Daemon {
         // MAVLink messages received from RockBLOCK to the specified mobile-originated 
         // message handler.
         httpServer = HttpServer.create(new InetSocketAddress(config.getRockblockPort()), 0);
-        
+
         httpServer.createContext(config.getHttpContext(), 
                                  new RockBlockHttpHandler(moHandler, config.getRockBlockIMEI()));
         httpServer.setExecutor(null);

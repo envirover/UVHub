@@ -50,8 +50,7 @@ public class GCSTcpServer {
     
     private ServerSocket serverSocket;
     private Thread listenerThread;
-    
- 
+
 
     /**
      * Creates an instance of GCSTcpServer 
@@ -138,7 +137,6 @@ public class GCSTcpServer {
 
             @Override
             public void run() {
-            	
                 while (true) {
                     try {
                         MAVLinkPacket packet = clientSocket.receiveMessage();
@@ -149,23 +147,23 @@ public class GCSTcpServer {
 
                         Thread.sleep(10);
                     } catch (InterruptedException e) {
-                    	e.printStackTrace();
-                    	try {
-							session.onClose();
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
+                        e.printStackTrace();
+                        try {
+                            session.onClose();
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
                         return;
                     } catch (IOException e) {       	
-                    	e.printStackTrace();
-                    	if (e.getMessage().equals("Failed to receive message. The socket is closed.")) {
-                    		try {
-								session.onClose();
-							} catch (IOException e1) {
-								e1.printStackTrace();
-							}
-							return;
-                    	}
+                        e.printStackTrace();
+                        if (e.getMessage().equals("Failed to receive message. The socket is closed.")) {
+                            try {
+                                session.onClose();
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                            }
+                            return;
+                        }
                     }
                 }
             }

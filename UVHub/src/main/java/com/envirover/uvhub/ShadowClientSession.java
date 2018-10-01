@@ -83,8 +83,7 @@ public class ShadowClientSession implements ClientSession {
     private List<msg_mission_item> desiredMission = new ArrayList<msg_mission_item>();
     private int desiredMissionCount = 0;
     private List<msg_mission_item> reportedMission = new ArrayList<msg_mission_item>();
-    private int sysId = 1;  //TODO set system Id for the client session
-    
+
     public ShadowClientSession(MAVLinkChannel src, UVShadow shadow) {
     	this.heartbeatTimer = Executors.newScheduledThreadPool(2);
         this.src = src;
@@ -343,7 +342,8 @@ public class ShadowClientSession implements ClientSession {
      */
     private void reportState() throws IOException, InterruptedException {
         msg_high_latency msgHighLatency = (msg_high_latency)shadow.getLastMessage(
-        		sysId, msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY);
+                                           Config.getInstance().getSystemId(),
+                                           msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY);
 
         sendToSource(getHeartbeatMsg(msgHighLatency));
         sendToSource(getSysStatusMsg(msgHighLatency));
@@ -364,7 +364,7 @@ public class ShadowClientSession implements ClientSession {
 	        msg.base_mode = msgHighLatency.base_mode;
 	        msg.custom_mode = msgHighLatency.custom_mode;
     	} else {
-    		msg.sysid = sysId;
+    		msg.sysid = Config.getInstance().getSystemId();
     		msg.compid = 0;
     		msg.base_mode = MAV_MODE.MAV_MODE_PREFLIGHT;
     		msg.custom_mode = 0;

@@ -57,12 +57,12 @@
     "UVHubArchiveURL" : {
       "Description" : "URL of UV Hub distribution archive",
       "Type" : "String",
-      "Default" : "https://s3-us-west-2.amazonaws.com/envirover/UVHub/uvhub-2.0-bin.tar.gz"
+      "Default" : "https://s3-us-west-2.amazonaws.com/envirover/UVHub/uvhub-2.1-bin.tar.gz"
     },
     "UVTracksArchiveURL" : {
       "Description" : "URL of UV Tracks distribution archive",
       "Type" : "String",
-      "Default" : "https://s3-us-west-2.amazonaws.com/envirover/UVHub/uvtracks-2.0-bin.tar.gz"
+      "Default" : "https://s3-us-west-2.amazonaws.com/envirover/UVHub/uvtracks-2.1-bin.tar.gz"
     }    
   },
   "Mappings" : {

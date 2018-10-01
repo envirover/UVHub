@@ -86,8 +86,6 @@ public class MAVLinkWebSocket implements MAVLinkChannel {
 
     @Override
     public void close() {
-        // TODO Auto-generated method stub
-
     }
 
 }
