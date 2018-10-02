@@ -81,9 +81,6 @@
       "QUADROTOR" : {
         "code" : "2"
       },
-      "COAXIAL" : {
-        "code" : "3"
-      },     
       "HELICOPTER" : {
         "code" : "4"
       },
@@ -95,12 +92,6 @@
       }, 
       "SUBMARINE" : {
         "code" : "12"
-      },
-      "HEXAROTOR" : {
-        "code" : "13"
-      },
-      "OCTAROTOR" : {
-        "code" : "14"
       }
     },
     "RegionMap" : {
