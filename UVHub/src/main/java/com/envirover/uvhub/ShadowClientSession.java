@@ -166,10 +166,10 @@ public class ShadowClientSession implements ClientSession {
                 for (msg_param_value param : params) {
                     sendToSource(param);
                     try {
-						Thread.sleep(10);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 logger.info(MessageFormat.format("{0} on-board parameters sent to the MAVLink client.", params.size()));
@@ -187,7 +187,11 @@ public class ShadowClientSession implements ClientSession {
                 MAVLinkLogger.log(Level.INFO, "<<", packet);
 
                 msg_param_set paramSet = (msg_param_set)packet.unpack();
-                shadow.setParam(paramSet.target_system, paramSet);
+
+                if (!OnBoardParams.getReadOnlyParamIds().contains(paramSet.getParam_Id())) {
+                    shadow.setParam(paramSet.target_system, paramSet);
+                }
+
                 sendToSource(shadow.getParamValue(paramSet.target_system, paramSet.getParam_Id(), (short)-1));
                 break;
             }

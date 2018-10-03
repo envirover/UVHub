@@ -77,10 +77,10 @@ public class UVHubDaemon implements Daemon {
                 Config.getInstance().getSystemId(), config.getAutopilot());
 
         shadow.setParams(Config.getInstance().getSystemId(), params);
-        
+
         // Mobile-terminated queue contains MAVLink messages to be sent to the vehicle.
         MAVLinkMessageQueue mtMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
-        
+
         // GCS TCP server accepts GCS client connections on port 5760. It handles 
         // MAVLink messages received form the connected clients and forwards some
         // of the messages to the specified mobile-terminated queue.
@@ -115,14 +115,14 @@ public class UVHubDaemon implements Daemon {
 
         // RockBLOCK HTTP client sends MAVLink messages to RockBLOCK Web Services.
         RockBlockClient rockblock = null;
-       
-        if (config.getRockBlockIMEI() != null) {
-        	rockblock = new RockBlockClient(config.getRockBlockIMEI(),
+
+        if (config.getRockBlockIMEI() != null && !config.getRockBlockIMEI().isEmpty()) {
+            rockblock = new RockBlockClient(config.getRockBlockIMEI(),
                                             config.getRockBlockUsername(),
                                             config.getRockBlockPassword(),
                                             config.getRockBlockURL());
         }
-       
+
         // Mobile-terminated message pump pumps MAVLink messages from the specified
         // mobile-terminated queue to the last connected RadioRoom TCP client or 
         // the specified RockBLOCK HTTP client.
@@ -138,11 +138,11 @@ public class UVHubDaemon implements Daemon {
 
     @Override
     public void start() throws Exception {
-    	// Start all the server threads.
+        // Start all the server threads.
         gcsTcpServer.start();
         shadowServer.start();
         rrTcpServer.start();
-    	httpServer.start();
+        httpServer.start();
         mtMsgPumpThread.start();
         wsServer.start();
 
@@ -153,14 +153,14 @@ public class UVHubDaemon implements Daemon {
 
     @Override
     public void stop() throws Exception {
-    	// Stop all the server threads.
+        // Stop all the server threads.
         wsServer.stop();
         mtMsgPumpThread.interrupt();
-    	httpServer.stop(0);
+        httpServer.stop(0);
         rrTcpServer.stop();
         shadowServer.stop();
         gcsTcpServer.stop();
-        
+
         shadow.close();
 
         Thread.sleep(1000);

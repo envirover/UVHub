@@ -26,21 +26,17 @@
     "RockBlockIMEI" : {
       "Description" : "Unique IMEI of your RockBLOCK",
       "Type" : "String",
-      "AllowedPattern" : "\\d{15}",
-      "ConstraintDescription" : "RockBLOCK IMEI must be a 15 digit number"
+      "AllowedPattern" : "($^)|(\\d{15})",
+      "ConstraintDescription" : "RockBLOCK IMEI must be a 15 digit number or blank bield if RockBLOCK is not used."
     },
     "RockBlockUsername" : {
       "Description" : "Your Rock 7 Core username",
-      "Type" : "String",
-      "AllowedPattern" : "^(?!\\s*$).+",
-      "ConstraintDescription" : "RockBLOCK username is required"
+      "Type" : "String"
     },
     "RockBlockPassword" : {
       "Description" : "Your Rock 7 Core password",
       "Type" : "String",
-      "NoEcho" : true,
-      "AllowedPattern" : "^(?!\\s*$).+",
-      "ConstraintDescription" : "RockBLOCK password is required"
+      "NoEcho" : true
     },
     "MAVAutopilot" : {
       "Description" : "Autopilot class",

@@ -75,20 +75,20 @@ import com.envirover.uvnet.shadow.UVShadow;
 public class GCSClientSession implements ClientSession {
 
     private final static Logger logger = LogManager.getLogger(GCSClientSession.class);
-    
+
     private static final Config config = Config.getInstance();
 
     private final ScheduledExecutorService heartbeatTimer;
     private final MAVLinkChannel src;
     private final MAVLinkChannel dst;
     private final UVShadow shadow;
-    
+
     private boolean isOpen = false;
     private int desiredMissionCount = 0;
     private List<msg_mission_item> reportedMission = new ArrayList<msg_mission_item>();
 
     public GCSClientSession(MAVLinkChannel src, MAVLinkChannel mtMessageQueue, UVShadow shadow) {
-    	this.heartbeatTimer = Executors.newScheduledThreadPool(2);
+        this.heartbeatTimer = Executors.newScheduledThreadPool(2);
         this.src = src;
         this.dst = mtMessageQueue;
         this.shadow = shadow;
@@ -161,7 +161,7 @@ public class GCSClientSession implements ClientSession {
                 List<msg_param_value> params = shadow.getParams(Config.getInstance().getSystemId());
                 for (msg_param_value param : params) {
                     sendToSource(param);
-    
+
                     try {
                         Thread.sleep(10);
                     } catch (InterruptedException e) {
@@ -308,14 +308,17 @@ public class GCSClientSession implements ClientSession {
 
     //White list message filter
     private static boolean filter(MAVLinkPacket packet) {
-    	if (packet == null) {
-    		return false;
-    	}
-    	
+        if (packet == null) {
+            return false;
+        }
+
         if (packet.msgid == msg_command_long.MAVLINK_MSG_ID_COMMAND_LONG) {
             int command = ((msg_command_long)packet.unpack()).command;
             return command != MAV_CMD.MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES &&
                    command != 519  /* MAV_CMD_REQUEST_PROTOCOL_VERSION */;
+        } else if (packet.msgid == msg_param_set.MAVLINK_MSG_ID_PARAM_SET) {
+            msg_param_set paramSet = (msg_param_set)packet.unpack();
+            return !OnBoardParams.getReadOnlyParamIds().contains(paramSet.getParam_Id());
         }
 
         return packet.msgid == msg_set_mode.MAVLINK_MSG_ID_SET_MODE || 
