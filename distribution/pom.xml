@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.envirover</groupId>
 		<artifactId>spl</artifactId>
-		<version>2.0</version>
+		<version>2.1</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -21,12 +21,18 @@
 		<dependency>
 			<groupId>com.envirover</groupId>
 			<artifactId>mavlink</artifactId>
-			<version>2.0</version>
+			<version>2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.envirover</groupId>
 			<artifactId>uvhub</artifactId>
-			<version>2.0</version>
+			<version>2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.envirover</groupId>
+			<artifactId>uvtracks</artifactId>
+			<type>war</type>
+			<version>2.1</version>
 		</dependency>
 	</dependencies>
 
@@ -34,10 +40,10 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>3.0.0</version>
+				<version>3.1.0</version>
 				<executions>
 					<execution>
-						<id>distro-assembly</id>
+						<id>uvhub</id>
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
@@ -50,6 +56,20 @@
 							</descriptors>
 						</configuration>
 					</execution>
+					<execution>
+						<id>uvtracks</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>uvtracks-${project.version}</finalName>
+							<tarLongFileMode>posix</tarLongFileMode> 
+							<descriptors>
+								<descriptor>src/assembly/uvtracks.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>					
 				</executions>
 			</plugin>
 		</plugins>

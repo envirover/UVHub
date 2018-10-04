@@ -24,11 +24,13 @@ import java.text.MessageFormat;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkSocket;
+import com.envirover.uvnet.shadow.UVShadow;
 
 /**
  * MAVLink TCP server that accepts connections from TCP GCS clients.
@@ -39,13 +41,16 @@ import com.envirover.mavlink.MAVLinkSocket;
  */
 public class GCSTcpServer {
 
-    private final static Logger logger = Logger.getLogger(GCSTcpServer.class);
+    private final static Logger logger = LogManager.getLogger(GCSTcpServer.class);
 
     private final Integer port;
     private final MAVLinkChannel mtMessageQueue;
     private final ExecutorService threadPool; 
+    protected final UVShadow shadow;
+    
     private ServerSocket serverSocket;
     private Thread listenerThread;
+
 
     /**
      * Creates an instance of GCSTcpServer 
@@ -53,10 +58,11 @@ public class GCSTcpServer {
      * @param port TCP port used for MAVLink ground control stations connections 
      * @param mtMessageQueue Mobile-terminated messages queue
      */
-    public GCSTcpServer(Integer port, MAVLinkChannel mtMessageQueue) {
+    public GCSTcpServer(Integer port, MAVLinkChannel mtMessageQueue, UVShadow shadow) {
         this.port = port;
         this.mtMessageQueue = mtMessageQueue;
         this.threadPool = Executors.newCachedThreadPool();
+        this.shadow = shadow;
     }
 
     /**
@@ -82,7 +88,7 @@ public class GCSTcpServer {
     }
 
     protected ClientSession createClientSession(MAVLinkSocket clientSocket) {
-        return new GCSClientSession(clientSocket, mtMessageQueue);
+        return new GCSClientSession(clientSocket, mtMessageQueue, shadow);
     }
 
     /**
@@ -131,7 +137,6 @@ public class GCSTcpServer {
 
             @Override
             public void run() {
-            	
                 while (true) {
                     try {
                         MAVLinkPacket packet = clientSocket.receiveMessage();
@@ -141,15 +146,24 @@ public class GCSTcpServer {
                         }
 
                         Thread.sleep(10);
-                    } catch (InterruptedException | IOException e) {
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                         try {
-							session.onClose();
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-                        
-                        logger.info("GCS client disconnected.");
+                            session.onClose();
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
                         return;
+                    } catch (IOException e) {       	
+                        e.printStackTrace();
+                        if (e.getMessage().equals("Failed to receive message. The socket is closed.")) {
+                            try {
+                                session.onClose();
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                            }
+                            return;
+                        }
                     }
                 }
             }

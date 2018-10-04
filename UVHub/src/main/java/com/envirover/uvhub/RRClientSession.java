@@ -55,6 +55,13 @@ public class RRClientSession implements ClientSession {
     @Override
     public void onMessage(MAVLinkPacket packet) throws IOException {
         dst.sendMessage(packet);
+        
+        // Write the message to the persistent store.
+//        if (stream != null) {
+//        	Map<String, String> metadata = new HashMap<String, String>();
+//        	metadata.put("channel", "tcp");
+//        	stream.writePacket(packet, metadata);
+//        }
     }
 
 	@Override

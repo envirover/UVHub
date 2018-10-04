@@ -19,7 +19,8 @@ package com.envirover.uvhub;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
@@ -35,7 +36,7 @@ class MOMessagePump implements Runnable {
 
     private final static long MO_MESSAGE_PUMP_INTERVAL = 10; //10 milliseconds
 
-    private final static Logger logger = Logger.getLogger(MOMessagePump.class);
+    private final static Logger logger = LogManager.getLogger(MOMessagePump.class);
 
     private final MAVLinkChannel src;
     private final MAVLinkChannel dst;

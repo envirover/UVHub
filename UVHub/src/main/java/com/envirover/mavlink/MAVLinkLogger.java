@@ -19,8 +19,9 @@ package com.envirover.mavlink;
 
 import java.text.MessageFormat;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.common.*;
@@ -33,9 +34,9 @@ import com.MAVLink.common.*;
  */
 public class MAVLinkLogger {
 
-    private final static Logger logger = Logger.getLogger(MAVLinkSocket.class);
+    private final static Logger logger = LogManager.getLogger(MAVLinkSocket.class);
 
-    public static void log(Priority priority, String dir, MAVLinkPacket packet) {
+    public static void log(Level priority, String dir, MAVLinkPacket packet) {
         if (packet == null)
             return;
 

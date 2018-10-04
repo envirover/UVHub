@@ -33,7 +33,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.log4j.Level;
+import org.apache.logging.log4j.Level;
 
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
@@ -108,11 +108,8 @@ public class RockBlockClient implements MAVLinkChannel {
         String responseString = null;
 
         if (entity != null) {
-            InputStream responseStream = entity.getContent();
-            try {
-                responseString = IOUtils.toString(responseStream);
-            } finally {
-                responseStream.close();
+            try (InputStream responseStream = entity.getContent()) {
+            	responseString = IOUtils.toString(responseStream);
             }
         }
 

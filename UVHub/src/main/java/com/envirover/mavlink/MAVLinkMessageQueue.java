@@ -20,7 +20,8 @@ package com.envirover.mavlink;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 
@@ -32,7 +33,7 @@ import com.MAVLink.MAVLinkPacket;
  */
 public class MAVLinkMessageQueue implements MAVLinkChannel {
 
-    private final static Logger logger = Logger.getLogger(MAVLinkMessageQueue.class);
+    private final static Logger logger = LogManager.getLogger(MAVLinkMessageQueue.class);
     
     private final ConcurrentLinkedQueue<MAVLinkPacket> queue = new ConcurrentLinkedQueue<MAVLinkPacket>(); 
     private final int maxQueueSize;

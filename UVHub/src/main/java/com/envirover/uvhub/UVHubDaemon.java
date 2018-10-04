@@ -17,20 +17,23 @@
 
 package com.envirover.uvhub;
 
-import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.text.MessageFormat;
+import java.util.List;
 
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.glassfish.tyrus.server.Server;
 
+import com.MAVLink.common.msg_param_value;
 import com.envirover.mavlink.MAVLinkMessageQueue;
-import com.envirover.mavlink.MAVLinkShadow;
-
 import com.envirover.rockblock.RockBlockClient;
 import com.envirover.rockblock.RockBlockHttpHandler;
+import com.envirover.uvnet.Config;
+import com.envirover.uvnet.shadow.PersistentUVShadow;
 import com.sun.net.httpserver.HttpServer;
 
 /**
@@ -40,12 +43,11 @@ import com.sun.net.httpserver.HttpServer;
  */
 @SuppressWarnings("restriction")
 public class UVHubDaemon implements Daemon {
-    private final static String DEFAULT_PARAMS_FILE = "default.params";
-
-    private final static Logger logger = Logger.getLogger(UVHubDaemon.class);
+    private final static Logger logger = LogManager.getLogger(UVHubDaemon.class);
 
     private final Config config = Config.getInstance();
-    
+
+    private PersistentUVShadow shadow = null;
     private GCSTcpServer gcsTcpServer = null;
     private RRTcpServer rrTcpServer = null;
     private ShadowTcpServer shadowServer = null;
@@ -63,28 +65,31 @@ public class UVHubDaemon implements Daemon {
         if (!config.init(context.getArguments()))
             throw new DaemonInitException("Invalid configuration.");
 
-        // Load on-board parameters from default.params file.
-        ClassLoader loader = UVHubDaemon.class.getClassLoader();
-        InputStream params = loader.getResourceAsStream(DEFAULT_PARAMS_FILE);
-        if (params != null) {
-            MAVLinkShadow.getInstance().loadParams(params);
-            params.close();
-        } else {
-            logger.warn("File 'default.params' with initial parameters values not found.");
-        }
+        logger.info(MessageFormat.format("MAV Type : {0}, Autopilot class: {1}", config.getMavType(),
+                config.getAutopilot()));
+
+        shadow = new PersistentUVShadow(config.getElasticsearchEndpoint(), config.getElasticsearchPort(),
+                config.getElasticsearchProtocol());
+        shadow.open();
+
+        // Load default on-board parameters for the MAV_TYPE and AUTOPILOT
+        List<msg_param_value> params = OnBoardParams.getDefaultParams(config.getMavType(),
+                Config.getInstance().getSystemId(), config.getAutopilot());
+
+        shadow.setParams(Config.getInstance().getSystemId(), params);
 
         // Mobile-terminated queue contains MAVLink messages to be sent to the vehicle.
         MAVLinkMessageQueue mtMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
-        
+
         // GCS TCP server accepts GCS client connections on port 5760. It handles 
         // MAVLink messages received form the connected clients and forwards some
         // of the messages to the specified mobile-terminated queue.
-        gcsTcpServer = new GCSTcpServer(config.getMAVLinkPort(), mtMessageQueue);
+        gcsTcpServer = new GCSTcpServer(config.getMAVLinkPort(), mtMessageQueue, shadow);
 
         // Shadow TCP server accepts GCS client connections on port 5757. It handles 
         // MAVLink messages received form the connected clients and updates on-board parameters 
         // missions in the vehicle shadow without sending any messages to the vehicle.
-        shadowServer = new ShadowTcpServer(config.getShadowPort());
+        shadowServer = new ShadowTcpServer(config.getShadowPort(), shadow);
 
         // Mobile-originated queue contains messages receive form the vehicle.
         MAVLinkMessageQueue moMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
@@ -92,7 +97,7 @@ public class UVHubDaemon implements Daemon {
         // Mobile-originated message handler is an implementation of MAVLinkChannel.
         // Messages sent to MOMessageHandler either used to update the vehicle's shadow, 
         // or pushed to the provided mobile-originated queue. 
-        MOMessageHandler moHandler = new MOMessageHandler(moMessageQueue);
+        MOMessageHandler moHandler = new MOMessageHandler(moMessageQueue, shadow);
 
         // RadioRoom TCP server accepts TCP/IP connections on port 5060 from SPL RadioRoom. 
         // MAVLink messages received from RadioRoom are sent to the specified mobile-originated
@@ -103,20 +108,21 @@ public class UVHubDaemon implements Daemon {
         // MAVLink messages received from RockBLOCK to the specified mobile-originated 
         // message handler.
         httpServer = HttpServer.create(new InetSocketAddress(config.getRockblockPort()), 0);
+
         httpServer.createContext(config.getHttpContext(), 
                                  new RockBlockHttpHandler(moHandler, config.getRockBlockIMEI()));
         httpServer.setExecutor(null);
 
         // RockBLOCK HTTP client sends MAVLink messages to RockBLOCK Web Services.
         RockBlockClient rockblock = null;
-       
-        if (config.getRockBlockIMEI() != null) {
-        	rockblock = new RockBlockClient(config.getRockBlockIMEI(),
+
+        if (config.getRockBlockIMEI() != null && !config.getRockBlockIMEI().isEmpty()) {
+            rockblock = new RockBlockClient(config.getRockBlockIMEI(),
                                             config.getRockBlockUsername(),
                                             config.getRockBlockPassword(),
                                             config.getRockBlockURL());
         }
-       
+
         // Mobile-terminated message pump pumps MAVLink messages from the specified
         // mobile-terminated queue to the last connected RadioRoom TCP client or 
         // the specified RockBLOCK HTTP client.
@@ -126,44 +132,40 @@ public class UVHubDaemon implements Daemon {
         // WebSocket server accepts client connections on port 8000. It handles 
         // MAVLink messages received form the connected clients and forwards some
         // of the messages to the specified mobile-terminated queue.
-        WSEndpoint.setMTQueue(mtMessageQueue);
+        WSEndpoint.set(mtMessageQueue, shadow);
         wsServer = new Server("localhost", config.getWSPort(), "/gcs", WSEndpoint.class);
     }
 
     @Override
     public void start() throws Exception {
-//        String ip = InetAddress.getLocalHost().getHostAddress();
-//        System.out.printf("Starting RockBLOCK HTTP message handler on http://%s:%d%s...",
-//                          ip, config.getRockblockPort(), config.getHttpContext());
-//        System.out.println();
-
-    	// Start all the server threads.
+        // Start all the server threads.
         gcsTcpServer.start();
         shadowServer.start();
         rrTcpServer.start();
-    	httpServer.start();
+        httpServer.start();
         mtMsgPumpThread.start();
         wsServer.start();
 
         Thread.sleep(1000);
 
-        logger.info("UV Hub server started.");
+        logger.info("UV Hub daemon started.");
     }
 
     @Override
     public void stop() throws Exception {
-
-    	// Stop all the server threads.
+        // Stop all the server threads.
         wsServer.stop();
         mtMsgPumpThread.interrupt();
-    	httpServer.stop(0);
+        httpServer.stop(0);
         rrTcpServer.stop();
         shadowServer.stop();
         gcsTcpServer.stop();
 
+        shadow.close();
+
         Thread.sleep(1000);
 
-        logger.info("UV Hub server stopped.");
+        logger.info("UV Hub daemon stopped.");
     }
-
+   
 }
