@@ -9,11 +9,11 @@
 	<includeBaseDirectory>false</includeBaseDirectory>
 	<dependencySets>
 		<dependencySet>
-		    <useProjectArtifact>false</useProjectArtifact>
+			<useProjectArtifact>false</useProjectArtifact>
 			<outputDirectory>jetty/uvtracks-base/webapps/</outputDirectory>
-            <includes>
-                <include>*:*:war</include>
-            </includes>
+			<includes>
+				<include>*:*:war</include>
+			</includes>
 		</dependencySet>
 	</dependencySets>
 	<fileSets>
@@ -23,6 +23,10 @@
 			<includes>
 				<include>**/*</include>
 			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>${project.basedir}/target/uvcockpit</directory>
+			<outputDirectory>jetty/uvtracks-base/webapps/uvcockpit/</outputDirectory>
 		</fileSet>
 	</fileSets>
 </assembly>
