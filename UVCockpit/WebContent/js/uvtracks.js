@@ -137,122 +137,121 @@ export var trackPoint = {
             type: "fields",
             fieldInfos: [{
                     fieldName: "airspeed",
-                    label: "airspeed",
+                    label: "Air speed (m/s)",
                     visible: true
                 },
                 {
                     fieldName: "airspeed_sp",
-                    label: "airspeed_sp",
-                    visible: true
-                },
-                {
-                    fieldName: "altitude_amsl",
-                    label: "altitude_amsl",
-                    visible: true
-                },
-                {
-                    fieldName: "altitude_sp",
-                    label: "altitude_sp",
-                    visible: true
-                },
-                {
-                    fieldName: "base_mode",
-                    label: "base_mode",
-                    visible: true
-                },
-                {
-                    fieldName: "battery_remaining",
-                    label: "battery_remaining",
-                    visible: true
-                },
-                {
-                    fieldName: "climb_rate",
-                    label: "climb_rate",
-                    visible: true
-                },
-                {
-                    fieldName: "custom_mode",
-                    label: "custom_mode",
-                    visible: true
-                },
-                {
-                    fieldName: "failsafe",
-                    label: "failsafe",
-                    visible: true
-                },
-                {
-                    fieldName: "gps_fix_type",
-                    label: "gps_fix_type",
-                    visible: true
-                },
-                {
-                    fieldName: "gps_nsat",
-                    label: "gps_nsat",
+                    label: "Air speed setpoint (m/s)",
                     visible: true
                 },
                 {
                     fieldName: "groundspeed",
-                    label: "groundspeed",
+                    label: "Ground speed (m/s)",
                     visible: true
                 },
                 {
                     fieldName: "heading",
-                    label: "heading",
+                    label: "Heading (decimal degrees)",
                     visible: true
                 },
                 {
                     fieldName: "heading_sp",
-                    label: "heading_sp",
-                    visible: true
-                },
-                {
-                    fieldName: "landed_state",
-                    label: "landed_state",
-                    visible: true
-                },
-                {
-                    fieldName: "latitude",
-                    label: "latitude",
-                    visible: true
-                },
-                {
-                    fieldName: "longitude",
-                    label: "longitude",
+                    label: "Heading setpoint (decimal degrees)",
                     visible: true
                 },
                 {
                     fieldName: "pitch",
-                    label: "pitch",
+                    label: "Pitch (decimal degrees)",
                     visible: true
                 },
                 {
                     fieldName: "roll",
-                    label: "roll",
+                    label: "Roll (decimal degrees)",
+                    visible: true
+                }, {
+                    fieldName: "altitude_amsl",
+                    label: "Altitude above mean sea level (m)",
+                    visible: true
+                },
+                {
+                    fieldName: "altitude_sp",
+                    label: "Altitude setpoint relative home (m)",
+                    visible: true
+                },
+                {
+                    fieldName: "climb_rate",
+                    label: "Climb rate (m/s)",
+                    visible: true
+                },
+                {
+                    fieldName: "latitude",
+                    label: "Latitude (decimal degrees)",
+                    visible: true
+                },
+                {
+                    fieldName: "longitude",
+                    label: "Longitude (decimal degrees)",
+                    visible: true
+                },
+                {
+                    fieldName: "gps_fix_type",
+                    label: "GPS Fix type",
+                    visible: true
+                },
+                {
+                    fieldName: "gps_nsat",
+                    label: "Number of GPS satellites visible",
+                    visible: true
+                },
+                {
+                    fieldName: "battery_remaining",
+                    label: "Remaining battery (%)",
                     visible: true
                 },
                 {
                     fieldName: "temperature",
-                    label: "voltage",
+                    label: "Battery voltage (volts)",
                     visible: true
                 },
                 {
                     fieldName: "temperature_air",
-                    label: "current",
+                    label: "Battery current (amp)",
                     visible: true
                 },
                 {
                     fieldName: "throttle",
-                    label: "throttle",
+                    label: "Throttle (%)",
                     visible: true
                 },
                 {
                     fieldName: "wp_distance",
-                    label: "wp_distance",
+                    label: "Distance to target (m)",
                     visible: true
                 },
                 {
                     fieldName: "wp_num",
-                    label: "wp_num",
+                    label: "Current waypoint number",
+                    visible: true
+                },
+                {
+                    fieldName: "base_mode",
+                    label: "Bitmap of enabled system modes",
+                    visible: true
+                },
+                {
+                    fieldName: "custom_mode",
+                    label: "Bitfield of autopilot-specific flags",
+                    visible: true
+                },
+                {
+                    fieldName: "failsafe",
+                    label: "Failsafe flags",
+                    visible: true
+                },
+                {
+                    fieldName: "landed_state",
+                    label: "Landed state",
                     visible: true
                 }
             ]
@@ -261,17 +260,22 @@ export var trackPoint = {
     renderer2d: {
         type: "simple",
         symbol: {
-            type: "picture-marker", // autocasts as new PictureMarkerSymbol()
-            url: "http://static.arcgis.com/images/Symbols/Arrows/icon34.png",
-            width: "60px",
-            height: "60px",
-            xoffset: 0,
-            yoffset: 6,
+            type: "simple-marker",
+            path: "M-29,14.5 0,23.5 -8,14.5 0,5.5z",
+            color: "magenta",
+            outline: {
+                color: "magenta",
+                width: 0.5
+            },
+            angle: 0,
+            size: 40,
+            xoffset: 14.5,
+            yoffset: 9
         },
         visualVariables: [{
-            type: "rotation",
-            field: "heading",
-            rotation_type: "geographic"
+            "type": "rotation",
+            "valueExpression": "-$feature.heading",
+            "axis": "heading"
         }]
     },
     renderer3d: {
@@ -437,37 +441,37 @@ export var missionPoint = {
         }]
     },
     renderer2d: {
-        type: "unique-value", // autocasts as new UniqueValueRenderer()
+        type: "unique-value",
         field: "type",
         defaultSymbol: {
-            type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+            type: "simple-marker",
             color: "yellow",
-            outline: {  // autocasts as new SimpleLineSymbol()
-              color: "yellow",
-              width: "0.5px"
+            outline: {
+                color: "yellow",
+                width: "0.5px"
             }
-          }, // autocasts as new SimpleFillSymbol()
+        },
         uniqueValueInfos: [{
             // All features with value of "PlannedHome" will be green
             value: "PlannedHome",
             symbol: {
-                type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+                type: "simple-marker",
                 color: "green",
-                outline: {  // autocasts as new SimpleLineSymbol()
-                  color: "green",
-                  width: "0.5px"
+                outline: {
+                    color: "green",
+                    width: "0.5px"
                 }
-              }
+            }
         }]
     },
     renderer3d: {
-        type: "unique-value", // autocasts as new UniqueValueRenderer()
+        type: "unique-value",
         field: "type",
         defaultSymbol: {
-            type: "point-3d", // autocasts as new PointSymbol3D()
+            type: "point-3d",
             symbolLayers: [{
-                type: "object", // autocasts as new ObjectSymbol3DLayer()
-                width: 4, // diameter of the object from east to west in meters
+                type: "object",
+                width: 4,
                 height: 4, // height of the object in meters
                 depth: 4, // diameter of the object from north to south in meters
                 resource: {
@@ -477,14 +481,14 @@ export var missionPoint = {
                     color: [255, 255, 0, 1]
                 }
             }]
-        }, // autocasts as new SimpleFillSymbol()
+        },
         uniqueValueInfos: [{
             // All features with value of "PlannedHome" will be green
             value: "PlannedHome",
             symbol: {
-                type: "point-3d", // autocasts as new PointSymbol3D()
+                type: "point-3d",
                 symbolLayers: [{
-                    type: "object", // autocasts as new ObjectSymbol3DLayer()
+                    type: "object",
                     width: 4, // diameter of the object from east to west in meters
                     height: 4, // height of the object in meters
                     depth: 4, // diameter of the object from north to south in meters
@@ -497,14 +501,13 @@ export var missionPoint = {
                 }]
             }
         }]
-    },   
+    },
     labelClass: {
-        // autocasts as new LabelClass()
         symbol: {
-            type: "text", // autocasts as new TextSymbol()
+            type: "text",
             color: "white",
             haloColor: "black",
-            font: { // autocast as new Font()
+            font: {
                 family: "playfair-display",
                 size: 24,
                 weight: "bold"
@@ -533,6 +536,11 @@ export var missionLine = {
             name: "hoverSpeed",
             alias: "hoverSpeed",
             type: "integer"
+        },
+        {
+            name: "length",
+            alias: "length",
+            type: "double"
         }
     ],
     template: {
@@ -541,12 +549,17 @@ export var missionLine = {
             type: "fields",
             fieldInfos: [{
                     fieldName: "cruiseSpeed",
-                    label: "cruiseSpeed",
+                    label: "Cruise speed (m/s)",
                     visible: true
                 },
                 {
                     fieldName: "hoverSpeed",
-                    label: "hoverSpeed",
+                    label: "Hover speed (m/s)",
+                    visible: true
+                },
+                {
+                    fieldName: "length",
+                    label: "Length (m)",
                     visible: true
                 }
             ]
@@ -567,5 +580,5 @@ export var missionLine = {
             width: 2,
             color: [255, 255, 0]
         }
-    }   
+    }
 };

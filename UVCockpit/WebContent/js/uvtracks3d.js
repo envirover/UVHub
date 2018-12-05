@@ -10,12 +10,13 @@ require([
     "esri/layers/support/Field",
     "esri/geometry/Point",
     "esri/geometry/Polyline",
+    "esri/geometry/geometryEngine",
     "esri/request",
     "dojo/_base/array",
     "dojo/dom",
     "dojo/on",
     "dojo/domReady!"
-], function (esriConfig, MapView, SceneView, Map, FeatureLayer, Field, Point, Polyline,
+], function (esriConfig, MapView, SceneView, Map, FeatureLayer, Field, Point, Polyline, geometryEngine,
     esriRequest, arrayUtils, dom, on
 ) {
     var elevationDelta = 0.0;
@@ -281,16 +282,21 @@ require([
             }
         }
 
+        var polyline = new Polyline({
+            hasZ: true,
+            hasM: false,
+            paths: coordinates
+        });
+
+        var length = geometryEngine.geodesicLength(polyline, "meters");
+
         // Create an array of Graphics from each GeoJSON feature
         return [{
-            geometry: new Polyline({
-                hasZ: true,
-                hasM: false,
-                paths: coordinates
-            }),
+            geometry: polyline,
             attributes: {
                 cruiseSpeed: plan.mission.cruiseSpeed,
-                hoverSpeed: plan.mission.hoverSpeed
+                hoverSpeed: plan.mission.hoverSpeed,
+                length: length
             }
         }];
     }
