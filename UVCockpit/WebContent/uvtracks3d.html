@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>UV Tracks 3D</title>
+  <style>
+    html, body, #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    #infoDiv {
+      position: absolute;
+      bottom: 15px;
+      right: 0;
+      max-height: 20%;
+      max-width: 300px;
+      background-color: black;
+      padding: 8px;
+      border-top-left-radius: 5px;
+      color: white;
+      opacity: 0.8;
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.9/esri/css/main.css">
+
+  <script src="https://js.arcgis.com/4.9/"></script>
+  <script src="js/uvtracks3d.js" type="module"></script>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+  <div id="infoDiv">
+    <p>Powered by <a href="http://envirover.com/spl.html">SPL Global Telemetry System</a></p>
+  </div>
+</body>
+
+</html>

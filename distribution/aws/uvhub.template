@@ -28,7 +28,7 @@
       "Type" : "String",
       "Default" : "",
       "AllowedPattern" : "($^)|(\\d{15})",
-      "ConstraintDescription" : "RockBLOCK IMEI must be a 15 digit number or blank bield if RockBLOCK is not used."
+      "ConstraintDescription" : "RockBLOCK IMEI must be a 15 digit number or blank field if RockBLOCK is not used."
     },
     "RockBlockUsername" : {
       "Description" : "Your Rock 7 Core username",
@@ -787,7 +787,7 @@
   },
   "Outputs" : {
     "UVTracksURL" : {
-      "Value" : { "Fn::Join" : [ "", [ "http://", { "Fn::GetAtt" : [ "UVTracksInstance", "PublicIp" ] }, "/uvtracks" ] ] },
+      "Value" : { "Fn::Join" : [ "", [ "http://", { "Fn::GetAtt" : [ "UVTracksInstance", "PublicIp" ] }, "/uvcockpit/index.html" ] ] },
       "Description" : "UV Tracks service URL"
     },
     "RockBLOCKHandlerURL" : {

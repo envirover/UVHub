@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -34,6 +35,14 @@
 			<type>war</type>
 			<version>2.1</version>
 		</dependency>
+		<dependency>
+			<groupId>com.envirover</groupId>
+			<artifactId>uvcockpit</artifactId>
+			<classifier>resources</classifier>
+			<type>zip</type>
+			<version>2.1</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -50,7 +59,7 @@
 						</goals>
 						<configuration>
 							<finalName>uvhub-${project.version}</finalName>
-							<tarLongFileMode>posix</tarLongFileMode> 
+							<tarLongFileMode>posix</tarLongFileMode>
 							<descriptors>
 								<descriptor>src/assembly/uvhub.xml</descriptor>
 							</descriptors>
@@ -64,12 +73,38 @@
 						</goals>
 						<configuration>
 							<finalName>uvtracks-${project.version}</finalName>
-							<tarLongFileMode>posix</tarLongFileMode> 
+							<tarLongFileMode>posix</tarLongFileMode>
 							<descriptors>
 								<descriptor>src/assembly/uvtracks.xml</descriptor>
 							</descriptors>
 						</configuration>
-					</execution>					
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>unpack-shared-resources</id>
+						<goals>
+							<goal>unpack-dependencies</goal>
+						</goals>
+						<phase>generate-resources</phase>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>com.envirover</groupId>
+									<artifactId>uvcockpit</artifactId>
+									<type>zip</type>
+									<version>${project.version}</version>
+								</artifactItem>
+							</artifactItems>
+							<excludeArtifactIds>uvhub,mavlink,uvtracks</excludeArtifactIds>
+							<excludeTransitive>true</excludeTransitive>
+							<outputDirectory>${project.build.directory}/uvcockpit</outputDirectory>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>
