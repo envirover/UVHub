@@ -18,7 +18,6 @@
 		<module>UVHub</module>
 		<module>distribution</module>
 		<module>UVTracks</module>
-		<module>UVCockpit</module>
 	</modules>
 
 	<properties>
