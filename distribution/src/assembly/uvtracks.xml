@@ -16,17 +16,4 @@
 			</includes>
 		</dependencySet>
 	</dependencySets>
-	<fileSets>
-		<fileSet>
-			<directory>${project.basedir}/jetty</directory>
-			<outputDirectory>jetty</outputDirectory>
-			<includes>
-				<include>**/*</include>
-			</includes>
-		</fileSet>
-		<fileSet>
-			<directory>${project.basedir}/target/uvcockpit</directory>
-			<outputDirectory>jetty/uvtracks-base/webapps/uvcockpit/</outputDirectory>
-		</fileSet>
-	</fileSets>
 </assembly>

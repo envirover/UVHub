@@ -35,14 +35,6 @@
 			<type>war</type>
 			<version>2.1</version>
 		</dependency>
-		<dependency>
-			<groupId>com.envirover</groupId>
-			<artifactId>uvcockpit</artifactId>
-			<classifier>resources</classifier>
-			<type>zip</type>
-			<version>2.1</version>
-			<scope>provided</scope>
-		</dependency>
 	</dependencies>
 
 	<build>
@@ -77,32 +69,6 @@
 							<descriptors>
 								<descriptor>src/assembly/uvtracks.xml</descriptor>
 							</descriptors>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>unpack-shared-resources</id>
-						<goals>
-							<goal>unpack-dependencies</goal>
-						</goals>
-						<phase>generate-resources</phase>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>com.envirover</groupId>
-									<artifactId>uvcockpit</artifactId>
-									<type>zip</type>
-									<version>${project.version}</version>
-								</artifactItem>
-							</artifactItems>
-							<excludeArtifactIds>uvhub,mavlink,uvtracks</excludeArtifactIds>
-							<excludeTransitive>true</excludeTransitive>
-							<outputDirectory>${project.build.directory}/uvcockpit</outputDirectory>
 						</configuration>
 					</execution>
 				</executions>
