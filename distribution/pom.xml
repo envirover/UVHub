@@ -38,42 +38,6 @@
 	</dependencies>
 
 	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<id>uvhub</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<finalName>uvhub-${project.version}</finalName>
-							<tarLongFileMode>posix</tarLongFileMode>
-							<descriptors>
-								<descriptor>src/assembly/uvhub.xml</descriptor>
-							</descriptors>
-						</configuration>
-					</execution>
-					<execution>
-						<id>uvtracks</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<finalName>uvtracks-${project.version}</finalName>
-							<tarLongFileMode>posix</tarLongFileMode>
-							<descriptors>
-								<descriptor>src/assembly/uvtracks.xml</descriptor>
-							</descriptors>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
 	</build>
 
 </project>

@@ -61,3 +61,4 @@ local.properties
 
 /.DS_Store
 /.gitignore
+UVHub/docker-compose.yml

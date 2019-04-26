@@ -79,6 +79,7 @@ public class PersistentUVShadow implements UVShadow {
     private static final String DOCUMENT_TYPE = "_doc";
 
     private static final int SEARCH_TIMEOUT = 60; // seconds
+    private static final int CONNECTION_TIMEOUT = 60; //seconds
 
     // Properties
     private static final String ATTR_TIME = "properties.time";
@@ -113,14 +114,24 @@ public class PersistentUVShadow implements UVShadow {
      * Builds Elasticsearch client and creates mavlinkmissions and mavlinkmessages
      * indices if they do not exist.
      * 
-     * @throws IOException
-     *             I/O exception
+     * @throws IOException  I/O exception
      */
     public synchronized void open() throws IOException {
         try {
             if (client == null) {
                 client = new RestHighLevelClient(RestClient
                         .builder(new HttpHost(elasticsearchEndpoint, elasticsearchPort, elasticsearchPotocol)));
+
+                // Wait until Elasticsearch is started
+                for (int i = 0; i < CONNECTION_TIMEOUT; i++) {
+                    try {
+                         if (client.ping()) {
+                            break;
+                        }
+                    } catch(Exception ex) {
+                    }
+                    Thread.sleep(1000);
+                }
 
                 try {
                     CreateIndexRequest createIndexRequest = new CreateIndexRequest(MISSIONS_INDEX_NAME);
@@ -152,9 +163,12 @@ public class PersistentUVShadow implements UVShadow {
                 }
             }
         } catch (ConnectException ex) {
-            throw new IOException("Elasticsearch connection error.", ex);
+            ex.printStackTrace();
+            throw new IOException("Elasticsearch connection error. " + ex.getMessage(), ex);
         } catch (IOException ex) {
             throw new IOException(ex);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

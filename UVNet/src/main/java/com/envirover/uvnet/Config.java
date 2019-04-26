@@ -1,8 +1,7 @@
-package com.envirover.uvnet;
 /*
  * Envirover confidential
  * 
- *  [2017] Envirover
+ *  [2019] Envirover
  *  All Rights Reserved.
  * 
  * NOTICE:  All information contained herein is, and remains the property of 
@@ -15,6 +14,7 @@ package com.envirover.uvnet;
  * is strictly forbidden unless prior written permission is obtained
  * from Envirover.
  */
+package com.envirover.uvnet;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,8 +31,8 @@ import com.MAVLink.enums.MAV_AUTOPILOT;
 import com.MAVLink.enums.MAV_TYPE;
 
 /**
- * Provides access to configuration properties specified in app.properties file
- * in the classpath or in command line parameters.
+ * Provides access to configuration properties specified in environment variables, 
+ * in app.properties file in the classpath, or in command line parameters.
  * 
  * @author Pavel Bobov
  */
@@ -100,10 +100,20 @@ public class Config {
     private String esEndpoint = DEFAULT_ES_ENDPOINT;
     private Integer esPort = DEFAULT_ES_PORT;
     private String esProtocol = DEFAULT_ES_PROTOCOL;
+    private Properties props = new Properties();
 
     static Config config = new Config();
-
+   
     private Config() {
+        ClassLoader loader = Config.class.getClassLoader();
+
+        try (InputStream in = loader.getResourceAsStream(CONFIG_PROPERTIES_FILE)) {
+            if (in != null) {
+                props.load(in);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static Config getInstance() {
@@ -132,62 +142,53 @@ public class Config {
             formatter.printHelp("spl", options);
         }
 
-        Properties props = new Properties();
+        if (getProperty(PROP_ROCKBLOCK_PORT) != null)
+            rockblockPort = Integer.valueOf(getProperty(PROP_ROCKBLOCK_PORT));
 
-        ClassLoader loader = Config.class.getClassLoader();
+        if (getProperty(PROP_RADIOROOM_PORT) != null)
+            radioroomPort = Integer.valueOf(getProperty(PROP_RADIOROOM_PORT));
 
-        try (InputStream in = loader.getResourceAsStream(CONFIG_PROPERTIES_FILE)) {
-            if (in != null)
-                props.load(in);
-        }
+        if (getProperty(PROP_MAVLINK_PORT) != null)
+            mavlinkPort = Integer.valueOf(getProperty(PROP_MAVLINK_PORT));
 
-        if (props.getProperty(PROP_ROCKBLOCK_PORT) != null)
-            rockblockPort = Integer.valueOf(props.getProperty(PROP_ROCKBLOCK_PORT));
+        if (getProperty(PROP_SHADOW_PORT) != null)
+            shadowPort = Integer.valueOf(getProperty(PROP_SHADOW_PORT));
 
-        if (props.getProperty(PROP_RADIOROOM_PORT) != null)
-            radioroomPort = Integer.valueOf(props.getProperty(PROP_RADIOROOM_PORT));
+        if (getProperty(PROP_WS_PORT) != null)
+            wsPort = Integer.valueOf(getProperty(PROP_WS_PORT));
 
-        if (props.getProperty(PROP_MAVLINK_PORT) != null)
-            mavlinkPort = Integer.valueOf(props.getProperty(PROP_MAVLINK_PORT));
+        if (getProperty(PROP_QUEUE_SIZE) != null)
+            queueSize = Integer.valueOf(getProperty(PROP_QUEUE_SIZE));
 
-        if (props.getProperty(PROP_SHADOW_PORT) != null)
-            shadowPort = Integer.valueOf(props.getProperty(PROP_SHADOW_PORT));
+        if (getProperty(PROP_HEARTBEAT_INTERVAL) != null)
+            heartbeatInterval = Integer.valueOf(getProperty(PROP_HEARTBEAT_INTERVAL));
 
-        if (props.getProperty(PROP_WS_PORT) != null)
-            wsPort = Integer.valueOf(props.getProperty(PROP_WS_PORT));
+        if (getProperty(PROP_ROCKBLOCK_URL) != null)
+            rockblockUrl = getProperty(PROP_ROCKBLOCK_URL);
 
-        if (props.getProperty(PROP_QUEUE_SIZE) != null)
-            queueSize = Integer.valueOf(props.getProperty(PROP_QUEUE_SIZE));
+        if (getProperty(PROP_ES_ENDPOINT) != null)
+            esEndpoint = getProperty(PROP_ES_ENDPOINT);
 
-        if (props.getProperty(PROP_HEARTBEAT_INTERVAL) != null)
-            heartbeatInterval = Integer.valueOf(props.getProperty(PROP_HEARTBEAT_INTERVAL));
+        if (getProperty(PROP_ES_PORT) != null)
+            esPort = Integer.valueOf(getProperty(PROP_ES_PORT));
 
-        if (props.getProperty(PROP_ROCKBLOCK_URL) != null)
-            rockblockUrl = props.getProperty(PROP_ROCKBLOCK_URL);
+        if (getProperty(PROP_ES_PROTOCOL) != null)
+            esProtocol = getProperty(PROP_ES_PROTOCOL);
 
-        if (props.getProperty(PROP_ES_ENDPOINT) != null)
-            esEndpoint = props.getProperty(PROP_ES_ENDPOINT);
+        imei = cmd.getOptionValue(CLI_OPTION_IMEI, getProperty(PROP_ROCKBLOCK_IMEI));
 
-        if (props.getProperty(PROP_ES_PORT) != null)
-            esPort = Integer.valueOf(props.getProperty(PROP_ES_PORT));
+        username = cmd.getOptionValue(CLI_OPTION_USERNAME, getProperty(PROP_ROCKBLOCK_USERNAME));
 
-        if (props.getProperty(PROP_ES_PROTOCOL) != null)
-            esProtocol = props.getProperty(PROP_ES_PROTOCOL);
-
-        imei = cmd.getOptionValue(CLI_OPTION_IMEI, props.getProperty(PROP_ROCKBLOCK_IMEI));
-
-        username = cmd.getOptionValue(CLI_OPTION_USERNAME, props.getProperty(PROP_ROCKBLOCK_USERNAME));
-
-        password = cmd.getOptionValue(CLI_OPTION_PASSWORD, props.getProperty(PROP_ROCKBLOCK_PASSWORD));
+        password = cmd.getOptionValue(CLI_OPTION_PASSWORD, getProperty(PROP_ROCKBLOCK_PASSWORD));
 
         autopilot = Short.valueOf(cmd.getOptionValue(CLI_OPTION_AUTOPILOT,
-                props.getProperty(PROP_MAV_AUTOPILOT, DEFAULT_AUTOPILOT.toString())));
+                getProperty(PROP_MAV_AUTOPILOT, DEFAULT_AUTOPILOT.toString())));
 
         mavType = Short.valueOf(
-                cmd.getOptionValue(CLI_OPTION_MAV_TYPE, props.getProperty(PROP_MAV_TYPE, DEFAULT_MAV_TYPE.toString())));
+                cmd.getOptionValue(CLI_OPTION_MAV_TYPE, getProperty(PROP_MAV_TYPE, DEFAULT_MAV_TYPE.toString())));
 
         esEndpoint = cmd.getOptionValue(CLI_OPTION_ES_ENDPOINT,
-                props.getProperty(PROP_ES_ENDPOINT, DEFAULT_ES_ENDPOINT));
+                getProperty(PROP_ES_ENDPOINT, DEFAULT_ES_ENDPOINT));
 
         return true;
     }
@@ -266,5 +267,15 @@ public class Config {
 
     public Float getDefaultHLReportPeriod() {
         return DEFAULT_HL_REPORT_PERIOD;
+    }
+
+    private String getProperty(String name) {
+        return getProperty(name, null);
+    }
+
+    private String getProperty(String name, String defaultValue) {
+        String envName = name.replace('.', '_').toUpperCase();
+        String value = System.getenv(envName);
+        return value != null ? value : props.getProperty(name, defaultValue);
     }
 }
