@@ -3,6 +3,8 @@ version: 0.2
 phases:
   pre_build:
     commands:
+        - sudo apt-get install software-properties-common
+        - sudo add-apt-repository ppa:webupd8team/java
         - sudo apt-get update
         - sudo apt-get -y install openjdk-8-jdk
         - java -version
