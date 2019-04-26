@@ -1,7 +1,7 @@
 version: 0.2
  
 phases:
-  pre_build:
+  install:
     commands:
         - sudo apt-get install software-properties-common
         - sudo add-apt-repository ppa:openjdk-r/ppa
@@ -16,6 +16,10 @@ phases:
   #     - sudo dpkg -i elasticsearch-6.2.4.deb
   #     - sudo update-rc.d elasticsearch defaults 95 10
   #     - sudo -i service elasticsearch start
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region us-west-2)        
   build:
     commands:
       - mvn install -DskipTests=true
