@@ -16,7 +16,6 @@
 		<module>MAVLink</module>
 		<module>UVNet</module>
 		<module>UVHub</module>
-		<module>distribution</module>
 		<module>UVTracks</module>
 	</modules>
 
