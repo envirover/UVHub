@@ -24,11 +24,13 @@ phases:
     commands:
       - mvn install -DskipTests=true
       - docker build -t 306327466070.dkr.ecr.us-west-2.amazonaws.com/uvhub:$IMAGE_TAG ./UVHub/
+      - docker build -t 306327466070.dkr.ecr.us-west-2.amazonaws.com/uvtracks:$IMAGE_TAG ./UVTracks/
   post_build:
     commands:
       - echo Build completed on `date`
-      - echo Pushing the Docker image...
-      - docker push 306327466070.dkr.ecr.us-west-2.amazonaws.com/uvhub:$IMAGE_TAG      
+      - echo Pushing the Docker images...
+      - docker push 306327466070.dkr.ecr.us-west-2.amazonaws.com/uvhub:$IMAGE_TAG     
+      - docker push 306327466070.dkr.ecr.us-west-2.amazonaws.com/uvtracks:$IMAGE_TAG
 # artifacts:
 #   files:
 #     - 'target/*'
