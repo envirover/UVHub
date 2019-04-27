@@ -6,7 +6,7 @@
 
 	<groupId>com.envirover</groupId>
 	<artifactId>spl</artifactId>
-	<version>2.1</version>
+	<version>2.2</version>
 	<packaging>pom</packaging>
 
 	<name>UV Hub Parent Project</name>
