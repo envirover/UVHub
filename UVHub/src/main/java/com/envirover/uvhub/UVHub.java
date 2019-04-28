@@ -38,7 +38,7 @@ public class UVHub {
             daemon.start();
         } catch (Exception ex) {
             daemon.destroy();
-            logger.error("UVHub init failed: " + ex.getMessage());
+            logger.error("UV Hub init failed: " + ex.getMessage());
             System.exit(1);
         } 
 
@@ -54,7 +54,7 @@ public class UVHub {
             daemon.stop();
             daemon.destroy();
         } catch (Exception e) {
-            logger.error("UVHub stop failed: " + e.getMessage());
+            logger.error("UV Hub stop failed: " + e.getMessage());
         }
 
         System.exit(0);
