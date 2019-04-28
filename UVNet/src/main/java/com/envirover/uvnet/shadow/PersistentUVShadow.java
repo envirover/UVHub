@@ -163,7 +163,7 @@ public class PersistentUVShadow implements UVShadow {
                 }
             }
         } catch (ConnectException ex) {
-            ex.printStackTrace();
+            // ex.printStackTrace();
             throw new IOException("Elasticsearch connection error. " + ex.getMessage(), ex);
         } catch (IOException ex) {
             throw new IOException(ex);

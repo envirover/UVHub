@@ -17,49 +17,47 @@
 
 package com.envirover.uvhub;
 
-import java.util.Scanner;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonController;
 
 /**
- * The main application class. 
+ * The main application class.
  * 
  * @author Pavel Bobov
  */
 public class UVHub {
-
+    
+    private final static Logger logger = LogManager.getLogger(UVHub.class);
     public static void main(String[] args) {
+        UVHubDaemon daemon = new UVHubDaemon();
         try {
-            UVHubDaemon daemon = new UVHubDaemon();
-
             daemon.init(new UVHubDaemonContext(args));
-
             daemon.start();
+        } catch (Exception ex) {
+            daemon.destroy();
+            logger.error("UVHub init failed: " + ex.getMessage());
+            System.exit(1);
+        } 
 
-            System.out.println("Enter 'stop' to exit the program.");
-
-            Scanner scanner = new Scanner(System.in);
-
-            String str;
-            while (!(str = scanner.next()).equalsIgnoreCase("stop")) {
-                //Just echo the user input for now.
-                System.out.println(str);
+        try {
+            while (true) {
+                Thread.sleep(1000);
             }
+        } catch (InterruptedException ex) {
+            logger.info(ex.getMessage());
+        } 
 
-            System.out.println("Exiting...");
-
-            scanner.close();
-
+        try {
             daemon.stop();
             daemon.destroy();
+        } catch (Exception e) {
+            logger.error("UVHub stop failed: " + e.getMessage());
+        }
 
-            System.out.println("Done.");
-            
-            System.exit(0);
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
-        } 
+        System.exit(0);
     }
 
     static class UVHubDaemonContext implements DaemonContext {
