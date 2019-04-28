@@ -1,20 +1,39 @@
 version: 0.2
  
 phases:
+  install:
+    commands:
+        - sudo apt-get install software-properties-common
+        - sudo add-apt-repository ppa:openjdk-r/ppa
+        - sudo apt-get update
+        - sudo apt-get -y install openjdk-8-jdk
+        - java -version
+        - sudo apt-get -y install maven
+        - mvn -version
+  #     - wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.4.deb
+  #     - wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.4.deb.sha512
+  #     - shasum -a 512 -c elasticsearch-6.2.4.deb.sha512 
+  #     - sudo dpkg -i elasticsearch-6.2.4.deb
+  #     - sudo update-rc.d elasticsearch defaults 95 10
+  #     - sudo -i service elasticsearch start
   pre_build:
     commands:
-      - wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.4.deb
-      - wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.4.deb.sha512
-      - shasum -a 512 -c elasticsearch-6.2.4.deb.sha512 
-      - sudo dpkg -i elasticsearch-6.2.4.deb
-      - sudo update-rc.d elasticsearch defaults 95 10
-      - sudo -i service elasticsearch start
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region us-west-2)        
   build:
     commands:
-      - mvn install
-artifacts:
-  files:
-    - 'target/*'
-    - 'aws/*'
-  discard-paths: yes
-  base-directory: distribution
+      - mvn install -DskipTests=true
+      - docker build -t 306327466070.dkr.ecr.us-west-2.amazonaws.com/uvhub:$IMAGE_TAG ./UVHub/
+      - docker build -t 306327466070.dkr.ecr.us-west-2.amazonaws.com/uvtracks:$IMAGE_TAG ./UVTracks/
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push 306327466070.dkr.ecr.us-west-2.amazonaws.com/uvhub:$IMAGE_TAG     
+      - docker push 306327466070.dkr.ecr.us-west-2.amazonaws.com/uvtracks:$IMAGE_TAG
+# artifacts:
+#   files:
+#     - 'target/*'
+#     - 'aws/*'
+#   discard-paths: yes
+#   base-directory: distribution

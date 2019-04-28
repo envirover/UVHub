@@ -18,7 +18,6 @@
 package com.envirover.uvhub;
 
 import java.net.InetSocketAddress;
-import java.text.MessageFormat;
 import java.util.List;
 
 import org.apache.commons.daemon.Daemon;
@@ -57,7 +56,9 @@ public class UVHubDaemon implements Daemon {
 
     @Override
     public void destroy() {
-    	httpServer.removeContext(config.getHttpContext());
+        if (httpServer != null) {
+            httpServer.removeContext(config.getHttpContext());
+        }
     }
 
     @Override
@@ -65,12 +66,18 @@ public class UVHubDaemon implements Daemon {
         if (!config.init(context.getArguments()))
             throw new DaemonInitException("Invalid configuration.");
 
-        logger.info(MessageFormat.format("MAV Type : {0}, Autopilot class: {1}", config.getMavType(),
+        logger.info(String.format("MAV Type : %d, Autopilot class: %d", config.getMavType(),
                 config.getAutopilot()));
 
         shadow = new PersistentUVShadow(config.getElasticsearchEndpoint(), config.getElasticsearchPort(),
-                config.getElasticsearchProtocol());
+                                        config.getElasticsearchProtocol());
+        logger.info(String.format("Connecting to Elasticsearch at %s://%s:%d...", 
+                    config.getElasticsearchProtocol(),config.getElasticsearchEndpoint(), 
+                    config.getElasticsearchPort()));
+
         shadow.open();
+
+        logger.info("Connected to Elasticsearch.");
 
         // Load default on-board parameters for the MAV_TYPE and AUTOPILOT
         List<msg_param_value> params = OnBoardParams.getDefaultParams(config.getMavType(),
@@ -154,14 +161,33 @@ public class UVHubDaemon implements Daemon {
     @Override
     public void stop() throws Exception {
         // Stop all the server threads.
-        wsServer.stop();
-        mtMsgPumpThread.interrupt();
-        httpServer.stop(0);
-        rrTcpServer.stop();
-        shadowServer.stop();
-        gcsTcpServer.stop();
+        if (wsServer != null) {
+             wsServer.stop();
+        }
 
-        shadow.close();
+        if (mtMsgPumpThread != null) {
+            mtMsgPumpThread.interrupt();
+        }
+
+        if (httpServer != null) {
+            httpServer.stop(0);
+        }
+
+        if (rrTcpServer != null) {
+            rrTcpServer.stop();
+        }
+
+        if (shadowServer != null) {
+            shadowServer.stop();
+        }
+
+        if (gcsTcpServer != null) {
+            gcsTcpServer.stop();
+        }
+
+        if (shadow != null) {
+            shadow.close();
+        }
 
         Thread.sleep(1000);
 
