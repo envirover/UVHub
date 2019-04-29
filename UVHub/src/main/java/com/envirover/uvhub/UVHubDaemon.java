@@ -111,7 +111,7 @@ public class UVHubDaemon implements Daemon {
         // message handler. 
         rrTcpServer = new RRTcpServer(config.getRadioRoomPort(), moHandler);
 
-        // RockBLOCK HTTP handler listens on on port 8080 and sends mobile-originated
+        // RockBLOCK HTTP handler listens on on port 5080 and sends mobile-originated
         // MAVLink messages received from RockBLOCK to the specified mobile-originated 
         // message handler.
         httpServer = HttpServer.create(new InetSocketAddress(config.getRockblockPort()), 0);
