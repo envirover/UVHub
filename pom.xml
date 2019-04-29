@@ -17,6 +17,7 @@
 		<module>UVNet</module>
 		<module>UVHub</module>
 		<module>UVTracks</module>
+		<module>UVHubTest</module>
 	</modules>
 
 	<properties>
