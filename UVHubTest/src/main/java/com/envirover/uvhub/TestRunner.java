@@ -21,5 +21,7 @@ class TestRunner {
         for (Failure failure : result.getFailures()) {
             System.out.println(failure.toString());
         }
+
+        System.exit(result.getFailures().size());
     }
 }

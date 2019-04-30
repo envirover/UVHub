@@ -82,7 +82,7 @@ public class RockBlockHttpHandler implements HttpHandler {
 
             if (message.data == null || message.data.isEmpty()) {
                 logger.info(MessageFormat.format("Empty MO message received ''{0}''.", message.toString()));
-            } else if (message.imei.equalsIgnoreCase(imei)) {
+            } else if (message.imei != null && message.imei.equalsIgnoreCase(imei)) {
                 MAVLinkPacket packet = message.getPacket();
 
                 if (packet != null) {
@@ -103,7 +103,8 @@ public class RockBlockHttpHandler implements HttpHandler {
             try (OutputStream os = t.getResponseBody()) {
                 os.write(response.getBytes("UTF-8"));
             }
-        } catch (DecoderException e) {
+        } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e.getMessage());
             throw new IOException(e.getMessage());
         }
@@ -127,7 +128,7 @@ public class RockBlockHttpHandler implements HttpHandler {
         // Hex-encoded message.
         private final static String PARAM_DATA = "data";
 
-        private String imei = null;
+        private String imei = "";
         private String momsn = null;
         private String transmitTime = null;
         private String iridiumLatitude = null;
