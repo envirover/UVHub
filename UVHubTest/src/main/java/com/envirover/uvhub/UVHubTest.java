@@ -359,28 +359,33 @@ public class UVHubTest {
     // Testing web socket service endpoint
     @Test
     public void testWSClient() throws InterruptedException, DeploymentException, IOException {
-        System.out.println("WS TEST: Testing WebSocket endpoint...");
+        try {
+            System.out.println("WS TEST: Testing WebSocket endpoint...");
 
-        String endpoint = String.format("ws://%s:%d/gcs/ws", getUVHubHostname(), config.getWSPort());
+            String endpoint = String.format("ws://%s:%d/gcs/ws", getUVHubHostname(), config.getWSPort());
 
-        System.out.printf("WS TEST: Connecting to %s", endpoint);
-        System.out.println();
+            System.out.printf("WS TEST: Connecting to %s", endpoint);
+            System.out.println();
 
-        ClientManager client = ClientManager.createClient();
+            ClientManager client = ClientManager.createClient();
 
-        Session session = client.connectToServer(WSClient.class, URI.create(endpoint));
+            Session session = client.connectToServer(WSClient.class, URI.create(endpoint));
 
-        System.out.printf("WS TEST: Connected to %s", endpoint);
-        System.out.println();
+            System.out.printf("WS TEST: Connected to %s", endpoint);
+            System.out.println();
 
-        MAVLinkPacket packet = getSamplePacket();
-        session.getBasicRemote().sendBinary(ByteBuffer.wrap(packet.encodePacket()));
+            MAVLinkPacket packet = getSamplePacket();
+            session.getBasicRemote().sendBinary(ByteBuffer.wrap(packet.encodePacket()));
 
-        Thread.sleep(10000);
+            Thread.sleep(10000);
 
-        System.out.println("WS TEST: Complete.");
+            System.out.println("WS TEST: Complete.");
 
-        session.close();
+            session.close();
+        } catch(Exception ex) {
+            ex.printStackTrace();
+            throw ex;
+        }
     }
 
     private MAVLinkPacket getSamplePacket() {
