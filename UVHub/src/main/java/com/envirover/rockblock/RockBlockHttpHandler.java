@@ -97,7 +97,7 @@ public class RockBlockHttpHandler implements HttpHandler {
             }
 
             // Send response
-            String response = "";
+            String response = "OK";
             t.sendResponseHeaders(200, response.length());
 
             try (OutputStream os = t.getResponseBody()) {

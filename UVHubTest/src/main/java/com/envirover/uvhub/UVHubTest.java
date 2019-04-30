@@ -68,13 +68,13 @@ public class UVHubTest {
     // Test configuration environment variables
     private final static String UVHUB_HOSTNAME = "UVHUB_HOSTNAME";
 
-    private final static String DEFAULT_UVHUB_HOSTNAME = "uvhub";
-	
+    private final static String DEFAULT_UVHUB_HOSTNAME = "localhost";
+
     private final Config config = Config.getInstance();
 
     private String getUVHubHostname() {
-       String hostname = System.getenv(UVHUB_HOSTNAME);
-       return hostname != null ? hostname : DEFAULT_UVHUB_HOSTNAME;
+        String hostname = System.getenv(UVHUB_HOSTNAME);
+        return hostname != null ? hostname : DEFAULT_UVHUB_HOSTNAME;
     }
 
     @BeforeClass
@@ -85,7 +85,7 @@ public class UVHubTest {
     public static void tearDownClass() throws Exception {
     }
 
-    //Test receiving MO messages sent from TCP channel
+    // Test receiving MO messages sent from TCP channel
     @Test
     public void testTCPMOMessagePipeline() throws IOException, InterruptedException {
         System.out.println("TCP/IP MO TEST: Testing TCP/IP MO message pipeline...");
@@ -97,15 +97,14 @@ public class UVHubTest {
                 Socket client = null;
 
                 try {
-                    System.out.printf("TCP/IP MO TEST: Connecting to tcp://%s:%d", 
-                                      getUVHubHostname(), config.getMAVLinkPort());
+                    System.out.printf("TCP/IP MO TEST: Connecting to tcp://%s:%d", getUVHubHostname(),
+                            config.getMAVLinkPort());
                     System.out.println();
-    
-                    client = new Socket(getUVHubHostname(), 
-                                        config.getMAVLinkPort());
 
-                    System.out.printf("TCP/IP MO TEST: Connected tcp://%s:%d", 
-                                      getUVHubHostname(), config.getMAVLinkPort());
+                    client = new Socket(getUVHubHostname(), config.getMAVLinkPort());
+
+                    System.out.printf("TCP/IP MO TEST: Connected tcp://%s:%d", getUVHubHostname(),
+                            config.getMAVLinkPort());
                     System.out.println();
 
                     Parser parser = new Parser();
@@ -122,9 +121,9 @@ public class UVHubTest {
 
                         Thread.sleep(100);
                     }
-                } catch(InterruptedException ex) {
+                } catch (InterruptedException ex) {
                     return;
-                }  catch(Exception ex) {
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 } finally {
                     try {
@@ -137,20 +136,18 @@ public class UVHubTest {
         });
         mavlinkThread.start();
 
-        
         Socket client = null;
         DataOutputStream out = null;
 
         try {
-            System.out.printf("TCP/IP MO TEST: Connecting to tcp://%s:%d",
-                              getUVHubHostname(), config.getRadioRoomPort());
+            System.out.printf("TCP/IP MO TEST: Connecting to tcp://%s:%d", getUVHubHostname(),
+                    config.getRadioRoomPort());
             System.out.println();
 
-            client = new Socket(getUVHubHostname(), 
-                                config.getRadioRoomPort());
+            client = new Socket(getUVHubHostname(), config.getRadioRoomPort());
 
-            System.out.printf("TCP/IP MO TEST: Connected to tcp://%s:%d", 
-                              getUVHubHostname(), config.getRadioRoomPort());
+            System.out.printf("TCP/IP MO TEST: Connected to tcp://%s:%d", getUVHubHostname(),
+                    config.getRadioRoomPort());
             System.out.println();
 
             out = new DataOutputStream(client.getOutputStream());
@@ -163,29 +160,30 @@ public class UVHubTest {
             System.out.println();
 
             Thread.sleep(5000);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
             try {
-                if (out != null) 
+                if (out != null)
                     out.close();
 
-                if (client != null) 
+                if (client != null)
                     client.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-              
+
         Thread.sleep(1000);
 
         mavlinkThread.interrupt();
         System.out.println("TCP/IP MO TEST: Complete.");
     }
 
-    //Test receiving MO messages from RockBLOCK
+    // Test receiving MO messages from RockBLOCK
     @Test
-    public void testISBDMOMessagePipeline() throws URISyntaxException, ClientProtocolException, IOException, InterruptedException {
+    public void testISBDMOMessagePipeline()
+            throws URISyntaxException, ClientProtocolException, IOException, InterruptedException {
         System.out.println("ISBD MO TEST: Testing ISBD MO message pipeline...");
 
         Thread.sleep(1000);
@@ -195,14 +193,14 @@ public class UVHubTest {
                 Socket client = null;
 
                 try {
-                    System.out.printf("ISBD MO TEST: Connecting to tcp://%s:%d", 
-                                      getUVHubHostname(), config.getMAVLinkPort());
+                    System.out.printf("ISBD MO TEST: Connecting to tcp://%s:%d", getUVHubHostname(),
+                            config.getMAVLinkPort());
                     System.out.println();
-    
+
                     client = new Socket(getUVHubHostname(), config.getMAVLinkPort());
 
-                    System.out.printf("ISBD MO TEST: Connected tcp://%s:%d", 
-                                      getUVHubHostname(), config.getMAVLinkPort());
+                    System.out.printf("ISBD MO TEST: Connected tcp://%s:%d", getUVHubHostname(),
+                            config.getMAVLinkPort());
                     System.out.println();
 
                     Parser parser = new Parser();
@@ -219,9 +217,9 @@ public class UVHubTest {
 
                         Thread.sleep(100);
                     }
-                } catch(InterruptedException ex) {
+                } catch (InterruptedException ex) {
                     return;
-                }  catch(Exception ex) {
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 } finally {
                     try {
@@ -234,58 +232,64 @@ public class UVHubTest {
         });
         mavlinkThread.start();
 
-        HttpClient httpclient = HttpClients.createDefault();
+        try {
+            HttpClient httpclient = HttpClients.createDefault();
 
-        URIBuilder builder = new URIBuilder();
-        builder.setScheme("http");
-        builder.setHost(getUVHubHostname());
-        builder.setPort(config.getRockblockPort());
-        builder.setPath(config.getHttpContext());
+            URIBuilder builder = new URIBuilder();
+            builder.setScheme("http");
+            builder.setHost(getUVHubHostname());
+            builder.setPort(config.getRockblockPort());
+            builder.setPath(config.getHttpContext());
 
-        URI uri = builder.build();
-        HttpPost httppost = new HttpPost(uri);
+            URI uri = builder.build();
+            HttpPost httppost = new HttpPost(uri);
 
-        // Request parameters and other properties.
-        List<NameValuePair> params = new ArrayList<NameValuePair>(2);
-        params.add(new BasicNameValuePair("imei", config.getRockBlockIMEI()));
-        params.add(new BasicNameValuePair("momsn", "12345"));
-        params.add(new BasicNameValuePair("transmit_time", "12-10-10 10:41:50"));
-        params.add(new BasicNameValuePair("iridium_latitude", "52.3867"));
-        params.add(new BasicNameValuePair("iridium_longitude", "0.2938"));
-        params.add(new BasicNameValuePair("iridium_cep", "9"));
-        params.add(new BasicNameValuePair("data", Hex.encodeHexString(getSamplePacket().encodePacket())));
-        httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+            // Request parameters and other properties.
+            List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+            params.add(new BasicNameValuePair("imei", config.getRockBlockIMEI()));
+            params.add(new BasicNameValuePair("momsn", "12345"));
+            params.add(new BasicNameValuePair("transmit_time", "12-10-10 10:41:50"));
+            params.add(new BasicNameValuePair("iridium_latitude", "52.3867"));
+            params.add(new BasicNameValuePair("iridium_longitude", "0.2938"));
+            params.add(new BasicNameValuePair("iridium_cep", "9"));
+            params.add(new BasicNameValuePair("data", Hex.encodeHexString(getSamplePacket().encodePacket())));
+            httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
-        // Execute and get the response.
-        System.out.printf("ISBD MO TEST: Sending test message to %s", uri.toString());
-        System.out.println();
+            // Execute and get the response.
+            System.out.printf("ISBD MO TEST: Sending test message to %s", uri.toString());
+            System.out.println();
 
-        HttpResponse response = httpclient.execute(httppost);
+            HttpResponse response = httpclient.execute(httppost);
 
-        if (response.getStatusLine().getStatusCode() != 200) {
-            fail(String.format("RockBLOCK HTTP message handler status code = %d.",
-                                response.getStatusLine().getStatusCode()));
-        }
-
-        HttpEntity entity = response.getEntity();
-
-        if (entity != null) {
-            InputStream responseStream = entity.getContent();
-            try {
-                String responseString = IOUtils.toString(responseStream);
-                System.out.println(responseString);
-            } finally {
-                responseStream.close();
+            if (response.getStatusLine().getStatusCode() != 200) {
+                fail(String.format("RockBLOCK HTTP message handler status code = %d.",
+                        response.getStatusLine().getStatusCode()));
             }
+
+            HttpEntity entity = response.getEntity();
+
+            if (entity != null) {
+                InputStream responseStream = entity.getContent();
+                try {
+                    String responseString = IOUtils.toString(responseStream);
+                    System.out.println(responseString);
+                } finally {
+                    responseStream.close();
+                }
+            }
+
+            Thread.sleep(1000);
+        } catch(Exception ex) {
+            ex.printStackTrace();
+            throw ex;
+        } finally {
+            mavlinkThread.interrupt();
         }
 
-        Thread.sleep(1000);
-
-        mavlinkThread.interrupt();
         System.out.println("ISBD MO TEST: Complete.");
     }
 
-    //Test sending MT messages to RockBLOCK
+    // Test sending MT messages to RockBLOCK
     @Test
     public void testMTMessagePipeline() {
         System.out.println("MT TEST: Testing MT message pipeline...");
@@ -294,14 +298,12 @@ public class UVHubTest {
         DataOutputStream out = null;
 
         try {
-            System.out.printf("MT TEST: Connecting to tcp://%s:%d",
-                              getUVHubHostname(), config.getMAVLinkPort());
+            System.out.printf("MT TEST: Connecting to tcp://%s:%d", getUVHubHostname(), config.getMAVLinkPort());
             System.out.println();
 
             client = new Socket(getUVHubHostname(), config.getMAVLinkPort());
 
-            System.out.printf("MT TEST: Connected to tcp://%s:%d", 
-                              getUVHubHostname(), config.getMAVLinkPort());
+            System.out.printf("MT TEST: Connected to tcp://%s:%d", getUVHubHostname(), config.getMAVLinkPort());
             System.out.println();
 
             out = new DataOutputStream(client.getOutputStream());
@@ -316,14 +318,14 @@ public class UVHubTest {
             Thread.sleep(5000);
 
             System.out.println("MT TEST: Complete.");
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
             try {
-                if (out != null) 
+                if (out != null)
                     out.close();
 
-                if (client != null) 
+                if (client != null)
                     client.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -333,9 +335,19 @@ public class UVHubTest {
 
     @Test
     public void testMessageParser() throws DecoderException {
-        MAVLinkPacket packet = getPacket("fe28010101ea04000000242c4f14d4f32cbac1fe78fe527d6829d301d4e5010081001700000000090400000000018099");
+        MAVLinkPacket packet = getPacket(
+                "fe28010101ea04000000242c4f14d4f32cbac1fe78fe527d6829d301d4e5010081001700000000090400000000018099");
 
-        int[] MAVLINK_MESSAGE_CRCS = {50, 124, 137, 0, 237, 217, 104, 119, 0, 0, 0, 89, 0, 0, 0, 0, 0, 0, 0, 0, 214, 159, 220, 168, 24, 23, 170, 144, 67, 115, 39, 246, 185, 104, 237, 244, 222, 212, 9, 254, 230, 28, 28, 132, 221, 232, 11, 153, 41, 39, 78, 196, 0, 0, 15, 3, 0, 0, 0, 0, 0, 167, 183, 119, 191, 118, 148, 21, 0, 243, 124, 0, 0, 38, 20, 158, 152, 143, 0, 0, 0, 106, 49, 22, 143, 140, 5, 150, 0, 231, 183, 63, 54, 47, 0, 0, 0, 0, 0, 0, 175, 102, 158, 208, 56, 93, 138, 108, 32, 185, 84, 34, 174, 124, 237, 4, 76, 128, 56, 116, 134, 237, 203, 250, 87, 203, 220, 25, 226, 46, 29, 223, 85, 6, 229, 203, 1, 195, 109, 168, 181, 47, 72, 131, 127, 0, 103, 154, 178, 200, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 163, 105, 151, 35, 150, 0, 0, 0, 0, 0, 0, 90, 104, 85, 95, 130, 184, 81, 8, 204, 49, 170, 44, 83, 46, 0};
+        int[] MAVLINK_MESSAGE_CRCS = { 50, 124, 137, 0, 237, 217, 104, 119, 0, 0, 0, 89, 0, 0, 0, 0, 0, 0, 0, 0, 214,
+                159, 220, 168, 24, 23, 170, 144, 67, 115, 39, 246, 185, 104, 237, 244, 222, 212, 9, 254, 230, 28, 28,
+                132, 221, 232, 11, 153, 41, 39, 78, 196, 0, 0, 15, 3, 0, 0, 0, 0, 0, 167, 183, 119, 191, 118, 148, 21,
+                0, 243, 124, 0, 0, 38, 20, 158, 152, 143, 0, 0, 0, 106, 49, 22, 143, 140, 5, 150, 0, 231, 183, 63, 54,
+                47, 0, 0, 0, 0, 0, 0, 175, 102, 158, 208, 56, 93, 138, 108, 32, 185, 84, 34, 174, 124, 237, 4, 76, 128,
+                56, 116, 134, 237, 203, 250, 87, 203, 220, 25, 226, 46, 29, 223, 85, 6, 229, 203, 1, 195, 109, 168, 181,
+                47, 72, 131, 127, 0, 103, 154, 178, 200, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 163, 105, 151, 35, 150, 0, 0, 0,
+                0, 0, 0, 90, 104, 85, 95, 130, 184, 81, 8, 204, 49, 170, 44, 83, 46, 0 };
 
         System.out.println(MAVLINK_MESSAGE_CRCS[47]);
 
@@ -344,9 +356,9 @@ public class UVHubTest {
         }
     }
 
-    //Testing web socket service endpoint
+    // Testing web socket service endpoint
     @Test
-    public void testWSClient() throws InterruptedException, DeploymentException, IOException  {
+    public void testWSClient() throws InterruptedException, DeploymentException, IOException {
         System.out.println("WS TEST: Testing WebSocket endpoint...");
 
         String endpoint = String.format("ws://%s:%d/gcs/ws", getUVHubHostname(), config.getWSPort());
@@ -356,7 +368,7 @@ public class UVHubTest {
 
         ClientManager client = ClientManager.createClient();
 
-        Session session = client.connectToServer(WSClient.class, URI.create(endpoint)); 
+        Session session = client.connectToServer(WSClient.class, URI.create(endpoint));
 
         System.out.printf("WS TEST: Connected to %s", endpoint);
         System.out.println();
