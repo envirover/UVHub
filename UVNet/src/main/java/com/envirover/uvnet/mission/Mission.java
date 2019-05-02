@@ -23,6 +23,8 @@ import java.util.List;
 import com.MAVLink.enums.MAV_AUTOPILOT;
 import com.MAVLink.enums.MAV_TYPE;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
 /**
  * Mission waypoints
  * 
@@ -32,6 +34,7 @@ import com.MAVLink.enums.MAV_TYPE;
  * @author Pavel Bobov
  *
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Mission {
 
     private int cruiseSpeed;

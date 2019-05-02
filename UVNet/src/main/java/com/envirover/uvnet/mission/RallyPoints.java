@@ -20,6 +20,9 @@ package com.envirover.uvnet.mission;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RallyPoints {
 
     private final int version = 1;

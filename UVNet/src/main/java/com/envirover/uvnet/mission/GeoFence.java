@@ -20,12 +20,15 @@ package com.envirover.uvnet.mission;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
 /**
  * JSON serialization class for mission geo fence.
  * 
  * @author Pavel Bobov
  *
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GeoFence {
 
     private List<List<Double>> polygon = new ArrayList<List<Double>>();

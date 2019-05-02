@@ -77,13 +77,7 @@ public class UVHubTest {
         return hostname != null ? hostname : DEFAULT_UVHUB_HOSTNAME;
     }
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
 
     // Test receiving MO messages sent from TCP channel
     @Test

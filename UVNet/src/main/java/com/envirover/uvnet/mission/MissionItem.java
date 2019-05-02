@@ -22,6 +22,9 @@ import java.util.List;
 
 import com.MAVLink.common.msg_mission_item;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class MissionItem {
 
     private final String type = "SimpleItem";
