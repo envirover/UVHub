@@ -53,8 +53,6 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.logging.log4j.Level;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.MAVLink.MAVLinkPacket;
@@ -76,8 +74,6 @@ public class UVHubTest {
         String hostname = System.getenv(UVHUB_HOSTNAME);
         return hostname != null ? hostname : DEFAULT_UVHUB_HOSTNAME;
     }
-
-
 
     // Test receiving MO messages sent from TCP channel
     @Test

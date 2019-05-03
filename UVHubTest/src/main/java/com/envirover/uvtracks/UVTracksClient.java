@@ -125,13 +125,9 @@ class UVTracksClient {
 
         HttpResponse response = httpclient.execute(request);
 
-        String json = "";
-
         try (InputStream content = response.getEntity().getContent()) {
-            json = IOUtils.toString(content, "UTF-8");
+            return mapper.readValue(content, FeatureCollection.class);
         }
-
-        return mapper.readValue(json, FeatureCollection.class);
     }
 
     /**
@@ -157,13 +153,9 @@ class UVTracksClient {
 
         HttpResponse response = httpclient.execute(request);
 
-        String json = "";
-
         try (InputStream content = response.getEntity().getContent()) {
-            json = IOUtils.toString(content, "UTF-8");
+            return mapper.readValue(content, Plan.class);
         }
-
-        return mapper.readValue(json, Plan.class);
     }
 
 }
