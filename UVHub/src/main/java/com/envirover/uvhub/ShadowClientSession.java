@@ -330,10 +330,7 @@ public class ShadowClientSession implements ClientSession {
             MAVLinkLogger.log(Level.DEBUG, ">>", packet);
         } catch (IOException ex) {
             ex.printStackTrace();
-           
-            //if (ex.getMessage().equals("Software caused connection abort: socket write error")) {
-            	onClose();
-            //}
+           	onClose();
             throw ex;
         }
     }

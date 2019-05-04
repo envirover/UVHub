@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - UVHub",
+            "request": "launch",
+            "mainClass": "com.envirover.uvhub.UVHub",
+            "projectName": "uvhub"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - TestRunner",
             "request": "launch",
             "mainClass": "com.envirover.TestRunner",
