@@ -50,7 +50,7 @@ public class UVTracksTest {
     
         FeatureCollection tracks = this.uvTracks.getTracks(null, null, null, null);
 
-        assertEquals(tracks.getType(), "FeatureCollection");
+        assertEquals("FeatureCollection", tracks.getType());
     }
 
     @Test
@@ -59,6 +59,6 @@ public class UVTracksTest {
     
         Plan missions = this.uvTracks.getMissions(null);
 
-        assertEquals(missions.getFileType(), "Plan");
+        assertEquals("Plan", missions.getFileType());
     }
 }

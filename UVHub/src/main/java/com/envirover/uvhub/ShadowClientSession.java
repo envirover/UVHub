@@ -18,6 +18,7 @@
 package com.envirover.uvhub;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -329,9 +330,10 @@ public class ShadowClientSession implements ClientSession {
             MAVLinkLogger.log(Level.DEBUG, ">>", packet);
         } catch (IOException ex) {
             ex.printStackTrace();
-            if (ex.getMessage().equals("Software caused connection abort: socket write error")) {
+           
+            //if (ex.getMessage().equals("Software caused connection abort: socket write error")) {
             	onClose();
-            }
+            //}
             throw ex;
         }
     }

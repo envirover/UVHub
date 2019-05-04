@@ -1,7 +1,7 @@
 /*
  * Envirover confidential
  * 
- *  [2017] Envirover
+ *  [2019] Envirover
  *  All Rights Reserved.
  * 
  * NOTICE:  All information contained herein is, and remains the property of 
@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,15 +59,23 @@ import org.junit.Test;
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
 import com.MAVLink.common.msg_high_latency;
+import com.MAVLink.common.msg_param_set;
+import com.MAVLink.common.msg_param_value;
 import com.envirover.mavlink.MAVLinkLogger;
+import com.envirover.mavlink.MAVLinkSocket;
 import com.envirover.uvnet.Config;
 
+/**
+ * Integration test for UV Hub.
+ */
 public class UVHubTest {
 
     // Test configuration environment variables
     private final static String UVHUB_HOSTNAME = "UVHUB_HOSTNAME";
 
     private final static String DEFAULT_UVHUB_HOSTNAME = "localhost";
+
+    private final static String HL_REPORT_PERIOD_PARAM = "HL_REPORT_PERIOD";
 
     private final Config config = Config.getInstance();
 
@@ -269,7 +278,7 @@ public class UVHubTest {
             }
 
             Thread.sleep(1000);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             throw ex;
         } finally {
@@ -281,45 +290,65 @@ public class UVHubTest {
 
     // Test sending MT messages to RockBLOCK
     @Test
-    public void testMTMessagePipeline() {
+    public void testMTMessagePipeline() throws UnknownHostException, IOException, InterruptedException {
         System.out.println("MT TEST: Testing MT message pipeline...");
 
-        Socket client = null;
-        DataOutputStream out = null;
+        System.out.printf("MT TEST: Connecting to tcp://%s:%d", getUVHubHostname(), config.getMAVLinkPort());
+        System.out.println();
 
-        try {
-            System.out.printf("MT TEST: Connecting to tcp://%s:%d", getUVHubHostname(), config.getMAVLinkPort());
-            System.out.println();
-
-            client = new Socket(getUVHubHostname(), config.getMAVLinkPort());
-
+        try (Socket client = new Socket(getUVHubHostname(), config.getMAVLinkPort())) {
             System.out.printf("MT TEST: Connected to tcp://%s:%d", getUVHubHostname(), config.getMAVLinkPort());
             System.out.println();
 
-            out = new DataOutputStream(client.getOutputStream());
-
-            MAVLinkPacket packet = getSamplePacket();
-            out.write(packet.encodePacket());
-            out.flush();
-
-            System.out.printf("MT TEST: MAVLink message sent: msgid = %d", packet.msgid);
-            System.out.println();
+            try (DataOutputStream out = new DataOutputStream(client.getOutputStream())) {
+                MAVLinkPacket packet = getSamplePacket();
+                out.write(packet.encodePacket());
+                out.flush();
+                System.out.printf("MT TEST: MAVLink message sent: msgid = %d", packet.msgid);
+                System.out.println();
+            }
 
             Thread.sleep(5000);
 
             System.out.println("MT TEST: Complete.");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            try {
-                if (out != null)
-                    out.close();
+        }
+    }
 
-                if (client != null)
-                    client.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+    // Test updating parameters and missions in the UV shadow
+    @Test
+    public void testShadowPort() throws IOException, InterruptedException {
+        System.out.println("SHADOW PORT TEST: Testing updating parameters and missions in the UV shadow...");
+        System.out.printf("SHADOW PORT TEST: Connecting to tcp://%s:%d", getUVHubHostname(), config.getShadowPort());
+        System.out.println();
+
+        try (Socket socket = new Socket(getUVHubHostname(), config.getShadowPort())) {
+            System.out.printf("SHADOW PORT TEST: Connected to tcp://%s:%d", getUVHubHostname(), config.getShadowPort());
+            System.out.println();
+            MAVLinkSocket client = new MAVLinkSocket(socket);
+
+            msg_param_set msgParamSet = new msg_param_set();
+            msgParamSet.setParam_Id(HL_REPORT_PERIOD_PARAM);
+            msgParamSet.target_system = 1;
+            msgParamSet.param_value = 60.0F;
+            msgParamSet.sysid = 1;
+
+            client.sendMessage(msgParamSet.pack());
+
+            System.out.println("SHADOW PORT TEST: PARAM_SET MAVLink message sent.");
+
+            for (int i = 0; i < 10; i++) {
+                MAVLinkPacket packet = client.receiveMessage();
+
+                System.out.printf("SHADOW PORT TEST: MAVLink message received: msgid = %d", packet.msgid);
+                System.out.println();
+
+                if (msg_param_value.MAVLINK_MSG_ID_PARAM_VALUE == packet.msgid) {
+                    System.out.println("SHADOW PORT TEST: Complete.");
+                    return;
+                }
             }
+
+            throw new IOException("PARAM_VALUE message not received after PARAM_SET.");
         }
     }
 
@@ -372,7 +401,7 @@ public class UVHubTest {
             System.out.println("WS TEST: Complete.");
 
             session.close();
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             throw ex;
         }
