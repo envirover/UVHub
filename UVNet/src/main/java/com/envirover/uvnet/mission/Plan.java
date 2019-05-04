@@ -22,6 +22,8 @@ import java.util.List;
 
 import com.MAVLink.common.msg_mission_item;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
 /**
  * 
  * The standard JSON file format for missions, as implemented in the
@@ -30,6 +32,7 @@ import com.MAVLink.common.msg_mission_item;
  * @author Pavel Bobov
  *
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Plan {
 
     private final String fileType = "Plan";

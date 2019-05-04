@@ -69,7 +69,7 @@ public class Config {
     // default property values
     private final static String DEFAULT_ROCKBLOCK_URL = "https://core.rock7.com/rockblock/MT";
     private final static String DEFAULT_HTTP_CONTEXT = "/mo";
-    private final static Integer DEFAULT_ROCKBLOCK_PORT = 8080;
+    private final static Integer DEFAULT_ROCKBLOCK_PORT = 5080;
     private final static Integer DEFAULT_RADIOROOM_PORT = 5060;
     private final static Integer DEFAULT_MAVLINK_PORT = 5760;
     private final static Integer DEFAULT_SHADOW_PORT = 5757;
