@@ -45,7 +45,6 @@ public class Config {
     private final static String PROP_ROCKBLOCK_PORT = "rockblock.port";
     private final static String PROP_MAVLINK_PORT = "mavlink.port";
     private final static String PROP_SHADOW_PORT = "shadow.port";
-    private final static String PROP_WS_PORT = "ws.port";
     private final static String PROP_ROCKBLOCK_URL = "rockblock.url";
     private final static String PROP_ROCKBLOCK_IMEI = "rockblock.imei";
     private final static String PROP_ROCKBLOCK_USERNAME = "rockblock.username";
@@ -73,7 +72,6 @@ public class Config {
     private final static Integer DEFAULT_RADIOROOM_PORT = 5060;
     private final static Integer DEFAULT_MAVLINK_PORT = 5760;
     private final static Integer DEFAULT_SHADOW_PORT = 5757;
-    private final static Integer DEFAULT_WS_PORT = 8000;
     private final static Integer DEFAULT_QUEUE_SIZE = 1000;
     private final static Integer DEFAULT_HEARTBEAT_INT = 1000;
     private final static Short DEFAULT_AUTOPILOT = MAV_AUTOPILOT.MAV_AUTOPILOT_ARDUPILOTMEGA;
@@ -89,7 +87,6 @@ public class Config {
     private Integer radioroomPort = DEFAULT_RADIOROOM_PORT;
     private Integer mavlinkPort = DEFAULT_MAVLINK_PORT;
     private Integer shadowPort = DEFAULT_SHADOW_PORT;
-    private Integer wsPort = DEFAULT_WS_PORT;
     private Integer queueSize = DEFAULT_QUEUE_SIZE;
     private Integer heartbeatInterval = DEFAULT_HEARTBEAT_INT;
     private String imei = null;
@@ -154,9 +151,6 @@ public class Config {
         if (getProperty(PROP_SHADOW_PORT) != null)
             shadowPort = Integer.valueOf(getProperty(PROP_SHADOW_PORT));
 
-        if (getProperty(PROP_WS_PORT) != null)
-            wsPort = Integer.valueOf(getProperty(PROP_WS_PORT));
-
         if (getProperty(PROP_QUEUE_SIZE) != null)
             queueSize = Integer.valueOf(getProperty(PROP_QUEUE_SIZE));
 
@@ -211,10 +205,6 @@ public class Config {
 
     public Integer getShadowPort() {
         return shadowPort;
-    }
-
-    public Integer getWSPort() {
-        return wsPort;
     }
 
     public Integer getQueueSize() {

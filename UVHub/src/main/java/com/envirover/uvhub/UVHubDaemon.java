@@ -25,7 +25,6 @@ import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.glassfish.tyrus.server.Server;
 
 import com.MAVLink.common.msg_param_value;
 import com.envirover.mavlink.MAVLinkMessageQueue;
@@ -52,7 +51,6 @@ public class UVHubDaemon implements Daemon {
     private ShadowTcpServer shadowServer = null;
     private HttpServer httpServer = null;
     private Thread mtMsgPumpThread = null;
-    private Server wsServer;
 
     @Override
     public void destroy() {
@@ -135,12 +133,6 @@ public class UVHubDaemon implements Daemon {
         // the specified RockBLOCK HTTP client.
         MTMessagePump mtMsgPump = new MTMessagePump(mtMessageQueue, rrTcpServer, rockblock);
         mtMsgPumpThread = new Thread(mtMsgPump, "mt-message-pump");
-
-        // WebSocket server accepts client connections on port 8000. It handles 
-        // MAVLink messages received form the connected clients and forwards some
-        // of the messages to the specified mobile-terminated queue.
-        WSEndpoint.set(mtMessageQueue, shadow);
-        wsServer = new Server("localhost", config.getWSPort(), "/gcs", WSEndpoint.class);
     }
 
     @Override
@@ -151,7 +143,6 @@ public class UVHubDaemon implements Daemon {
         rrTcpServer.start();
         httpServer.start();
         mtMsgPumpThread.start();
-        wsServer.start();
 
         Thread.sleep(1000);
 
@@ -161,10 +152,6 @@ public class UVHubDaemon implements Daemon {
     @Override
     public void stop() throws Exception {
         // Stop all the server threads.
-        if (wsServer != null) {
-             wsServer.stop();
-        }
-
         if (mtMsgPumpThread != null) {
             mtMsgPumpThread.interrupt();
         }

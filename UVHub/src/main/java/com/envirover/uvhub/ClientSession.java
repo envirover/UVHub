@@ -23,7 +23,7 @@ import com.MAVLink.MAVLinkPacket;
 
 
 /**
- * Client sessions that handle communications with TCP and WebSocket MAVLink clients.
+ * Client sessions that handle communications with TCP MAVLink clients.
  * 
  * @author Pavel Bobov
  *

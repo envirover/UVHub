@@ -27,7 +27,6 @@ import java.util.List;
 import com.envirover.geojson.FeatureCollection;
 import com.envirover.uvnet.mission.Plan;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;

@@ -31,11 +31,6 @@
 			<version>2.2</version>
 		</dependency>	
 		<dependency>
-			<groupId>javax.websocket</groupId>
-			<artifactId>javax.websocket-client-api</artifactId>
-			<version>1.0</version>
-		</dependency>	
-		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<version>4.5.3</version>
@@ -65,26 +60,6 @@
 			<artifactId>commons-codec</artifactId>
 			<version>1.9</version>
 		</dependency>		
-<!-- 		<dependency>
-			<groupId>javax.websocket</groupId>
-			<artifactId>javax.websocket-api</artifactId>
-			<version>1.0</version>
-		</dependency> -->
-		<dependency>
-			<groupId>org.glassfish.tyrus</groupId>
-			<artifactId>tyrus-container-grizzly</artifactId>
-			<version>1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.tyrus</groupId>
-			<artifactId>tyrus-server</artifactId>
-			<version>1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.tyrus</groupId>
-			<artifactId>tyrus-client</artifactId>
-			<version>1.1</version>
-		</dependency>			
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
