@@ -26,12 +26,16 @@ import com.envirover.geojson.FeatureCollection;
 import com.envirover.uvnet.mission.Plan;
 
 import org.apache.http.client.ClientProtocolException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 // UV Tracks web service integration test
 public class UVTracksTest {
+
+    private final static Logger logger = LogManager.getLogger(UVTracksTest.class);
 
     UVTracksClient uvTracks = new UVTracksClient();
 
@@ -45,7 +49,7 @@ public class UVTracksTest {
 
     @Test
     public void testGetTracks() throws ClientProtocolException, URISyntaxException, IOException {
-        System.out.println("UVTracksTest: GET /uvtracks/api/v1/tracks");
+        logger.info("UVTracksTest: GET /uvtracks/api/v1/tracks");
     
         FeatureCollection tracks = this.uvTracks.getTracks(null, null, null, null);
 
@@ -54,7 +58,7 @@ public class UVTracksTest {
 
     @Test
     public void testGetMissions() throws ClientProtocolException, URISyntaxException, IOException {
-        System.out.println("UVTracksTest: GET /uvtracks/api/v1/missions");
+        logger.info("UVTracksTest: GET /uvtracks/api/v1/missions");
     
         Plan missions = this.uvTracks.getMissions(null);
 
