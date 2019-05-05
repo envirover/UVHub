@@ -82,12 +82,12 @@ public class UVHubTest {
         Thread mavlinkThread = new Thread(new Runnable() {
             public void run() {
                 try {
-                    logger.info(String.format("TCP/IP MO TEST: Connecting to tcp://%s:%d%n", getUVHubHostname(),
+                    logger.info(String.format("TCP/IP MO TEST: Connecting to tcp://%s:%d", getUVHubHostname(),
                             config.getMAVLinkPort()));
 
                     try (Socket socket = new Socket(getUVHubHostname(), config.getMAVLinkPort())) {
 
-                        logger.info(String.format("TCP/IP MO TEST: Connected tcp://%s:%d%n", getUVHubHostname(),
+                        logger.info(String.format("TCP/IP MO TEST: Connected tcp://%s:%d", getUVHubHostname(),
                                 config.getMAVLinkPort()));
 
                         MAVLinkSocket client = new MAVLinkSocket(socket);
@@ -96,7 +96,7 @@ public class UVHubTest {
                             MAVLinkPacket packet = client.receiveMessage();
 
                             if (packet != null) {
-                                logger.info(String.format("TCP/IP MO TEST: MAVLink message received: msgid = %d%n", packet.msgid));
+                                logger.info(String.format("TCP/IP MO TEST: MAVLink message received: msgid = %d", packet.msgid));
                             }
 
                             Thread.sleep(100);
@@ -112,17 +112,17 @@ public class UVHubTest {
 
         mavlinkThread.start();
 
-        logger.info(String.format("TCP/IP MO TEST: Connecting to tcp://%s:%d%n", getUVHubHostname(), config.getRadioRoomPort()));
+        logger.info(String.format("TCP/IP MO TEST: Connecting to tcp://%s:%d", getUVHubHostname(), config.getRadioRoomPort()));
 
         try (Socket socket = new Socket(getUVHubHostname(), config.getRadioRoomPort())) {
-            logger.info(String.format("TCP/IP MO TEST: Connected to tcp://%s:%d%n", getUVHubHostname(), config.getRadioRoomPort()));
+            logger.info(String.format("TCP/IP MO TEST: Connected to tcp://%s:%d", getUVHubHostname(), config.getRadioRoomPort()));
 
             MAVLinkSocket client = new MAVLinkSocket(socket);
 
             MAVLinkPacket packet = getSamplePacket();
             client.sendMessage(packet);
 
-            logger.info(String.format("TCP/IP MO TEST: MAVLink message sent: msgid = %d%n", packet.msgid));
+            logger.info(String.format("TCP/IP MO TEST: MAVLink message sent: msgid = %d", packet.msgid));
 
             Thread.sleep(5000);
         } finally {
@@ -144,9 +144,9 @@ public class UVHubTest {
             public void run() {
                 try {
                     try (Socket socket = new Socket(getUVHubHostname(), config.getMAVLinkPort())) {
-                        logger.info(String.format("ISBD MO TEST: Connecting to tcp://%s:%d%n", getUVHubHostname(),
+                        logger.info(String.format("ISBD MO TEST: Connecting to tcp://%s:%d", getUVHubHostname(),
                                 config.getMAVLinkPort()));
-                        logger.info(String.format("ISBD MO TEST: Connected tcp://%s:%d%n", getUVHubHostname(),
+                        logger.info(String.format("ISBD MO TEST: Connected tcp://%s:%d", getUVHubHostname(),
                                 config.getMAVLinkPort()));
 
                         MAVLinkSocket client = new MAVLinkSocket(socket);
@@ -154,7 +154,7 @@ public class UVHubTest {
                             MAVLinkPacket packet = client.receiveMessage();
 
                             if (packet != null) {
-                                logger.info(String.format("ISBD MO TEST: MAVLink message received: msgid = %d%n", packet.msgid));
+                                logger.info(String.format("ISBD MO TEST: MAVLink message received: msgid = %d", packet.msgid));
                             }
 
                             Thread.sleep(100);
@@ -194,7 +194,7 @@ public class UVHubTest {
             httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
             // Execute and get the response.
-            logger.info(String.format("ISBD MO TEST: Sending test message to %s%n", uri.toString()));
+            logger.info(String.format("ISBD MO TEST: Sending test message to %s", uri.toString()));
 
             HttpResponse response = httpclient.execute(httppost);
 
@@ -226,17 +226,17 @@ public class UVHubTest {
     @Test
     public void testMTMessagePipeline() throws UnknownHostException, IOException, InterruptedException {
         logger.info("MT TEST: Testing MT message pipeline...");
-        logger.info(String.format("MT TEST: Connecting to tcp://%s:%d%n", getUVHubHostname(), config.getMAVLinkPort()));
+        logger.info(String.format("MT TEST: Connecting to tcp://%s:%d", getUVHubHostname(), config.getMAVLinkPort()));
 
         try (Socket socket = new Socket(getUVHubHostname(), config.getMAVLinkPort())) {
-            logger.info(String.format("MT TEST: Connected to tcp://%s:%d%n", getUVHubHostname(), config.getMAVLinkPort()));
+            logger.info(String.format("MT TEST: Connected to tcp://%s:%d", getUVHubHostname(), config.getMAVLinkPort()));
 
             MAVLinkSocket client = new MAVLinkSocket(socket);
 
             MAVLinkPacket packet = getSamplePacket();
             client.sendMessage(packet);
 
-            logger.info(String.format("MT TEST: MAVLink message sent: msgid = %d%n", packet.msgid));
+            logger.info(String.format("MT TEST: MAVLink message sent: msgid = %d", packet.msgid));
 
             Thread.sleep(5000);
 
@@ -248,10 +248,10 @@ public class UVHubTest {
     @Test
     public void testShadowPort() throws IOException, InterruptedException {
         logger.info("SHADOW PORT TEST: Testing updating parameters and missions in the UV shadow...");
-        logger.info(String.format("SHADOW PORT TEST: Connecting to tcp://%s:%d%n", getUVHubHostname(), config.getShadowPort()));
+        logger.info(String.format("SHADOW PORT TEST: Connecting to tcp://%s:%d", getUVHubHostname(), config.getShadowPort()));
 
         try (Socket socket = new Socket(getUVHubHostname(), config.getShadowPort())) {
-            logger.info(String.format("SHADOW PORT TEST: Connected to tcp://%s:%d%n", getUVHubHostname(), config.getShadowPort()));
+            logger.info(String.format("SHADOW PORT TEST: Connected to tcp://%s:%d", getUVHubHostname(), config.getShadowPort()));
 
             MAVLinkSocket client = new MAVLinkSocket(socket);
 
@@ -268,7 +268,7 @@ public class UVHubTest {
             for (int i = 0; i < 10; i++) {
                 MAVLinkPacket packet = client.receiveMessage();
 
-                logger.info(String.format("SHADOW PORT TEST: MAVLink message received: msgid = %d%n", packet.msgid));
+                logger.info(String.format("SHADOW PORT TEST: MAVLink message received: msgid = %d", packet.msgid));
 
                 if (msg_param_value.MAVLINK_MSG_ID_PARAM_VALUE == packet.msgid) {
                     logger.info("SHADOW PORT TEST: Complete.");
