@@ -68,7 +68,7 @@ import com.envirover.uvnet.Config;
 import com.envirover.uvnet.shadow.UVShadow;
 
 /**
- * TCP and WebSocket MAVLink client session that handle communications with GCS clients.
+ * TCP MAVLink client session that handle communications with GCS clients.
  * 
  * @author Pavel Bobov
  */

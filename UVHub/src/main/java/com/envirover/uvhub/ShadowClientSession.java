@@ -18,7 +18,6 @@
 package com.envirover.uvhub;
 
 import java.io.IOException;
-import java.net.SocketException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +63,7 @@ import com.envirover.uvnet.Config;
 import com.envirover.uvnet.shadow.UVShadow;
 
 /**
- * TCP and WebSocket MAVLink client sessions that handle communications with GCS clients
+ * TCP MAVLink client sessions that handle communications with GCS clients
  * to update reported states of on-board parameters and missions in the shadow.
  * 
  * @author Pavel Bobov
