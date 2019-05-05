@@ -108,6 +108,8 @@ public class ShadowClientSession implements ClientSession {
 							e1.printStackTrace();
 						}
                 	}
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
             }
         };
