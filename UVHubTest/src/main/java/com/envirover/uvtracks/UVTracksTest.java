@@ -49,7 +49,7 @@ public class UVTracksTest {
 
     @Test
     public void testGetTracks() throws ClientProtocolException, URISyntaxException, IOException {
-        logger.info("UVTracksTest: GET /uvtracks/api/v1/tracks");
+        logger.info("UVTracks TEST: GET /uvtracks/api/v1/tracks");
     
         FeatureCollection tracks = this.uvTracks.getTracks(null, null, null, null);
 
@@ -58,7 +58,7 @@ public class UVTracksTest {
 
     @Test
     public void testGetMissions() throws ClientProtocolException, URISyntaxException, IOException {
-        logger.info("UVTracksTest: GET /uvtracks/api/v1/missions");
+        logger.info("UVTracks TEST: GET /uvtracks/api/v1/missions");
     
         Plan missions = this.uvTracks.getMissions(null);
 

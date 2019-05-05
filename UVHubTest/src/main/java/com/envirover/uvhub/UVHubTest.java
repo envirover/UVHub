@@ -17,6 +17,7 @@
 
 package com.envirover.uvhub;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -26,7 +27,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -40,14 +44,25 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.elasticsearch.common.util.set.Sets;
 import org.junit.Test;
 
 import com.MAVLink.MAVLinkPacket;
+import com.MAVLink.common.msg_attitude;
+import com.MAVLink.common.msg_global_position_int;
+import com.MAVLink.common.msg_gps_raw_int;
+import com.MAVLink.common.msg_heartbeat;
 import com.MAVLink.common.msg_high_latency;
+import com.MAVLink.common.msg_mission_current;
+import com.MAVLink.common.msg_nav_controller_output;
 import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_param_value;
+import com.MAVLink.common.msg_sys_status;
+import com.MAVLink.common.msg_vfr_hud;
+import com.envirover.mavlink.MAVLinkLogger;
 import com.envirover.mavlink.MAVLinkSocket;
 import com.envirover.uvnet.Config;
 
@@ -77,40 +92,7 @@ public class UVHubTest {
     public void testTCPMOMessagePipeline() throws IOException, InterruptedException {
         logger.info("TCP/IP MO TEST: Testing TCP/IP MO message pipeline...");
 
-        Thread.sleep(1000);
-
-        Thread mavlinkThread = new Thread(new Runnable() {
-            public void run() {
-                try {
-                    logger.info(String.format("TCP/IP MO TEST: Connecting to tcp://%s:%d", getUVHubHostname(),
-                            config.getMAVLinkPort()));
-
-                    try (Socket socket = new Socket(getUVHubHostname(), config.getMAVLinkPort())) {
-
-                        logger.info(String.format("TCP/IP MO TEST: Connected tcp://%s:%d", getUVHubHostname(),
-                                config.getMAVLinkPort()));
-
-                        MAVLinkSocket client = new MAVLinkSocket(socket);
-
-                        while (true) {
-                            MAVLinkPacket packet = client.receiveMessage();
-
-                            if (packet != null) {
-                                logger.info(String.format("TCP/IP MO TEST: MAVLink message received: msgid = %d", packet.msgid));
-                            }
-
-                            Thread.sleep(100);
-                        }
-                    }
-                } catch (InterruptedException ex) {
-                    return;
-                } catch (Exception ex) {
-                    logger.catching(ex);
-                }
-            }
-        });
-
-        mavlinkThread.start();
+        MAVLinkPacket packet = getSamplePacket();
 
         logger.info(String.format("TCP/IP MO TEST: Connecting to tcp://%s:%d", getUVHubHostname(), config.getRadioRoomPort()));
 
@@ -119,14 +101,22 @@ public class UVHubTest {
 
             MAVLinkSocket client = new MAVLinkSocket(socket);
 
-            MAVLinkPacket packet = getSamplePacket();
             client.sendMessage(packet);
 
             logger.info(String.format("TCP/IP MO TEST: MAVLink message sent: msgid = %d", packet.msgid));
+        }
 
-            Thread.sleep(5000);
-        } finally {
-            mavlinkThread.interrupt();
+        logger.info(String.format("TCP/IP MO TEST: Connecting to tcp://%s:%d", getUVHubHostname(),
+        config.getMAVLinkPort()));
+
+        try (Socket socket = new Socket(getUVHubHostname(), config.getMAVLinkPort())) {
+
+            logger.info(String.format("TCP/IP MO TEST: Connected tcp://%s:%d", getUVHubHostname(),
+                    config.getMAVLinkPort()));
+
+            MAVLinkSocket client = new MAVLinkSocket(socket);
+
+            assertTrue("Not all expected messages received by GCS client.", compareReportedState(packet, client));
         }
 
         logger.info("TCP/IP MO TEST: Complete.");
@@ -138,85 +128,57 @@ public class UVHubTest {
             throws URISyntaxException, ClientProtocolException, IOException, InterruptedException {
         logger.info("ISBD MO TEST: Testing ISBD MO message pipeline...");
 
-        Thread.sleep(1000);
+        MAVLinkPacket packet = getSamplePacket();
 
-        Thread mavlinkThread = new Thread(new Runnable() {
-            public void run() {
-                try {
-                    try (Socket socket = new Socket(getUVHubHostname(), config.getMAVLinkPort())) {
-                        logger.info(String.format("ISBD MO TEST: Connecting to tcp://%s:%d", getUVHubHostname(),
-                                config.getMAVLinkPort()));
-                        logger.info(String.format("ISBD MO TEST: Connected tcp://%s:%d", getUVHubHostname(),
-                                config.getMAVLinkPort()));
+        HttpClient httpclient = HttpClients.createDefault();
 
-                        MAVLinkSocket client = new MAVLinkSocket(socket);
-                        while (true) {
-                            MAVLinkPacket packet = client.receiveMessage();
+        URIBuilder builder = new URIBuilder();
+        builder.setScheme("http");
+        builder.setHost(getUVHubHostname());
+        builder.setPort(config.getRockblockPort());
+        builder.setPath(config.getHttpContext());
 
-                            if (packet != null) {
-                                logger.info(String.format("ISBD MO TEST: MAVLink message received: msgid = %d", packet.msgid));
-                            }
+        URI uri = builder.build();
+        HttpPost httppost = new HttpPost(uri);
 
-                            Thread.sleep(100);
-                        }
-                    }
-                } catch (InterruptedException ex) {
-                    return;
-                } catch (Exception ex) {
-                    logger.catching(ex);
-                }
+        // Request parameters and other properties.
+        List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+        params.add(new BasicNameValuePair("imei", config.getRockBlockIMEI()));
+        params.add(new BasicNameValuePair("momsn", "12345"));
+        params.add(new BasicNameValuePair("transmit_time", "12-10-10 10:41:50"));
+        params.add(new BasicNameValuePair("iridium_latitude", "52.3867"));
+        params.add(new BasicNameValuePair("iridium_longitude", "0.2938"));
+        params.add(new BasicNameValuePair("iridium_cep", "9"));
+        params.add(new BasicNameValuePair("data", Hex.encodeHexString(packet.encodePacket())));
+        httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+
+        // Execute and get the response.
+        logger.info(String.format("ISBD MO TEST: Sending test message to %s", uri.toString()));
+
+        HttpResponse response = httpclient.execute(httppost);
+
+        if (response.getStatusLine().getStatusCode() != 200) {
+            fail(String.format("RockBLOCK HTTP message handler status code = %d.",
+                    response.getStatusLine().getStatusCode()));
+        }
+
+        HttpEntity entity = response.getEntity();
+
+        if (entity != null) {
+            try (InputStream responseStream = entity.getContent()) {
+                logger.info("Response: " + IOUtils.toString(responseStream));
             }
-        });
+        }
 
-        mavlinkThread.start();
+        try (Socket socket = new Socket(getUVHubHostname(), config.getMAVLinkPort())) {
+            logger.info(String.format("ISBD MO TEST: Connecting to tcp://%s:%d", getUVHubHostname(),
+                    config.getMAVLinkPort()));
+            logger.info(String.format("ISBD MO TEST: Connected tcp://%s:%d", getUVHubHostname(),
+                    config.getMAVLinkPort()));
 
-        try {
-            HttpClient httpclient = HttpClients.createDefault();
+            MAVLinkSocket client = new MAVLinkSocket(socket);
 
-            URIBuilder builder = new URIBuilder();
-            builder.setScheme("http");
-            builder.setHost(getUVHubHostname());
-            builder.setPort(config.getRockblockPort());
-            builder.setPath(config.getHttpContext());
-
-            URI uri = builder.build();
-            HttpPost httppost = new HttpPost(uri);
-
-            // Request parameters and other properties.
-            List<NameValuePair> params = new ArrayList<NameValuePair>(2);
-            params.add(new BasicNameValuePair("imei", config.getRockBlockIMEI()));
-            params.add(new BasicNameValuePair("momsn", "12345"));
-            params.add(new BasicNameValuePair("transmit_time", "12-10-10 10:41:50"));
-            params.add(new BasicNameValuePair("iridium_latitude", "52.3867"));
-            params.add(new BasicNameValuePair("iridium_longitude", "0.2938"));
-            params.add(new BasicNameValuePair("iridium_cep", "9"));
-            params.add(new BasicNameValuePair("data", Hex.encodeHexString(getSamplePacket().encodePacket())));
-            httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
-
-            // Execute and get the response.
-            logger.info(String.format("ISBD MO TEST: Sending test message to %s", uri.toString()));
-
-            HttpResponse response = httpclient.execute(httppost);
-
-            if (response.getStatusLine().getStatusCode() != 200) {
-                fail(String.format("RockBLOCK HTTP message handler status code = %d.",
-                        response.getStatusLine().getStatusCode()));
-            }
-
-            HttpEntity entity = response.getEntity();
-
-            if (entity != null) {
-                try (InputStream responseStream = entity.getContent()) {
-                    logger.info("Response: " + IOUtils.toString(responseStream));
-                }
-            }
-
-            Thread.sleep(1000);
-        } catch (Exception ex) {
-            logger.catching(ex);
-            throw ex;
-        } finally {
-            mavlinkThread.interrupt();
+            assertTrue("Not all expected messages received by GCS client.", compareReportedState(packet, client));
         }
 
         logger.info("ISBD MO TEST: Complete.");
@@ -226,6 +188,9 @@ public class UVHubTest {
     @Test
     public void testMTMessagePipeline() throws UnknownHostException, IOException, InterruptedException {
         logger.info("MT TEST: Testing MT message pipeline...");
+
+        MAVLinkPacket packet = getSamplePacket();
+
         logger.info(String.format("MT TEST: Connecting to tcp://%s:%d", getUVHubHostname(), config.getMAVLinkPort()));
 
         try (Socket socket = new Socket(getUVHubHostname(), config.getMAVLinkPort())) {
@@ -233,12 +198,9 @@ public class UVHubTest {
 
             MAVLinkSocket client = new MAVLinkSocket(socket);
 
-            MAVLinkPacket packet = getSamplePacket();
             client.sendMessage(packet);
 
             logger.info(String.format("MT TEST: MAVLink message sent: msgid = %d", packet.msgid));
-
-            Thread.sleep(5000);
 
             logger.info("MT TEST: Complete.");
         }
@@ -268,7 +230,7 @@ public class UVHubTest {
             for (int i = 0; i < 10; i++) {
                 MAVLinkPacket packet = client.receiveMessage();
 
-                logger.info(String.format("SHADOW PORT TEST: MAVLink message received: msgid = %d", packet.msgid));
+                logger.debug(String.format("SHADOW PORT TEST: MAVLink message received: msgid = %d", packet.msgid));
 
                 if (msg_param_value.MAVLINK_MSG_ID_PARAM_VALUE == packet.msgid) {
                     logger.info("SHADOW PORT TEST: Complete.");
@@ -284,9 +246,58 @@ public class UVHubTest {
         msg_high_latency msg = new msg_high_latency();
         msg.latitude = 523867;
         msg.longitude = 2938;
-        msg.sysid = 1;
-        msg.compid = 2;
-        return msg.pack();
+        msg.sysid = 255;
+        msg.compid = 0;
+        MAVLinkPacket packet = msg.pack();
+        packet.sysid = Config.getInstance().getSystemId();
+        return packet;
+    }
+
+    /**
+     * Compares state received with by HIGH_LATENCY message with the sate sent to
+     * GCS in a set of MAVLink messages
+     * 
+     * 
+     * @param reported HIGH_LATENCY message packet
+     * @param client GCS port socket client
+     * @return true if received messages set includes all expected messages
+     * @throws IOException in case of I/O exceptions
+     * @throws InterruptedException if execution was enterrupted
+     */
+    private boolean compareReportedState(MAVLinkPacket reported, MAVLinkSocket client)
+            throws IOException, InterruptedException {
+        Integer[] expectedIds = { 
+            msg_heartbeat.MAVLINK_MSG_ID_HEARTBEAT, 
+            msg_sys_status.MAVLINK_MSG_ID_SYS_STATUS, 
+            msg_gps_raw_int.MAVLINK_MSG_ID_GPS_RAW_INT, 
+            msg_attitude.MAVLINK_MSG_ID_ATTITUDE,
+            msg_global_position_int.MAVLINK_MSG_ID_GLOBAL_POSITION_INT,
+            msg_mission_current.MAVLINK_MSG_ID_MISSION_CURRENT,
+            msg_nav_controller_output.MAVLINK_MSG_ID_NAV_CONTROLLER_OUTPUT,
+            msg_vfr_hud.MAVLINK_MSG_ID_VFR_HUD
+        };   
+
+        Set<Integer> expectedMessages = new HashSet<Integer>(Arrays.asList(expectedIds));
+
+        Set<Integer> receivedMessages = new HashSet<Integer>();
+        for (int i = 0; i < 20; i++) {
+            MAVLinkPacket packet = client.receiveMessage();
+
+            if (packet != null) {
+                receivedMessages.add(packet.msgid);
+                MAVLinkLogger.log(Level.DEBUG, "<<", packet);
+            }
+
+            Thread.sleep(100);
+        }
+
+        Set<Integer> difference = Sets.difference(expectedMessages, receivedMessages);
+        
+        if (difference.size() != 0) {
+            logger.warn(String.format("Missing MAVLink messages: %s", difference.toString()));
+        }
+
+        return difference.size() == 0;
     }
 
 }
