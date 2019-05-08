@@ -156,7 +156,7 @@ public class RRTcpServer {
 
             @Override
             public void run() {
-                while (true) {
+                while (session.isOpen()) {
                     try {
                         MAVLinkPacket packet = clientSocket.receiveMessage();
 

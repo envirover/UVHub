@@ -1,7 +1,7 @@
 /*
  * Envirover confidential
  * 
- *  [2017] Envirover
+ *  [2019] Envirover
  *  All Rights Reserved.
  * 
  * NOTICE:  All information contained herein is, and remains the property of 
@@ -108,16 +108,14 @@ public class GCSClientSession implements ClientSession {
                 try {
                     reportState();
                 } catch (IOException | InterruptedException ex) {
-                    ex.printStackTrace();
-                    if (ex.getMessage().equals("Software caused connection abort: socket write error")) {
-                        try {
-                            onClose();
-                        } catch (IOException e1) {
-                            e1.printStackTrace();
-                        }
+                    logger.debug(ex.getMessage(), ex);
+                    try {
+                        onClose();
+                    } catch (IOException e) {
+                        logger.error(e.getMessage());
                     }
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    logger.error(ex.getMessage());
                 }
             }
         };
@@ -125,6 +123,8 @@ public class GCSClientSession implements ClientSession {
         heartbeatTimer.scheduleAtFixedRate(heartbeatTask, 0, config.getHeartbeatInterval(), TimeUnit.MILLISECONDS);
 
         isOpen = true;
+
+        logger.info("GCS client session opened.");
     }
 
     /*
@@ -134,12 +134,16 @@ public class GCSClientSession implements ClientSession {
      */
     @Override
     public void onClose() throws IOException {
-        isOpen = false;
+        if (isOpen) {
+            isOpen = false;
 
-        heartbeatTimer.shutdownNow();
+            heartbeatTimer.shutdownNow();
 
-        if (src != null) {
-            src.close();
+            if (src != null) {
+                src.close();
+            }
+
+            logger.info("GCS client session closed.");
         }
     }
 
@@ -358,14 +362,8 @@ public class GCSClientSession implements ClientSession {
         MAVLinkPacket packet = msg.pack();
         packet.sysid = msg.sysid;
         packet.compid = 1;
-        try {
-            src.sendMessage(packet);
-            // MAVLinkLogger.log(Level.DEBUG, ">>", packet);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            onClose();
-            throw ex;
-        }
+        src.sendMessage(packet);
+        // MAVLinkLogger.log(Level.DEBUG, ">>", packet);
     }
 
     /**
@@ -392,31 +390,31 @@ public class GCSClientSession implements ClientSession {
 
     private MAVLinkMessage getHeartbeatMsg(msg_high_latency msgHighLatency) {
         msg_heartbeat msg = new msg_heartbeat();
-        
-    	if (msgHighLatency != null) {
-	        msg.sysid = msgHighLatency.sysid;
-	        msg.compid = msgHighLatency.compid;
-	        msg.base_mode = msgHighLatency.base_mode;
-	        msg.custom_mode = msgHighLatency.custom_mode;
-    	} else {
-    		msg.sysid = Config.getInstance().getSystemId();
-    		msg.compid = 0;
-    		msg.base_mode = MAV_MODE.MAV_MODE_PREFLIGHT;
-    		msg.custom_mode = 0;
-    	}
-    	
+
+        if (msgHighLatency != null) {
+            msg.sysid = msgHighLatency.sysid;
+            msg.compid = msgHighLatency.compid;
+            msg.base_mode = msgHighLatency.base_mode;
+            msg.custom_mode = msgHighLatency.custom_mode;
+        } else {
+            msg.sysid = Config.getInstance().getSystemId();
+            msg.compid = 0;
+            msg.base_mode = MAV_MODE.MAV_MODE_PREFLIGHT;
+            msg.custom_mode = 0;
+        }
+
         msg.system_status = MAV_STATE.MAV_STATE_ACTIVE;
         msg.autopilot = config.getAutopilot();
         msg.type = config.getMavType();
-      
+
         return msg;
     }
 
     private MAVLinkMessage getSysStatusMsg(msg_high_latency msgHighLatency) {
         if (msgHighLatency == null) {
-    		return null;
+            return null;
         }
-        
+
         msg_sys_status msg = new msg_sys_status();
         msg.sysid = msgHighLatency.sysid;
         msg.battery_remaining = (byte) msgHighLatency.battery_remaining;
@@ -427,9 +425,9 @@ public class GCSClientSession implements ClientSession {
 
     private MAVLinkMessage getGpsRawIntMsg(msg_high_latency msgHighLatency) {
         if (msgHighLatency == null) {
-    		return null;
+            return null;
         }
-        
+
         msg_gps_raw_int msg = new msg_gps_raw_int();
         msg.sysid = msgHighLatency.sysid;
         msg.fix_type = msgHighLatency.gps_fix_type;
@@ -442,9 +440,9 @@ public class GCSClientSession implements ClientSession {
 
     private MAVLinkMessage getAttitudeMsg(msg_high_latency msgHighLatency) {
         if (msgHighLatency == null) {
-    		return null;
+            return null;
         }
-        
+
         msg_attitude msg = new msg_attitude();
         msg.sysid = msgHighLatency.sysid;
         msg.yaw = (float) Math.toRadians(msgHighLatency.heading / 100.0);
@@ -455,9 +453,9 @@ public class GCSClientSession implements ClientSession {
 
     private MAVLinkMessage getGlobalPositionIntMsg(msg_high_latency msgHighLatency) {
         if (msgHighLatency == null) {
-    		return null;
+            return null;
         }
-        
+
         msg_global_position_int msg = new msg_global_position_int();
         msg.sysid = msgHighLatency.sysid;
         msg.alt = msgHighLatency.altitude_amsl;
@@ -470,9 +468,9 @@ public class GCSClientSession implements ClientSession {
 
     private MAVLinkMessage getMissionCurrentMsg(msg_high_latency msgHighLatency) {
         if (msgHighLatency == null) {
-    		return null;
+            return null;
         }
-        
+
         msg_mission_current msg = new msg_mission_current();
         msg.sysid = msgHighLatency.sysid;
         msg.seq = msgHighLatency.wp_num;
@@ -481,9 +479,9 @@ public class GCSClientSession implements ClientSession {
 
     private MAVLinkMessage getNavControllerOutputMsg(msg_high_latency msgHighLatency) {
         if (msgHighLatency == null) {
-    		return null;
+            return null;
         }
-        
+
         msg_nav_controller_output msg = new msg_nav_controller_output();
         msg.sysid = msgHighLatency.sysid;
         msg.nav_bearing = (short) (msgHighLatency.heading_sp / 100);
@@ -492,9 +490,9 @@ public class GCSClientSession implements ClientSession {
 
     private MAVLinkMessage getVfrHudMsg(msg_high_latency msgHighLatency) {
         if (msgHighLatency == null) {
-    		return null;
+            return null;
         }
-    
+
         msg_vfr_hud msg = new msg_vfr_hud();
         msg.sysid = msgHighLatency.sysid;
         msg.airspeed = msgHighLatency.airspeed;

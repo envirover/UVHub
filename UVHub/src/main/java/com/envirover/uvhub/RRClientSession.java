@@ -22,12 +22,17 @@ import java.io.IOException;
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * Handles MAVLink messages received from RadioRoom TCP client.
  *
  * @author Pavel Bobov
  */
 public class RRClientSession implements ClientSession {
+
+    private final static Logger logger = LogManager.getLogger(RRClientSession.class);
 
     private final MAVLinkChannel dst;
     
@@ -44,12 +49,15 @@ public class RRClientSession implements ClientSession {
 
     @Override
     public void onOpen() throws IOException {
-    	isOpen = true;
+        isOpen = true;
+        
+        logger.info("RadioRoom client session opened.");
     }
 
     @Override
     public void onClose() throws IOException {
-    	isOpen = false;
+        isOpen = false;
+        logger.info("RadioRoom client session closed.");
     }
 
     @Override

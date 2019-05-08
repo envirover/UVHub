@@ -1,7 +1,7 @@
 /*
  * Envirover confidential
  * 
- *  [2017] Envirover
+ *  [2019] Envirover
  *  All Rights Reserved.
  * 
  * NOTICE:  All information contained herein is, and remains the property of 
@@ -101,15 +101,13 @@ public class ShadowClientSession implements ClientSession {
                 try {
                     reportState();
                 } catch (IOException | InterruptedException ex) {
-                	if (ex.getMessage().equals("Software caused connection abort: socket write error")) {
-	                	try {
-							onClose();
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-                	}
+                    try {
+                        onClose();
+                    } catch (IOException e) {
+                        logger.error(e.getMessage());
+                    }
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    logger.error(ex.getMessage());
                 }
             }
         };
@@ -323,17 +321,11 @@ public class ShadowClientSession implements ClientSession {
             return;
         }
 
-        try {
-            MAVLinkPacket packet = msg.pack();
-            packet.sysid = msg.sysid;
-            packet.compid = 1;
-            src.sendMessage(packet);
-            MAVLinkLogger.log(Level.DEBUG, ">>", packet);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-           	onClose();
-            throw ex;
-        }
+        MAVLinkPacket packet = msg.pack();
+        packet.sysid = msg.sysid;
+        packet.compid = 1;
+        src.sendMessage(packet);
+        MAVLinkLogger.log(Level.DEBUG, ">>", packet);
     }
 
     /**

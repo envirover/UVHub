@@ -81,7 +81,9 @@ public class UVHubDaemon implements Daemon {
         List<msg_param_value> params = OnBoardParams.getDefaultParams(config.getMavType(),
                 Config.getInstance().getSystemId(), config.getAutopilot());
 
+        logger.info("Loading default on-board parameters into UV shadow...");
         shadow.setParams(Config.getInstance().getSystemId(), params);
+        logger.info(String.format("%d parameters loaded.", params.size()));
 
         // Mobile-terminated queue contains MAVLink messages to be sent to the vehicle.
         MAVLinkMessageQueue mtMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
@@ -146,7 +148,7 @@ public class UVHubDaemon implements Daemon {
 
         Thread.sleep(1000);
 
-        logger.info("UV Hub daemon started.");
+        logger.info("UV Hub started.");
     }
 
     @Override
@@ -178,7 +180,7 @@ public class UVHubDaemon implements Daemon {
 
         Thread.sleep(1000);
 
-        logger.info("UV Hub daemon stopped.");
+        logger.info("UV Hub stopped.");
     }
    
 }
