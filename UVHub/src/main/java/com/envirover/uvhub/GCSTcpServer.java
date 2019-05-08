@@ -113,7 +113,7 @@ public class GCSTcpServer {
 
                     logger.info(MessageFormat.format("GCS client ''{0}'' connected.", socket.getInetAddress()));
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error(e.getMessage());
                     return;
                 }
             }
@@ -137,7 +137,7 @@ public class GCSTcpServer {
 
             @Override
             public void run() {
-                while (true) {
+                while (session.isOpen()) {
                     try {
                         MAVLinkPacket packet = clientSocket.receiveMessage();
 
@@ -147,23 +147,15 @@ public class GCSTcpServer {
 
                         Thread.sleep(10);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        logger.info(e.getMessage()); 
                         try {
                             session.onClose();
                         } catch (IOException e1) {
-                            e1.printStackTrace();
+                            logger.debug(e1.getMessage());
                         }
                         return;
-                    } catch (IOException e) {       	
-                        e.printStackTrace();
-                        if (e.getMessage().equals("Failed to receive message. The socket is closed.")) {
-                            try {
-                                session.onClose();
-                            } catch (IOException e1) {
-                                e1.printStackTrace();
-                            }
-                            return;
-                        }
+                    } catch(IOException e) {
+                        logger.warn(e.getMessage()); 
                     }
                 }
             }

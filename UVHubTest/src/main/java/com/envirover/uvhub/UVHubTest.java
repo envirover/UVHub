@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -48,6 +49,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.common.util.set.Sets;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.MAVLink.MAVLinkPacket;
@@ -80,8 +82,13 @@ public class UVHubTest {
 
     private final static String HL_REPORT_PERIOD_PARAM = "HL_REPORT_PERIOD";
 
-    private final Config config = Config.getInstance();
+    private final static Config config = Config.getInstance();
 
+    @BeforeClass
+    public static void setUp() throws IOException, ParseException {
+        config.init();
+    }
+    
     private String getUVHubHostname() {
         String hostname = System.getenv(UVHUB_HOSTNAME);
         return hostname != null ? hostname.trim() : DEFAULT_UVHUB_HOSTNAME;
