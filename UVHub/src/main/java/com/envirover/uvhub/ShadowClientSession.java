@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -78,8 +79,7 @@ public class ShadowClientSession implements ClientSession {
     private final MAVLinkChannel src;
     private final UVShadow shadow;
 
-    private boolean isOpen = false;
-    //private int desiredMissionCount = 0;
+    private AtomicBoolean isOpen = new AtomicBoolean(false);
     private List<msg_mission_item> desiredMission = new ArrayList<msg_mission_item>();
     private int desiredMissionCount = 0;
     private List<msg_mission_item> reportedMission = new ArrayList<msg_mission_item>();
@@ -114,7 +114,7 @@ public class ShadowClientSession implements ClientSession {
 
         heartbeatTimer.scheduleAtFixedRate(heartbeatTask, 0, config.getHeartbeatInterval(), TimeUnit.MILLISECONDS);
         
-        isOpen = true;
+        isOpen.set(true);
         
         logger.info("Shadow client session opened.");
     }
@@ -124,9 +124,7 @@ public class ShadowClientSession implements ClientSession {
      */
     @Override
     public void onClose() throws IOException {
-    	if (isOpen) {
-	    	isOpen = false;
-	    	
+    	if (isOpen.getAndSet(false)) {
 	        heartbeatTimer.shutdownNow();
 	
 	        if (src != null) {
@@ -149,7 +147,7 @@ public class ShadowClientSession implements ClientSession {
 
 	@Override
 	public boolean isOpen() {
-		return isOpen;
+		return isOpen.get();
 	}
 	
     private void handleParams(MAVLinkPacket packet) throws IOException {
