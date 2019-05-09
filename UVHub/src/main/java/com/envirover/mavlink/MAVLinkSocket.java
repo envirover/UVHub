@@ -21,6 +21,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -44,7 +45,7 @@ public class MAVLinkSocket implements MAVLinkChannel {
     private final DataOutputStream out;
 
     private int seq = 0;
-    private boolean is_open;
+    private AtomicBoolean isOpen = new AtomicBoolean();
 
     /**
      * Constructs instance of MAVLinkSocket.
@@ -56,31 +57,33 @@ public class MAVLinkSocket implements MAVLinkChannel {
         this.socket = socket;
         this.in = new DataInputStream(socket.getInputStream());
         this.out = new DataOutputStream(socket.getOutputStream());
-        this.is_open = true;
+        this.isOpen.set(true);
     }
 
     @Override
     public MAVLinkPacket receiveMessage() throws IOException {
-        if (!is_open) {
+        if (!isOpen.get()) {
             throw new IOException("Failed to receive message. The socket is closed.");
         }
 
-        Parser parser = new Parser();
+        synchronized (in) {
+            Parser parser = new Parser();
 
-        MAVLinkPacket packet = null;
+            MAVLinkPacket packet = null;
 
-        // The maximum size of MAVLink packet is 263 bytes.
-        for (int i = 0; i < 263 * 2; i++) {
-            try {
-                int c = in.readUnsignedByte();
-                packet = parser.mavlink_parse_char(c);
-            } catch (java.io.EOFException ex) {
-                return null;
-            }
+            // The maximum size of MAVLink packet is 263 bytes.
+            for (int i = 0; i < 263 * 2; i++) {
+                try {
+                    int c = in.readUnsignedByte();
+                    packet = parser.mavlink_parse_char(c);
+                } catch (java.io.EOFException ex) {
+                    return null;
+                }
 
-            if (packet != null) {
-                MAVLinkLogger.log(Level.DEBUG, "<<", packet);
-                return packet;
+                if (packet != null) {
+                    MAVLinkLogger.log(Level.DEBUG, "<<", packet);
+                    return packet;
+                }
             }
         }
 
@@ -91,43 +94,45 @@ public class MAVLinkSocket implements MAVLinkChannel {
 
     @Override
     public void sendMessage(MAVLinkPacket packet) throws IOException {
-        if (!is_open) {
+        if (!isOpen.get()) {
             throw new IOException("Failed to send message. The socket is closed.");
         }
 
         if (packet == null)
             return;
 
-        packet.seq = seq++;
+        synchronized (out) {
+            packet.seq = seq++;
 
-        byte[] data = packet.encodePacket();
+            byte[] data = packet.encodePacket();
 
-        out.write(data);
-        out.flush();
+            out.write(data);
+            out.flush();
+        }
 
         MAVLinkLogger.log(Level.DEBUG, ">>", packet);
     }
 
     @Override
     public void close() {
-        is_open = false;
+        if (isOpen.getAndSet(false)) {
+            try {
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-        try {
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            try {
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-        try {
-            out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            socket.close();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+            try {
+                socket.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 

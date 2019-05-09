@@ -18,6 +18,7 @@
 package com.envirover.uvhub;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.MAVLink.MAVLinkPacket;
 import com.envirover.mavlink.MAVLinkChannel;
@@ -36,7 +37,7 @@ public class RRClientSession implements ClientSession {
 
     private final MAVLinkChannel dst;
     
-    private boolean isOpen = false;
+    private AtomicBoolean isOpen = new AtomicBoolean(false);
 
     /**
      * Constructs instance of RRClientSession.
@@ -49,14 +50,14 @@ public class RRClientSession implements ClientSession {
 
     @Override
     public void onOpen() throws IOException {
-        isOpen = true;
+        isOpen.set(true);
         
         logger.info("RadioRoom client session opened.");
     }
 
     @Override
     public void onClose() throws IOException {
-        isOpen = false;
+        isOpen.set(false);
         logger.info("RadioRoom client session closed.");
     }
 
@@ -74,7 +75,7 @@ public class RRClientSession implements ClientSession {
 
 	@Override
 	public boolean isOpen() {
-		return isOpen;
+		return isOpen.get();
 	}
 
 }
