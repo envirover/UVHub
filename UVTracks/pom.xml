@@ -14,7 +14,7 @@
 	<packaging>war</packaging>
 
 	<name>UV Tracks</name>
-	<description>Retrieves device tracks in JSON format.</description>
+	<description>Web service that provides access to the mission plans and reported states saved in the vehicle shadow.</description>
 
 	<url>http://envirover.com/spl.html</url>
 

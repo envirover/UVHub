@@ -13,7 +13,7 @@
 	<packaging>jar</packaging>
 
 	<name>UV Hub</name>
-	<description>MAVLink proxy server for ArduPilot rovers with RockBLOCK satellite communication</description>
+	<description>MAVLink proxy server for TCP/IP and Iridium SBD communication with unmanned vehicles controlled by ArduPilot or PX4 autopilots.</description>
 
 	<dependencies>
 		<dependency>
@@ -31,7 +31,7 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-		</dependency>			
+		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
@@ -39,7 +39,7 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpcore</artifactId>
-		</dependency>			
+		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
