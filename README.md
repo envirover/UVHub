@@ -2,58 +2,95 @@
 
 # UV Hub
 
-UV Hub is a MAVLink proxy server for TCP/IP and Iridium SBD communication with unmanned vehicles controlled by ArduPilot or PX4 autopilots. It is designed to work with SPL RadioRoom companion computer, providing two way communication channel between the vehicles and MAVLink ground control stations such as Mission Planer or QGroundControl.
+UV Hub repository contains java projects used by backend servers of SPL system.
 
-## Download UV Hub Package
+| Project | Description |
+|---------|--------------------------------|
+| MAVLink | Auto-generated MAVLink classes |
+| UVHub  | MAVLink proxy server for TCP/IP and Iridium SBD communication with unmanned vehicles controlled by ArduPilot or PX4 autopilots. |
+| UVTracks | Web service that provides access to the mission plans and reported states saved in the vehicle shadow. |
+| UVHUbTest | Integration tests for UV Hub and UV Tracks |
 
-Download the latest build of NVI GroundControl from [https://s3-us-west-2.amazonaws.com/envirover/shared/UVHub/uvhub-1.0-bin.zip](https://s3-us-west-2.amazonaws.com/envirover/shared/UVHub/uvhub-1.0-bin.zip). Extract the archive to a folder on a local disk drive such as C:\nvi-1.0.
+## Build
 
-## Install Latest Java SE Development Kit
+Build system requirements:
 
-Download and install the latest release for Java SE DK (8): [Java SE Download Page](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+- Maven
+- Docker
 
-## Set Environment Variables
+Build the projects:
 
-This reference explains what Environmental Variables are and how to set them: [Superuser Guide to Environmental Variables](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+```bash
+mvn clean install
+```
 
-Create the following variables in `System Variables`:  
-Variable  |  Value  
-UVHUB_HOME|  Directory to where UV Hub is located.  
-JAVA_HOME |  Directory to where Java is located.  
-PATH      |  Add %JAVA_HOME%\bin and %UVHUB_HOME%\bin to PATH.
+Build Docker container images:
 
-## Test Java functionality and check Environmental Variables  
+```bash
+docker build -t uvhub ./UVHub/
+docker build -t uvtracks ./UVTracks
+docker build -t uvhub-test ./UVHubTest
+```
 
-Open a Windows Command Prompt and type `java -version`.  
-The terminal should return several lines about which Java version is running. If it is not running, recheck Step 2.  
-  
-Type `set` into the Command Prompt and you should see directory entries in `JAVA_HOME`, `UVHUB_HOME` and `PATH`.  
+## Running UV Hub
 
-## Open Ports in Windows Firewall
+Create file docker-compose.yaml with the following content:
 
-The machine that runs UV Hub must be accessible from the network. Port 5060 must be accessible from the SPL RadioRoom computer, and port 5760 must be accessible from the ground control station client machines.  
+```yaml
+version: "3.7"
+services:
+  uvhub:
+    image: uvhub
+    restart: always
+    ports:
+      - "5080:5080" # HTTP port used by RockBLOCK services to POST mobile-originated messages
+      - "5060:5060" # TCP port used by connections from SPL RadioRoom
+      - "5760:5760" # TCP port used for MAVLink ground control stations connections
+      - "5757:5757" # TCP port used to update reported parameters and missions in the shadow
+    environment:
+      - "ROCKBLOCK_IMEI=${ROCKBLOCK_IMEI}"
+      - "ROCKBLOCK_USERNAME=${ROCKBLOCK_USERNAME}"
+      - "ROCKBLOCK_PASSWORD=${ROCKBLOCK_PASSWORD}"
+      - "MAV_AUTOPILOT=3"
+      - "MAT_TYPE=2"
+      - "ELASTICSEARCH_ENDPOINT=elasticsearch"
+```
 
-Use this guide to create two new rules for opening ports 5060 and 5760: [How to Block or Open a Port in Windows Firewall](http://www.thewindowsclub.com/block-open-port-windows-8-firewall)  
+Run
 
-## Create On-board Parameters File
- 
-UV Hub uses parameters file format supported by QGroundControl GCS. Connect QGroundControl to the autopilot and save the parameters in %UVHUB_HOME%\conf\default.parameters file.
+```bash
+docker-compose -f ./docker-compose.yaml up
+```
 
-## Specify the Vehicle Type
+Once UV Hub container is started, you can connect to it from a ground control station such as QGroundControl or Mission Planner using TCP connection on port 5760.
 
-Set mav.type property in `app.properties` file to the vehicle type (1 - FIXED_WING, 2 - QUADROTOR, 10 - GROUND_ROVER, 12 - SUBMARINE).
+## Running UV Tracks
 
-## Start UV Hub
+Create file docker-compose.yaml with the following content:
 
-Either:  
-1. Double click `uvhub.bat` in `%uvhub_HOME%\bin` directory, or  
-2. Open a command prompt and enter `start %uvhub_HOME%\bin\uvhub.bat`  
+```yaml
+version: "3.7"
+services:
+  uvtracks:
+    image: uvtracks
+    restart: always
+    hostname: uvtracks
+    ports:
+      - "8080:8080"
+    environment:
+      - "ELASTICSEARCH_ENDPOINT=elasticsearch"
+```
 
-## Connect to UV Hub from GCS 
+Run
 
-Once UV Hub is started, you can connect to it from a ground control station such as QGroundControl or Mission Planner using TCP connection on port 5760. 
+```bash
+docker-compose -f ./docker-compose.yaml up
+```
+
+Once UV Tracks container is started the web service will be availablev at http://localhost:8080/uvtracks/api/v1.
 
 ## Licensing
+
 ```
 Envirover confidential
 
