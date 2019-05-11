@@ -1,15 +1,16 @@
 [![Build Status](https://codebuild.us-west-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiRW1vUVROVFc3bis4ZXhncEg5M1ZuR2d4ck43cDU4TE8vdGo1RU9ZNk5QR01RWW5uZkZCYnBab1pHS0ZnQ0lUcDFQOGFTQmM2eUx2SjczSko0VFcvUjRRPSIsIml2UGFyYW1ldGVyU3BlYyI6InljK1JHbXRVa04xc0M4cDciLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)](https://us-west-2.console.aws.amazon.com/codebuild/home?region=us-west-2#/projects/UVHub/view)
 
-# UV Hub
+# UVHub
 
-UV Hub repository contains java projects used by backend servers of SPL system.
+UVHub repository contains java projects used by backend servers of SPL system.
 
 | Project | Description |
 |---------|--------------------------------|
-| MAVLink | Auto-generated MAVLink classes |
-| UVHub  | MAVLink proxy server for TCP/IP and Iridium SBD communication with unmanned vehicles controlled by ArduPilot or PX4 autopilots. |
-| UVTracks | Web service that provides access to the mission plans and reported states saved in the vehicle shadow. |
-| UVHUbTest | Integration tests for UV Hub and UV Tracks |
+| MAVLink library | Auto-generated MAVLink classes |
+| UV Net | MAVLink communication channels and persistence objects |
+| UV Hub  | Proxy server for TCP/IP and Iridium SBD communication with unmanned vehicles controlled by ArduPilot or PX4 autopilots |
+| UV Tracks | Web service that provides access to the mission plans and reported states saved in the vehicle shadow |
+| UV Hub Test | Integration tests for UV Hub and UV Tracks |
 
 ## Build
 
@@ -32,9 +33,11 @@ docker build -t uvtracks ./UVTracks
 docker build -t uvhub-test ./UVHubTest
 ```
 
-## Running UV Hub
+## Running UV Hub proxy server
 
-Create file docker-compose.yaml with the following content:
+Elasticsearch is required...
+
+Create file docker-compose.yml with the following content:
 
 ```yaml
 version: "3.7"
@@ -59,14 +62,16 @@ services:
 Run
 
 ```bash
-docker-compose -f ./docker-compose.yaml up
+docker-compose -f ./docker-compose.yml up
 ```
 
 Once UV Hub container is started, you can connect to it from a ground control station such as QGroundControl or Mission Planner using TCP connection on port 5760.
 
-## Running UV Tracks
+## Running UV Tracks web service
 
-Create file docker-compose.yaml with the following content:
+Elasticsearch is required...
+
+Create file docker-compose.yml with the following content:
 
 ```yaml
 version: "3.7"
@@ -74,7 +79,6 @@ services:
   uvtracks:
     image: uvtracks
     restart: always
-    hostname: uvtracks
     ports:
       - "8080:8080"
     environment:
@@ -84,10 +88,10 @@ services:
 Run
 
 ```bash
-docker-compose -f ./docker-compose.yaml up
+docker-compose -f ./docker-compose.yml up
 ```
 
-Once UV Tracks container is started the web service will be availablev at http://localhost:8080/uvtracks/api/v1.
+Once UV Tracks container is started the web service will be availablev at `http://localhost:8080/uvtracks/api/v1`.
 
 ## Licensing
 
