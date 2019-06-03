@@ -26,11 +26,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.commons.cli.ParseException;
-
 import com.MAVLink.common.msg_high_latency;
 import com.envirover.geojson.FeatureCollection;
-import com.envirover.uvnet.Config;
+import com.envirover.spl.uvtracks.Config;
 import com.envirover.uvnet.mission.Plan;
 import com.envirover.uvnet.shadow.PersistentUVShadow;
 import com.envirover.uvnet.shadow.UVShadow;
@@ -49,13 +47,17 @@ public class UVTracksResource {
     private final UVShadow shadow;
 
     public UVTracksResource() {
+        Config config = Config.getInstance();
+       
         try {
-            Config.getInstance().init();
-        } catch (ParseException | IOException e) {
+            config.init();
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
-        shadow = new PersistentUVShadow();
+        shadow = new PersistentUVShadow(config.getElasticsearchEndpoint(), 
+                                        config.getElasticsearchPort(),
+                                        config.getElasticsearchProtocol());
     }
 
     /**
@@ -64,17 +66,12 @@ public class UVTracksResource {
      * 
      * The query supports range the tracks by start and/or end times of the reports.
      * 
-     * @param sysid
-     *            system Id. Default value is 1.
-     * @param startTime
-     *            (optional) track start time in UNIX epoch time.
-     * @param endTime
-     *            (optional) track end time in UNIX epoch time.
-     * @param top
-     *            maximum number of points returned
+     * @param sysid system Id. Default value is 1.
+     * @param startTime (optional) track start time in UNIX epoch time.
+     * @param endTime (optional) track end time in UNIX epoch time.
+     * @param top maximum number of points returned
      * @return GeoJSON feature collection
-     * @throws IOException
-     *             on I/O error
+     * @throws IOException on I/O error
      */
     @GET
     @Path("/tracks")
@@ -88,18 +85,16 @@ public class UVTracksResource {
     /**
      * Returns mission plan of the specified system.
      * 
-     * @param sysid
-     *            sysid system Id. Default value is 1.
+     * @param sysid sysid system Id. Default value is 1.
      * @return mission plan
-     * @throws IOException
-     *             in case of I/O error
+     * @throws IOException in case of I/O error
      */
     @GET
     @Path("/missions")
     @Produces(MediaType.APPLICATION_JSON)
     public Plan getMissions(@DefaultValue(DEFAULT_SYSTEM_ID) @QueryParam("sysid") int sysid) throws IOException {
         Plan plan = new Plan(shadow.getMission(sysid));
-        plan.getMission().setVehicleType(Config.getInstance().getMavType());
+        // plan.getMission().setVehicleType(Config.getInstance().getMavType());
         return plan;
     }
 

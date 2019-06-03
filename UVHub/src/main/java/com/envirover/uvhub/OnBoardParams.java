@@ -31,7 +31,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.common.msg_param_value;
 import com.MAVLink.enums.MAV_PARAM_TYPE;
-import com.envirover.uvnet.Config;
+import com.envirover.uvhub.Config;
 
 /**
  * Loads on-board parameters form file in QGroundControl parameters file format.

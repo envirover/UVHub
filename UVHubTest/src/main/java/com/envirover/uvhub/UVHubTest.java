@@ -32,7 +32,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.cli.ParseException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -66,7 +65,6 @@ import com.MAVLink.common.msg_sys_status;
 import com.MAVLink.common.msg_vfr_hud;
 import com.envirover.mavlink.MAVLinkLogger;
 import com.envirover.mavlink.MAVLinkSocket;
-import com.envirover.uvnet.Config;
 
 /**
  * Integration test for UV Hub.
@@ -85,7 +83,7 @@ public class UVHubTest {
     private final static Config config = Config.getInstance();
 
     @BeforeClass
-    public static void setUp() throws IOException, ParseException {
+    public static void setUp() throws IOException {
         config.init();
     }
     

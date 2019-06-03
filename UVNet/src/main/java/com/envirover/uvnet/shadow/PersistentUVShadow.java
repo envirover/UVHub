@@ -64,7 +64,6 @@ import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_param_value;
 import com.envirover.geojson.Feature;
 import com.envirover.geojson.FeatureCollection;
-import com.envirover.uvnet.Config;
 
 /**
  * Stores the vehicle shadow in Elasticsearch.
@@ -102,12 +101,6 @@ public class PersistentUVShadow implements UVShadow {
 
     private RestHighLevelClient client = null;
     private List<msg_mission_item> desiredMission = new ArrayList<msg_mission_item>();
-
-    public PersistentUVShadow() {
-        this.elasticsearchEndpoint = Config.getInstance().getElasticsearchEndpoint();
-        this.elasticsearchPort = Config.getInstance().getElasticsearchPort();
-        this.elasticsearchPotocol = Config.getInstance().getElasticsearchProtocol();
-    }
 
     public PersistentUVShadow(String elasticsearchEndpoint, int elasticsearchPort, String elasticsearchPotocol) {
         this.elasticsearchEndpoint = elasticsearchEndpoint;
