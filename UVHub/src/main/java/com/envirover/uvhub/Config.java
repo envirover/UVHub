@@ -30,6 +30,7 @@ import com.MAVLink.enums.MAV_TYPE;
  * @author Pavel Bobov
  */
 public class Config {
+
     private final static String CONFIG_PROPERTIES_FILE = "app.properties";
 
     // Configuration properties

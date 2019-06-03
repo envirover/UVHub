@@ -64,13 +64,14 @@ public class UVHubDaemon implements Daemon {
     public void init(DaemonContext context) throws DaemonInitException, IOException {
         config.init();
 
-        logger.info(String.format("MAV Type : %d, Autopilot class: %d", config.getMavType(),
+        logger.info(String.format("MAV Type: %d, Autopilot class: %d", config.getMavType(),
                 config.getAutopilot()));
 
         shadow = new PersistentUVShadow(config.getElasticsearchEndpoint(), config.getElasticsearchPort(),
                                         config.getElasticsearchProtocol());
         logger.info(String.format("Connecting to Elasticsearch at %s://%s:%d...", 
-                    config.getElasticsearchProtocol(),config.getElasticsearchEndpoint(), 
+                    config.getElasticsearchProtocol(),
+                    config.getElasticsearchEndpoint(), 
                     config.getElasticsearchPort()));
 
         shadow.open();
@@ -128,6 +129,16 @@ public class UVHubDaemon implements Daemon {
                                             config.getRockBlockUsername(),
                                             config.getRockBlockPassword(),
                                             config.getRockBlockURL());
+            
+            if (config.getRockBlockUsername() == null || config.getRockBlockUsername().isEmpty()) {
+                logger.warn("RockBLOCK user name is not specified. Mobile-terminated messages cannot be sent to RockBLOCK.");
+            }
+
+            if (config.getRockBlockPassword() == null || config.getRockBlockPassword().isEmpty()) {
+                logger.warn("RockBLOCK password is not specified. Mobile-terminated messages cannot be sent to RockBLOCK.");
+            }
+        } else {
+            logger.info("RockBLOCK IMEI is not specified. ISBD channel is disabled.");
         }
 
         // Mobile-terminated message pump pumps MAVLink messages from the specified
