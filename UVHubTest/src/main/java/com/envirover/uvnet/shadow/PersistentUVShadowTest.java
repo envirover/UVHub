@@ -40,11 +40,18 @@ public class PersistentUVShadowTest {
 	
 	private static int TEST_SYSTEM_ID = 2;
 
+	// default property values
+	private final static String DEFAULT_ES_ENDPOINT = "localhost";
+	private final static Integer DEFAULT_ES_PORT = 9200;
+	private final static String DEFAULT_ES_PROTOCOL = "http";
+
 	private PersistentUVShadow shadow = null;
 	
 	@Before
 	public  void setUp() throws Exception {
-		shadow = new PersistentUVShadow();
+		shadow = new PersistentUVShadow(DEFAULT_ES_ENDPOINT, 
+										DEFAULT_ES_PORT, 
+										DEFAULT_ES_PROTOCOL);
 		shadow.open();
 	}
 

@@ -17,6 +17,7 @@
 
 package com.envirover.uvhub;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
@@ -30,7 +31,7 @@ import com.MAVLink.common.msg_param_value;
 import com.envirover.mavlink.MAVLinkMessageQueue;
 import com.envirover.rockblock.RockBlockClient;
 import com.envirover.rockblock.RockBlockHttpHandler;
-import com.envirover.uvnet.Config;
+import com.envirover.uvhub.Config;
 import com.envirover.uvnet.shadow.PersistentUVShadow;
 import com.sun.net.httpserver.HttpServer;
 
@@ -60,9 +61,8 @@ public class UVHubDaemon implements Daemon {
     }
 
     @Override
-    public void init(DaemonContext context) throws DaemonInitException, Exception {
-        if (!config.init(context.getArguments()))
-            throw new DaemonInitException("Invalid configuration.");
+    public void init(DaemonContext context) throws DaemonInitException, IOException {
+        config.init();
 
         logger.info(String.format("MAV Type : %d, Autopilot class: %d", config.getMavType(),
                 config.getAutopilot()));
