@@ -24,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
+import com.MAVLink.ardupilotmega.msg_battery2;
 import com.MAVLink.common.*;
 
 /**
@@ -1190,6 +1191,12 @@ public class MAVLinkLogger {
                     MessageFormat.format("{0} DEBUG: compid={1}, sysid={2}, time_boot_ms={3}, ind={4}, value={5}", dir,
                             msg.compid, msg.sysid, msg.time_boot_ms, msg.ind, msg.value));
             break;
+        }
+        case msg_battery2.MAVLINK_MSG_ID_BATTERY2: {
+            msg_battery2 msg = (msg_battery2) packet.unpack();
+            logger.log(priority,
+            MessageFormat.format("{0} BATTERY2: compid={1}, sysid={2}, current_battery={3}, voltage={4}", dir,
+                    msg.compid, msg.sysid, msg.current_battery, msg.voltage));
         }
         default: {
             logger.log(priority, MessageFormat.format("{0} msgid={1}: compid={2}, sysid={3}",

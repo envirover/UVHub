@@ -32,6 +32,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
+import com.MAVLink.ardupilotmega.msg_battery2;
 import com.MAVLink.common.msg_attitude;
 import com.MAVLink.common.msg_command_ack;
 import com.MAVLink.common.msg_command_int;
@@ -385,6 +386,7 @@ public class GCSClientSession implements ClientSession {
         sendToSource(getMissionCurrentMsg(msgHighLatency));
         sendToSource(getNavControllerOutputMsg(msgHighLatency));
         sendToSource(getVfrHudMsg(msgHighLatency));
+        sendToSource(getBattery2Msg(msgHighLatency));
     }
 
     private MAVLinkMessage getHeartbeatMsg(msg_high_latency msgHighLatency) {
@@ -500,6 +502,18 @@ public class GCSClientSession implements ClientSession {
         msg.groundspeed = msgHighLatency.groundspeed;
         msg.heading = (short) (msgHighLatency.heading / 100);
         msg.throttle = msgHighLatency.throttle;
+        return msg;
+    }
+
+    private MAVLinkMessage getBattery2Msg(msg_high_latency msgHighLatency) {
+        if (msgHighLatency == null) {
+            return null;
+        }
+
+        msg_battery2 msg = new msg_battery2();
+        msg.current_battery = 0;
+        msg.voltage = msgHighLatency.temperature_air * 1000;
+
         return msg;
     }
 
