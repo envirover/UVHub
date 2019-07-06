@@ -64,8 +64,8 @@ public class UVHubDaemon implements Daemon {
     public void init(DaemonContext context) throws DaemonInitException, IOException {
         config.init();
 
-        logger.info(String.format("MAV Type: %d, Autopilot class: %d", config.getMavType(),
-                config.getAutopilot()));
+        logger.info(String.format("MAV type: %d, MAV system ID: %d, Autopilot class: %d", 
+                                  config.getMavType(), config.getMavSystemId(), config.getAutopilot()));
 
         shadow = new PersistentUVShadow(config.getElasticsearchEndpoint(), config.getElasticsearchPort(),
                                         config.getElasticsearchProtocol());
@@ -80,10 +80,10 @@ public class UVHubDaemon implements Daemon {
 
         // Load default on-board parameters for the MAV_TYPE and AUTOPILOT
         List<msg_param_value> params = OnBoardParams.getDefaultParams(config.getMavType(),
-                Config.getInstance().getSystemId(), config.getAutopilot());
+                Config.getInstance().getMavSystemId(), config.getAutopilot());
 
         logger.info("Loading default on-board parameters into UV shadow...");
-        shadow.setParams(Config.getInstance().getSystemId(), params);
+        shadow.setParams(Config.getInstance().getMavSystemId(), params);
         logger.info(String.format("%d parameters loaded.", params.size()));
 
         // Mobile-terminated queue contains MAVLink messages to be sent to the vehicle.

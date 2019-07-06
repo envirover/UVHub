@@ -110,14 +110,24 @@ public class GCSClientSession implements ClientSession {
                 try {
                     reportState();
                 } catch (IOException | InterruptedException ex) {
-                    logger.debug(ex.getMessage(), ex);
+                    logger.warn("Failed to send message to GCS client. " + ex.getMessage(), ex);
+                    
+                    if (ex.getMessage() == null)
+                        logger.warn(ex);
+                    
+                      logger.debug(ex.getMessage(), ex);
                     try {
                         onClose();
                     } catch (IOException e) {
                         logger.error(e.getMessage());
                     }
                 } catch (Exception ex) {
-                    logger.error(ex.getMessage());
+                    logger.warn("Failed to send message to GCS client. " + ex.getMessage(), ex);
+
+                    if (ex.getMessage() == null)
+                        logger.warn(ex);
+                        
+                    logger.debug(ex);
                 }
             }
         };
@@ -177,7 +187,7 @@ public class GCSClientSession implements ClientSession {
         case msg_param_request_list.MAVLINK_MSG_ID_PARAM_REQUEST_LIST: {
             MAVLinkLogger.log(Level.INFO, "<<", packet);
 
-            List<msg_param_value> params = shadow.getParams(Config.getInstance().getSystemId());
+            List<msg_param_value> params = shadow.getParams(Config.getInstance().getMavSystemId());
             for (msg_param_value param : params) {
                 sendToSource(param);
 
@@ -375,7 +385,7 @@ public class GCSClientSession implements ClientSession {
      * @throws InterruptedException
      */
     private synchronized void reportState() throws IOException, InterruptedException {
-        msg_high_latency msgHighLatency = (msg_high_latency) shadow.getLastMessage(Config.getInstance().getSystemId(),
+        msg_high_latency msgHighLatency = (msg_high_latency) shadow.getLastMessage(Config.getInstance().getMavSystemId(),
                 msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY);
 
         sendToSource(getHeartbeatMsg(msgHighLatency));
@@ -398,7 +408,7 @@ public class GCSClientSession implements ClientSession {
             msg.base_mode = msgHighLatency.base_mode;
             msg.custom_mode = msgHighLatency.custom_mode;
         } else {
-            msg.sysid = Config.getInstance().getSystemId();
+            msg.sysid = Config.getInstance().getMavSystemId();
             msg.compid = 0;
             msg.base_mode = MAV_MODE.MAV_MODE_PREFLIGHT;
             msg.custom_mode = 0;
@@ -511,9 +521,9 @@ public class GCSClientSession implements ClientSession {
         }
 
         msg_battery2 msg = new msg_battery2();
-        msg.current_battery = 0;
+        msg.sysid = msgHighLatency.sysid;
+        msg.current_battery = -1;
         msg.voltage = msgHighLatency.temperature_air * 1000;
-
         return msg;
     }
 

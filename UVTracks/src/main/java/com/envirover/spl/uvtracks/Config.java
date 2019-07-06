@@ -33,15 +33,19 @@ public class Config {
     private final static String PROP_ES_ENDPOINT = "elasticsearch.endpoint";
     private final static String PROP_ES_PORT = "elasticsearch.port";
     private final static String PROP_ES_PROTOCOL = "elasticsearch.protocol";
+    private final static String PROP_MAV_SYSID = "mav.sysid";
 
     // default property values
     private final static String DEFAULT_ES_ENDPOINT = "localhost";
     private final static Integer DEFAULT_ES_PORT = 9200;
     private final static String DEFAULT_ES_PROTOCOL = "http";
+    private final static Integer DEFAULT_MAV_SYSID = 1;
 
     private String esEndpoint = DEFAULT_ES_ENDPOINT;
     private Integer esPort = DEFAULT_ES_PORT;
     private String esProtocol = DEFAULT_ES_PROTOCOL;
+    private Integer mavSysId = DEFAULT_MAV_SYSID;
+
     private Properties props = new Properties();
 
     private static final Config config = new Config();
@@ -79,10 +83,9 @@ public class Config {
 
         if (getProperty(PROP_ES_PROTOCOL) != null)
             esProtocol = getProperty(PROP_ES_PROTOCOL);
-    }
-
-    public Integer getSystemId() {
-        return 1;
+        
+        if (getProperty(PROP_MAV_SYSID) != null)
+            mavSysId = Integer.valueOf(getProperty(PROP_MAV_SYSID));    
     }
 
     public String getElasticsearchEndpoint() {
@@ -95,6 +98,10 @@ public class Config {
 
     public String getElasticsearchProtocol() {
         return esProtocol;
+    }
+    
+    public Integer getMavSystemId() {
+        return mavSysId;
     }
 
     private String getProperty(String name) {

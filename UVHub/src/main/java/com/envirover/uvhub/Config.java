@@ -46,6 +46,7 @@ public class Config {
     private final static String PROP_HEARTBEAT_INTERVAL = "heartbeat.interval";
     private final static String PROP_MAV_AUTOPILOT = "mav.autopilot";
     private final static String PROP_MAV_TYPE = "mav.type";
+    private final static String PROP_MAV_SYSID = "mav.sysid";
     private final static String PROP_ES_ENDPOINT = "elasticsearch.endpoint";
     private final static String PROP_ES_PORT = "elasticsearch.port";
     private final static String PROP_ES_PROTOCOL = "elasticsearch.protocol";
@@ -61,6 +62,7 @@ public class Config {
     private final static Integer DEFAULT_HEARTBEAT_INT = 1000;
     private final static Short DEFAULT_AUTOPILOT = MAV_AUTOPILOT.MAV_AUTOPILOT_ARDUPILOTMEGA;
     private final static Short DEFAULT_MAV_TYPE = MAV_TYPE.MAV_TYPE_GROUND_ROVER;
+    private final static Integer DEFAULT_MAV_SYSID = 1;
     private final static String DEFAULT_ES_ENDPOINT = "localhost";
     private final static Integer DEFAULT_ES_PORT = 9200;
     private final static String DEFAULT_ES_PROTOCOL = "http";
@@ -79,6 +81,7 @@ public class Config {
     private String password = null;
     private Short autopilot = DEFAULT_AUTOPILOT;
     private Short mavType = DEFAULT_MAV_TYPE;
+    private Integer mavSysId = DEFAULT_MAV_SYSID;
     private String esEndpoint = DEFAULT_ES_ENDPOINT;
     private Integer esPort = DEFAULT_ES_PORT;
     private String esProtocol = DEFAULT_ES_PROTOCOL;
@@ -146,14 +149,13 @@ public class Config {
         
         if (getProperty(PROP_MAV_TYPE) != null)
             mavType = Short.valueOf(getProperty(PROP_MAV_TYPE));   
+        
+        if (getProperty(PROP_MAV_SYSID) != null)
+            mavSysId = Integer.valueOf(getProperty(PROP_MAV_SYSID)); 
 
         imei = getProperty(PROP_ROCKBLOCK_IMEI);
         username = getProperty(PROP_ROCKBLOCK_USERNAME);
         password = getProperty(PROP_ROCKBLOCK_PASSWORD);
-    }
-
-    public Integer getSystemId() {
-        return 1;
     }
 
     public Integer getRockblockPort() {
@@ -202,6 +204,10 @@ public class Config {
 
     public short getMavType() {
         return mavType;
+    }
+
+    public Integer getMavSystemId() {
+        return mavSysId;
     }
 
     public Integer getRadioRoomPort() {

@@ -32,6 +32,9 @@ import com.MAVLink.enums.MAV_SEVERITY;
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.uvnet.shadow.UVShadow;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * MOMessageHandler handles mobile-originated MAVLink messages.
  * 
@@ -42,6 +45,8 @@ import com.envirover.uvnet.shadow.UVShadow;
  *
  */
 public class MOMessageHandler implements MAVLinkChannel {
+   
+    private final static Logger logger = LogManager.getLogger(MOMessageHandler.class);
 
     private final MAVLinkChannel dst;
     private final UVShadow shadow;
@@ -70,6 +75,11 @@ public class MOMessageHandler implements MAVLinkChannel {
             return;
         }
 
+        if (packet.sysid != Config.getInstance().getMavSystemId()) {
+            logger.warn(MessageFormat.format("System ID of the autopilot ({0}) does not match system ID of UV Hub ({1}).",
+                        packet.sysid, Config.getInstance().getMavSystemId()));
+        }
+    
         switch (packet.msgid) {
         case msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY:
             shadow.updateReportedState(packet.unpack(), new Date().getTime());
