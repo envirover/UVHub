@@ -254,7 +254,7 @@ public class UVHubTest {
         msg.sysid = 255;
         msg.compid = 0;
         MAVLinkPacket packet = msg.pack();
-        packet.sysid = Config.getInstance().getSystemId();
+        packet.sysid = Config.getInstance().getMavSystemId();
         return packet;
     }
 

@@ -32,6 +32,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
+import com.MAVLink.ardupilotmega.msg_battery2;
 import com.MAVLink.common.msg_attitude;
 import com.MAVLink.common.msg_global_position_int;
 import com.MAVLink.common.msg_gps_raw_int;
@@ -101,13 +102,16 @@ public class ShadowClientSession implements ClientSession {
                 try {
                     reportState();
                 } catch (IOException | InterruptedException ex) {
+                    logger.warn("Failed to send message to GCS client. " + ex.getMessage());
+                    logger.debug(ex);                    
                     try {
                         onClose();
                     } catch (IOException e) {
                         logger.error(e.getMessage());
                     }
                 } catch (Exception ex) {
-                    logger.error(ex.getMessage());
+                    logger.warn("Failed to send message to GCS client. " + ex.getMessage());
+                    logger.debug(ex);
                 }
             }
         };
@@ -336,7 +340,7 @@ public class ShadowClientSession implements ClientSession {
      */
     private void reportState() throws IOException, InterruptedException {
         msg_high_latency msgHighLatency = (msg_high_latency)shadow.getLastMessage(
-                                           Config.getInstance().getSystemId(),
+                                           Config.getInstance().getMavSystemId(),
                                            msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY);
 
         sendToSource(getHeartbeatMsg(msgHighLatency));
@@ -347,6 +351,7 @@ public class ShadowClientSession implements ClientSession {
         sendToSource(getMissionCurrentMsg(msgHighLatency));
         sendToSource(getNavControllerOutputMsg(msgHighLatency));
         sendToSource(getVfrHudMsg(msgHighLatency));
+        sendToSource(getBattery2Msg(msgHighLatency));
     }
 
     private MAVLinkMessage getHeartbeatMsg(msg_high_latency msgHighLatency) {
@@ -358,7 +363,7 @@ public class ShadowClientSession implements ClientSession {
 	        msg.base_mode = msgHighLatency.base_mode;
 	        msg.custom_mode = msgHighLatency.custom_mode;
     	} else {
-    		msg.sysid = Config.getInstance().getSystemId();
+    		msg.sysid = Config.getInstance().getMavSystemId();
     		msg.compid = 0;
     		msg.base_mode = MAV_MODE.MAV_MODE_PREFLIGHT;
     		msg.custom_mode = 0;
@@ -477,6 +482,18 @@ public class ShadowClientSession implements ClientSession {
         msg.heading = (short)(msgHighLatency.heading / 100);
         msg.throttle = msgHighLatency.throttle;
         
+        return msg;
+    }
+
+    private MAVLinkMessage getBattery2Msg(msg_high_latency msgHighLatency) {
+        if (msgHighLatency == null) {
+            return null;
+        }
+
+        msg_battery2 msg = new msg_battery2();
+        msg.sysid = msgHighLatency.sysid;
+        msg.current_battery = -1;
+        msg.voltage = msgHighLatency.temperature_air * 1000;
         return msg;
     }
 

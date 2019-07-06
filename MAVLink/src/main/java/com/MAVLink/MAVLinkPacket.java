@@ -8,6 +8,7 @@ package com.MAVLink;
 
 import java.io.Serializable;
 import com.MAVLink.Messages.MAVLinkPayload;
+import com.MAVLink.ardupilotmega.msg_battery2;
 import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.standard.CRC;
 import com.MAVLink.common.*;
@@ -560,6 +561,8 @@ public class MAVLinkPacket implements Serializable {
             case msg_debug.MAVLINK_MSG_ID_DEBUG:
                 return  new msg_debug(this);
             
+            case msg_battery2.MAVLINK_MSG_ID_BATTERY2:
+                return  new msg_battery2(this);   
             
             default:
                 return null;

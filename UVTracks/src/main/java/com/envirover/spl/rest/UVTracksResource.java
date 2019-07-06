@@ -41,7 +41,6 @@ import com.envirover.uvnet.shadow.UVShadow;
 @Path("/v1")
 public class UVTracksResource {
 
-    private final static String DEFAULT_SYSTEM_ID = "1";
     private final static String DEFAULT_TOP = "100";
 
     private final UVShadow shadow;
@@ -76,9 +75,13 @@ public class UVTracksResource {
     @GET
     @Path("/tracks")
     @Produces(MediaType.APPLICATION_JSON)
-    public FeatureCollection getTracks(@DefaultValue(DEFAULT_SYSTEM_ID) @QueryParam("sysid") int sysid,
+    public FeatureCollection getTracks(@QueryParam("sysid") Integer sysid,
             @QueryParam("startTime") Long startTime, @QueryParam("endTime") Long endTime,
             @DefaultValue(DEFAULT_TOP) @QueryParam("top") int top) throws IOException {
+        if (sysid == null) {
+            sysid = Config.getInstance().getMavSystemId();
+        }
+    
         return shadow.queryMessages(sysid, msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY, startTime, endTime, top);
     }
 
@@ -92,7 +95,11 @@ public class UVTracksResource {
     @GET
     @Path("/missions")
     @Produces(MediaType.APPLICATION_JSON)
-    public Plan getMissions(@DefaultValue(DEFAULT_SYSTEM_ID) @QueryParam("sysid") int sysid) throws IOException {
+    public Plan getMissions(@QueryParam("sysid") Integer sysid) throws IOException {
+        if (sysid == null) {
+            sysid = Config.getInstance().getMavSystemId();
+        }
+    
         Plan plan = new Plan(shadow.getMission(sysid));
         // plan.getMission().setVehicleType(Config.getInstance().getMavType());
         return plan;
