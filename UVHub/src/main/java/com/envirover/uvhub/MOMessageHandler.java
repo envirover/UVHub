@@ -123,8 +123,8 @@ public class MOMessageHandler implements MAVLinkChannel {
 
         MAVLinkPacket p = msg.pack();
 //        p.seq = seq++;
-//        p.sysid = packet.sysid;
-//        p.compid = packet.compid;
+        p.sysid = packet.sysid;
+        p.compid = packet.compid;
 
         dst.sendMessage(p);
     }
