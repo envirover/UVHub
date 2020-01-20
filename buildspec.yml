@@ -8,7 +8,12 @@ phases:
         - sudo apt-get update
         - sudo apt-get -y install openjdk-8-jdk
         - java -version
-        - sudo apt-get -y install maven
+        # - sudo apt-get -y install maven
+        - wget https://www-us.apache.org/dist/maven/maven-3/3.6.0/binaries/apache-maven-3.6.0-bin.tar.gz -P /tmp
+        - sudo tar xf /tmp/apache-maven-*.tar.gz -C /opt
+        - export M2_HOME=/opt/maven
+        - export MAVEN_HOME=/opt/maven
+        - export PATH=${M2_HOME}/bin:${PATH}
         - mvn -version
   pre_build:
     commands:
