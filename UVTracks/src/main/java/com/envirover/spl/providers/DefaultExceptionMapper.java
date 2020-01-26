@@ -28,6 +28,7 @@ public class DefaultExceptionMapper implements ExceptionMapper<Exception> {
 
     @Override
     public Response toResponse(Exception ex) {
+        ex.printStackTrace();
         return Response.status(Response.Status.OK)
                 .entity(new RestError(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ex.getMessage()))
                 .build();

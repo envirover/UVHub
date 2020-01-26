@@ -30,6 +30,7 @@ import com.MAVLink.common.msg_param_value;
 import com.MAVLink.common.msg_statustext;
 import com.MAVLink.enums.MAV_SEVERITY;
 import com.envirover.mavlink.MAVLinkChannel;
+import com.envirover.uvnet.shadow.UVLogbook;
 import com.envirover.uvnet.shadow.UVShadow;
 
 import org.apache.logging.log4j.LogManager;
@@ -50,6 +51,7 @@ public class MOMessageHandler implements MAVLinkChannel {
 
     private final MAVLinkChannel dst;
     private final UVShadow shadow;
+    private final UVLogbook logbook;
 
     //int seq = 0;
 
@@ -59,9 +61,10 @@ public class MOMessageHandler implements MAVLinkChannel {
      * @param dst destination channel for mobile-originated messages.
      * @param shadow vehicle shadow
      */
-    public MOMessageHandler(MAVLinkChannel dst, UVShadow shadow) {
+    public MOMessageHandler(MAVLinkChannel dst, UVShadow shadow, UVLogbook logbook) {
         this.dst = dst;
         this.shadow = shadow;
+        this.logbook = logbook;
     }
 
     @Override
@@ -82,7 +85,8 @@ public class MOMessageHandler implements MAVLinkChannel {
     
         switch (packet.msgid) {
         case msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY:
-            shadow.updateReportedState(packet.unpack(), new Date().getTime());
+            shadow.updateReportedState((msg_high_latency)packet.unpack());
+            logbook.addReportedState((msg_high_latency)packet.unpack(), new Date().getTime());
             break;
         case msg_command_ack.MAVLINK_MSG_ID_COMMAND_ACK:
             // Replace the COMMAND_ACK message by STATUS_TEXT message.

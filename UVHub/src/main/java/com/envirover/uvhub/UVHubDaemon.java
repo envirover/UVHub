@@ -92,12 +92,12 @@ public class UVHubDaemon implements Daemon {
         // GCS TCP server accepts GCS client connections on port 5760. It handles 
         // MAVLink messages received form the connected clients and forwards some
         // of the messages to the specified mobile-terminated queue.
-        gcsTcpServer = new GCSTcpServer(config.getMAVLinkPort(), mtMessageQueue, shadow);
+        gcsTcpServer = new GCSTcpServer(config.getMAVLinkPort(), mtMessageQueue, shadow, shadow);
 
         // Shadow TCP server accepts GCS client connections on port 5757. It handles 
         // MAVLink messages received form the connected clients and updates on-board parameters 
         // missions in the vehicle shadow without sending any messages to the vehicle.
-        shadowServer = new ShadowTcpServer(config.getShadowPort(), shadow);
+        shadowServer = new ShadowTcpServer(config.getShadowPort(), shadow, shadow);
 
         // Mobile-originated queue contains messages receive form the vehicle.
         MAVLinkMessageQueue moMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
@@ -105,7 +105,7 @@ public class UVHubDaemon implements Daemon {
         // Mobile-originated message handler is an implementation of MAVLinkChannel.
         // Messages sent to MOMessageHandler either used to update the vehicle's shadow, 
         // or pushed to the provided mobile-originated queue. 
-        MOMessageHandler moHandler = new MOMessageHandler(moMessageQueue, shadow);
+        MOMessageHandler moHandler = new MOMessageHandler(moMessageQueue, shadow, shadow);
 
         // RadioRoom TCP server accepts TCP/IP connections on port 5060 from SPL RadioRoom. 
         // MAVLink messages received from RadioRoom are sent to the specified mobile-originated

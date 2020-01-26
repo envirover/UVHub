@@ -1,7 +1,7 @@
 /*
  * Envirover confidential
  * 
- *  [2018] Envirover
+ *  [2020] Envirover
  *  All Rights Reserved.
  * 
  * NOTICE:  All information contained herein is, and remains the property of 
@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpHost;
@@ -57,13 +58,11 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 
-import com.MAVLink.Messages.MAVLinkMessage;
+import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_log_entry;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_param_value;
-import com.envirover.geojson.Feature;
-import com.envirover.geojson.FeatureCollection;
 
 /**
  * Stores the vehicle shadow in Elasticsearch.
@@ -71,12 +70,14 @@ import com.envirover.geojson.FeatureCollection;
  * @author Pavel Bobov
  * 
  */
-public class PersistentUVShadow implements UVShadow {
+public class PersistentUVShadow implements UVShadow, UVLogbook {
 
     // Elasticsearch indices
-    private static final String MESSAGES_INDEX_NAME = "reported_messages";
+
+    private static final String STATES_INDEX_NAME = "reported_states";
     private static final String MISSIONS_INDEX_NAME = "reported_missions";
-    private static final String PARAMETERS_INDEX_NAME = "reported_params";
+    private static final String PARAMS_INDEX_NAME = "reported_params";
+    private static final String LOGS_INDEX_NAME = "state_report_logs";
 
     private static final String DOCUMENT_TYPE = "_doc";
 
@@ -86,14 +87,14 @@ public class PersistentUVShadow implements UVShadow {
     // Properties
     private static final String ATTR_TIME = "properties.time";
     private static final String ATTR_SYS_ID = "properties.sysid";
-    private static final String ATTR_MSG_ID = "properties.msgid";
+    // private static final String ATTR_MSG_ID = "properties.msgid";
 
     // private static final Logger logger =
     // Logger.getLogger(PersistentUVShadow.class.getName());
 
     private static ResourceBundle mappings = ResourceBundle.getBundle("com.envirover.uvnet.shadow.mappings");
-    private final Builder settings = Settings.builder().put("index.number_of_shards", 1)
-                                                       .put("index.number_of_replicas", 1);
+    private final Builder settings = Settings.builder().put("index.number_of_shards", 1).put("index.number_of_replicas",
+            1);
 
     private final String elasticsearchEndpoint;
     private final int elasticsearchPort;
@@ -142,7 +143,7 @@ public class PersistentUVShadow implements UVShadow {
                 }
 
                 try {
-                    CreateIndexRequest createIndexRequest = new CreateIndexRequest(PARAMETERS_INDEX_NAME);
+                    CreateIndexRequest createIndexRequest = new CreateIndexRequest(PARAMS_INDEX_NAME);
                     createIndexRequest.settings(settings);
                     client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
                 } catch (ElasticsearchStatusException e) {
@@ -152,7 +153,19 @@ public class PersistentUVShadow implements UVShadow {
                 }
 
                 try {
-                    CreateIndexRequest createIndexRequest = new CreateIndexRequest(MESSAGES_INDEX_NAME);
+                    CreateIndexRequest createIndexRequest = new CreateIndexRequest(STATES_INDEX_NAME);
+                    String mapping = mappings.getString("ReportedMessagesMapping");
+                    createIndexRequest.mapping(mapping, XContentType.JSON);
+                    createIndexRequest.settings(settings);
+                    client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
+                } catch (ElasticsearchStatusException e) {
+                    if (!e.getDetailedMessage().contains("resource_already_exists_exception")) {
+                        e.printStackTrace();
+                    }
+                }
+
+                try {
+                    CreateIndexRequest createIndexRequest = new CreateIndexRequest(LOGS_INDEX_NAME);
                     String mapping = mappings.getString("ReportedMessagesMapping");
                     createIndexRequest.mapping(mapping, XContentType.JSON);
                     createIndexRequest.settings(settings);
@@ -185,7 +198,7 @@ public class PersistentUVShadow implements UVShadow {
         open();
 
         // Get all parameters from mavlinkparameters index
-        SearchRequest searchRequest = new SearchRequest(PARAMETERS_INDEX_NAME);
+        SearchRequest searchRequest = new SearchRequest(PARAMS_INDEX_NAME);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.termQuery("sysid", sysId));
         searchSourceBuilder.size(10000);
@@ -246,7 +259,7 @@ public class PersistentUVShadow implements UVShadow {
         // Delete existing parameters, if they are not in the new list of parameters
         for (String paramId : existingParamsMap.keySet()) {
             if (!newParamsSet.contains(paramId)) {
-                client.delete(new DeleteRequest(PARAMETERS_INDEX_NAME, DOCUMENT_TYPE, paramId), RequestOptions.DEFAULT);
+                client.delete(new DeleteRequest(PARAMS_INDEX_NAME, DOCUMENT_TYPE, paramId), RequestOptions.DEFAULT);
             }
         }
     }
@@ -257,7 +270,7 @@ public class PersistentUVShadow implements UVShadow {
 
         if (paramIndex < 0) {
             String id = String.format("%d_%s", sysId, paramId);
-            GetRequest getRequest = new GetRequest(PARAMETERS_INDEX_NAME, DOCUMENT_TYPE, id);
+            GetRequest getRequest = new GetRequest(PARAMS_INDEX_NAME, DOCUMENT_TYPE, id);
 
             GetResponse getResponse = client.get(getRequest, RequestOptions.DEFAULT);
 
@@ -268,7 +281,7 @@ public class PersistentUVShadow implements UVShadow {
             }
         } else {
             // Get all parameters from mavlinkparameters index
-            SearchRequest searchRequest = new SearchRequest(PARAMETERS_INDEX_NAME);
+            SearchRequest searchRequest = new SearchRequest(PARAMS_INDEX_NAME);
 
             SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
             searchSourceBuilder.query(QueryBuilders.boolQuery().must(QueryBuilders.termQuery("sysid", sysId))
@@ -359,11 +372,30 @@ public class PersistentUVShadow implements UVShadow {
     }
 
     @Override
-    public void updateReportedState(MAVLinkMessage msg, long timestamp) throws IOException {
+    public void updateReportedState(msg_high_latency msg) throws IOException {
         open();
 
         // Save the message to the persistent store
-        IndexRequest indexRequest = org.elasticsearch.client.Requests.indexRequest(MESSAGES_INDEX_NAME);
+        IndexRequest indexRequest = org.elasticsearch.client.Requests.indexRequest(STATES_INDEX_NAME);
+        indexRequest.type(DOCUMENT_TYPE);
+        indexRequest.id(Integer.toString(msg.sysid));
+
+        try {
+            String source = JsonSerializer.toJSON(msg, Long.valueOf(0L));
+            indexRequest.source(source, XContentType.JSON);
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+            throw new IOException(e);
+        }
+
+        client.index(indexRequest, RequestOptions.DEFAULT);
+    }
+
+    @Override
+    public void addReportedState(msg_high_latency msg, long timestamp) throws IOException {
+        open();
+
+        // Save the message to the persistent store
+        IndexRequest indexRequest = org.elasticsearch.client.Requests.indexRequest(LOGS_INDEX_NAME);
         indexRequest.type(DOCUMENT_TYPE);
         indexRequest.id(Long.toString(timestamp));
 
@@ -375,33 +407,30 @@ public class PersistentUVShadow implements UVShadow {
         }
 
         client.index(indexRequest, RequestOptions.DEFAULT);
+
     }
 
     @Override
-    public MAVLinkMessage getLastMessage(int sysId, int msgId) throws IOException {
+    public msg_high_latency getLastReportedState(int sysId) throws IOException {
         open();
 
-        SearchRequest searchRequest = new SearchRequest(MESSAGES_INDEX_NAME);
+        String id = Integer.toString(sysId);
 
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.query(QueryBuilders.boolQuery().must(QueryBuilders.termQuery("properties.sysid", sysId))
-                .must(QueryBuilders.termQuery("properties.msgid", msgId)));
-        searchSourceBuilder.sort("properties.time", SortOrder.DESC);
-        searchSourceBuilder.size(1);
-        searchRequest.source(searchSourceBuilder);
+        GetRequest getRequest = new GetRequest(STATES_INDEX_NAME, DOCUMENT_TYPE, id);
 
-        SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+        GetResponse getResponse = client.get(getRequest, RequestOptions.DEFAULT);
 
-        if (searchResponse.getHits().getTotalHits() == 0) {
-            return null;
+        if (getResponse.isExists()) {
+            String source = getResponse.getSourceAsString();
+
+            return JsonSerializer.stateReportFromJSON(source).getValue();
+        } else {
+            return new msg_high_latency();
         }
-
-        String source = searchResponse.getHits().getAt(0).getSourceAsString();
-        return JsonSerializer.mavlinkMessageFromJSON(source);
     }
 
     @Override
-    public FeatureCollection queryMessages(int sysId, int msgId, Long startTime, Long endTime, int top)
+    public List<Entry<Long, msg_high_latency>> getReportedStates(int sysId, Long startTime, Long endTime, int top)
             throws IOException {
         open();
 
@@ -409,7 +438,6 @@ public class PersistentUVShadow implements UVShadow {
 
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
         qb.must(QueryBuilders.termQuery(ATTR_SYS_ID, sysId));
-        qb.must(QueryBuilders.termQuery(ATTR_MSG_ID, msgId));
 
         QueryBuilder timeIntervalQueryBuilder = null;
         if (startTime == null && endTime == null)
@@ -430,17 +458,17 @@ public class PersistentUVShadow implements UVShadow {
         sourceBuilder.size(top);
         sourceBuilder.timeout(new TimeValue(SEARCH_TIMEOUT, TimeUnit.SECONDS));
         sourceBuilder.sort(ATTR_TIME, SortOrder.DESC);
-        SearchRequest searchRequest = new SearchRequest(MESSAGES_INDEX_NAME);
+        SearchRequest searchRequest = new SearchRequest(LOGS_INDEX_NAME);
         searchRequest.types(DOCUMENT_TYPE);
         searchRequest.source(sourceBuilder);
         SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
         SearchHits hits = searchResponse.getHits();
 
-        FeatureCollection result = new FeatureCollection();
+        List<Entry<Long, msg_high_latency>> result = new ArrayList<Entry<Long, msg_high_latency>>();
 
         for (Iterator<SearchHit> iter = hits.iterator(); iter.hasNext();) {
-            Feature feature = JsonSerializer.featureFromJSON(iter.next().getSourceAsString());
-            result.getFeatures().add(feature);
+            Entry<Long, msg_high_latency> stateReport = JsonSerializer.stateReportFromJSON(iter.next().getSourceAsString());
+            result.add(stateReport);
         }
 
         return result;
@@ -450,7 +478,7 @@ public class PersistentUVShadow implements UVShadow {
     public List<msg_log_entry> getLogs(int sysId) throws IOException {
         open();
 
-        SearchRequest searchRequest = new SearchRequest(MESSAGES_INDEX_NAME);
+        SearchRequest searchRequest = new SearchRequest(LOGS_INDEX_NAME);
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.termQuery("properties.sysid", sysId));
@@ -483,9 +511,9 @@ public class PersistentUVShadow implements UVShadow {
         open();
 
         try {
-            client.indices().delete(Requests.deleteIndexRequest(MESSAGES_INDEX_NAME), RequestOptions.DEFAULT);
+            client.indices().delete(Requests.deleteIndexRequest(LOGS_INDEX_NAME), RequestOptions.DEFAULT);
 
-            CreateIndexRequest createIndexRequest = new CreateIndexRequest(MESSAGES_INDEX_NAME);
+            CreateIndexRequest createIndexRequest = new CreateIndexRequest(LOGS_INDEX_NAME);
             createIndexRequest.settings(settings);
             client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
         } catch (Exception ex) {
@@ -499,8 +527,8 @@ public class PersistentUVShadow implements UVShadow {
         String id = String.format("%d_%s", sysId, paramValue.getParam_Id());
         String source = JsonSerializer.toJSON(paramValue);
 
-        IndexRequest indexRequest = Requests.indexRequest(PARAMETERS_INDEX_NAME).type(DOCUMENT_TYPE).id(id)
-                .source(source, XContentType.JSON);
+        IndexRequest indexRequest = Requests.indexRequest(PARAMS_INDEX_NAME).type(DOCUMENT_TYPE).id(id).source(source,
+                XContentType.JSON);
 
         client.index(indexRequest, RequestOptions.DEFAULT);
     }

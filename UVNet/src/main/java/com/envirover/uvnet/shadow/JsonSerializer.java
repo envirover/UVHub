@@ -21,10 +21,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
@@ -190,7 +192,7 @@ class JsonSerializer {
      * @throws IllegalAccessException
      * @throws IllegalArgumentException
      */
-    public static String toJSON(MAVLinkMessage msg, long timestamp) throws JsonGenerationException,
+    public static String toJSON(MAVLinkMessage msg, Long timestamp) throws JsonGenerationException,
             JsonMappingException, IOException, IllegalArgumentException, IllegalAccessException {
         Geometry geometry;
 
@@ -217,45 +219,55 @@ class JsonSerializer {
 
         Feature feature = new Feature(geometry, properties);
 
-        feature.getProperties().put("time", Long.valueOf(timestamp));
+        feature.getProperties().put("time", timestamp);
 
         return mapper.writeValueAsString(feature);
     }
 
-    public static MAVLinkMessage mavlinkMessageFromJSON(String json)
+    public static Entry<Long, msg_high_latency> stateReportFromJSON(String json)
             throws JsonParseException, JsonMappingException, IOException {
+
         Feature feature = mapper.readValue(new ByteArrayInputStream(json.getBytes("UTF-8")), Feature.class);
 
-        if ((int) feature.getProperties().get("msgid") == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
-            msg_high_latency msg = new msg_high_latency();
+        msg_high_latency msg = new msg_high_latency();
 
-            for (Field f : msg.getClass().getFields()) {
-                if (!Modifier.isFinal(f.getModifiers())) {
-                    Object value = feature.getProperties().get(f.getName());
+        Long timestamp = 0L;
 
-                    try {
-                        if (f.getType().equals(float.class)) {
-                            float param = ((Double) value).floatValue();
-                            f.set(msg, param);
-                        } else if (f.getType().equals(short.class)) {
-                            short param = ((Integer) value).shortValue();
-                            f.set(msg, param);
-                        } else if (f.getType().equals(byte.class)) {
-                            byte param = ((Integer) value).byteValue();
-                            f.set(msg, param);
-                        } else {
-                            f.set(msg, value);
-                        }
-                    } catch (IllegalArgumentException | IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
-                }
+        Object value = feature.getProperties().get("time");
+        if (value != null) {
+            if (value.getClass().equals(Long.class)) {
+              timestamp = (Long)value;
+            } else if (value.getClass().equals(Integer.class)) {
+              timestamp = Long.valueOf((Integer)value);
+            } else {
+                throw new JsonMappingException("Type of 'time' property is invalid.");
             }
-
-            return msg;
         }
 
-        return null;
+        for (Field f : msg.getClass().getFields()) {
+            if (!Modifier.isFinal(f.getModifiers())) {
+                value = feature.getProperties().get(f.getName());
+
+                try {
+                    if (f.getType().equals(float.class)) {
+                        float param = ((Double) value).floatValue();
+                        f.set(msg, param);
+                    } else if (f.getType().equals(short.class)) {
+                        short param = ((Integer) value).shortValue();
+                        f.set(msg, param);
+                    } else if (f.getType().equals(byte.class)) {
+                        byte param = ((Integer) value).byteValue();
+                        f.set(msg, param);
+                    } else {
+                        f.set(msg, value);
+                    }
+                } catch (IllegalArgumentException | IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return new AbstractMap.SimpleEntry<Long, msg_high_latency>(timestamp, msg);
     }
 
     private static String bytesToString(byte[] bytes) {

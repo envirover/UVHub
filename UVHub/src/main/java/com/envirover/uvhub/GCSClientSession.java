@@ -385,8 +385,7 @@ public class GCSClientSession implements ClientSession {
      * @throws InterruptedException
      */
     private synchronized void reportState() throws IOException, InterruptedException {
-        msg_high_latency msgHighLatency = (msg_high_latency) shadow.getLastMessage(Config.getInstance().getMavSystemId(),
-                msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY);
+        msg_high_latency msgHighLatency = shadow.getLastReportedState(Config.getInstance().getMavSystemId());
 
         sendToSource(getHeartbeatMsg(msgHighLatency));
         sendToSource(getSysStatusMsg(msgHighLatency));

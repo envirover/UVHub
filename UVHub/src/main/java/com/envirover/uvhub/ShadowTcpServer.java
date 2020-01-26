@@ -18,6 +18,7 @@
 package com.envirover.uvhub;
 
 import com.envirover.mavlink.MAVLinkSocket;
+import com.envirover.uvnet.shadow.UVLogbook;
 import com.envirover.uvnet.shadow.UVShadow;
 
 /**
@@ -36,13 +37,13 @@ public class ShadowTcpServer extends GCSTcpServer {
      * 
      * @param port TCP port used for MAVLink ground control stations connections 
      */
-    public ShadowTcpServer(Integer port, UVShadow shadow) {
-        super(port, null, shadow);
+    public ShadowTcpServer(Integer port, UVShadow shadow, UVLogbook logbook) {
+        super(port, null, shadow, logbook);
     }
 
     @Override
     protected ClientSession createClientSession(MAVLinkSocket clientSocket) {
-        return new ShadowClientSession(clientSocket, shadow);
+        return new ShadowClientSession(clientSocket, shadow, logbook);
     }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Envirover confidential
  * 
- *  [2018] Envirover
+ *  [2020] Envirover
  *  All Rights Reserved.
  * 
  * NOTICE:  All information contained herein is, and remains the property of 
@@ -20,12 +20,10 @@ package com.envirover.uvnet.shadow;
 import java.io.IOException;
 import java.util.List;
 
-import com.MAVLink.Messages.MAVLinkMessage;
-import com.MAVLink.common.msg_log_entry;
+import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_param_value;
-import com.envirover.geojson.FeatureCollection;
 
 /**
  * UVShadow stores the reported or desired state of the vehicle.
@@ -104,57 +102,19 @@ public interface UVShadow {
     List<msg_mission_item> getMission(int sysId) throws IOException;
 
     /**
-     * Updates reported state of the vehicle with MAVLink message received from the
-     * vehicle.
+     * Updates the reported state of the vehicle. 
      * 
-     * @param msg MAVLink message packet received from the vehicle
-     * @param timestamp Unix Epoch report time
+     * @param msg state report received from the vehicle
      * @throws IOException I/O operation failed
      */
-    void updateReportedState(MAVLinkMessage msg, long timestamp) throws IOException;
+    void updateReportedState(msg_high_latency msg) throws IOException;
 
     /**
-     * Returns last reported MAVLink message of the specified type from the
-     * specified system.
+     * Returns the last reported state.
      * 
      * @param sysId system ID
-     * @param msgId MAVLink message ID
-     * @return HIGH_LATENCY MAVLink message that summarizes reported state of the
-     *         vehicle
+     * @return the last reported state
      * @throws IOException I/O operation failed
      */
-    MAVLinkMessage getLastMessage(int sysId, int msgId) throws IOException;
-
-    /**
-     * Retrieves messages of the specified type reported by the specified system and
-     * returns them in GeoJSON representation.
-     * 
-     * @param sysId MAVLink system id
-     * @param msgId MAVlink message id
-     * @param geometryType GeoJSON geometry type
-     * @param startTime minimum reported time. No minimum limit if 'null'.
-     * @param endTime maximum reported time. No maximum time limit if 'null'.
-     * @param top maximum number of reported points returned
-     * @return GeoJSON FeaureCollection with the reported messages
-     * @throws IOException in case of I/O exception
-     */
-    FeatureCollection queryMessages(int sysId, int msgId, Long startTime, Long endTime, int top) throws IOException;
-
-    /**
-     * Returns list of available logs.
-     * 
-     * @param sysId system ID
-     * @return list of available logs
-     * @throws IOException I/O operation failed
-     */
-    List<msg_log_entry> getLogs(int sysId) throws IOException;
-
-    /**
-     * Erases all logs.
-     * 
-     * @param sysId system ID
-     * @throws IOException I/O error
-     */
-    void eraseLogs(int sysId) throws IOException;
-
+    msg_high_latency getLastReportedState(int sysId) throws IOException;
 }
