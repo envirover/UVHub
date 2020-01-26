@@ -2,13 +2,13 @@ package com.envirover.uvnet.shadow;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.Map.Entry;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.junit.Test;
 
 import com.MAVLink.MAVLinkPacket;
-import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_param_value;
 import com.MAVLink.enums.MAV_COMPONENT;
@@ -35,9 +35,10 @@ public class JsonSerializerTest {
 		
 		System.out.println(json);
 		
-		MAVLinkMessage msg = JsonSerializer.mavlinkMessageFromJSON(json);
-		
-		System.out.println(msg);
+		Entry<Long, msg_high_latency> entry = JsonSerializer.stateReportFromJSON(json);
+		System.out.print(entry.getKey());
+		System.out.print(" : ");
+		System.out.println(entry.getValue());
 	}
 
     private MAVLinkPacket getSamplePacket() {

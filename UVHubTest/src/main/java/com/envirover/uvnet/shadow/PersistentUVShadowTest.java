@@ -37,7 +37,7 @@ import com.MAVLink.enums.MAV_FRAME;
 import com.MAVLink.enums.MAV_PARAM_TYPE;
 
 public class PersistentUVShadowTest {
-	
+
 	private static int TEST_SYSTEM_ID = 2;
 
 	// default property values
@@ -46,12 +46,10 @@ public class PersistentUVShadowTest {
 	private final static String DEFAULT_ES_PROTOCOL = "http";
 
 	private PersistentUVShadow shadow = null;
-	
+
 	@Before
-	public  void setUp() throws Exception {
-		shadow = new PersistentUVShadow(DEFAULT_ES_ENDPOINT, 
-										DEFAULT_ES_PORT, 
-										DEFAULT_ES_PROTOCOL);
+	public void setUp() throws Exception {
+		shadow = new PersistentUVShadow(DEFAULT_ES_ENDPOINT, DEFAULT_ES_PORT, DEFAULT_ES_PROTOCOL);
 		shadow.open();
 	}
 
@@ -63,7 +61,7 @@ public class PersistentUVShadowTest {
 	@Test
 	public void testParameters() throws IOException, InterruptedException {
 		List<msg_param_value> params = new ArrayList<msg_param_value>();
-		
+
 		msg_param_value param0 = new msg_param_value();
 		param0.setParam_Id("param0");
 		param0.sysid = TEST_SYSTEM_ID;
@@ -72,7 +70,7 @@ public class PersistentUVShadowTest {
 		param0.param_type = MAV_PARAM_TYPE.MAV_PARAM_TYPE_REAL32;
 		param0.param_value = (float) 123.456;
 		params.add(param0);
-		
+
 		msg_param_value param1 = new msg_param_value();
 		param1.setParam_Id("param1");
 		param1.sysid = TEST_SYSTEM_ID;
@@ -81,99 +79,97 @@ public class PersistentUVShadowTest {
 		param1.param_type = MAV_PARAM_TYPE.MAV_PARAM_TYPE_REAL32;
 		param1.param_value = (float) 456.789;
 		params.add(param1);
-		
+
 		shadow.setParams(TEST_SYSTEM_ID, params);
-		
+
 		msg_param_set updatedParam1 = new msg_param_set();
 		updatedParam1.setParam_Id("param1");
 		updatedParam1.sysid = TEST_SYSTEM_ID;
 		updatedParam1.param_type = MAV_PARAM_TYPE.MAV_PARAM_TYPE_REAL32;
 		updatedParam1.param_value = (float) 987.654;
-		
+
 		shadow.setParam(TEST_SYSTEM_ID, updatedParam1);
-		
+
 		Thread.sleep(5000);
-		
-		assert(shadow.getParamValue(TEST_SYSTEM_ID, "param0", (short)-1).param_value == (float) 123.456);
-		assert(shadow.getParamValue(TEST_SYSTEM_ID, "param1", (short)-1).param_value == (float) 987.654);
-		assert(shadow.getParamValue(TEST_SYSTEM_ID, "", (short)0).param_value == (float) 123.456);
-		assert(shadow.getParamValue(TEST_SYSTEM_ID, "", (short)1).param_value == (float) 987.654);
+
+		assert (shadow.getParamValue(TEST_SYSTEM_ID, "param0", (short) -1).param_value == (float) 123.456);
+		assert (shadow.getParamValue(TEST_SYSTEM_ID, "param1", (short) -1).param_value == (float) 987.654);
+		assert (shadow.getParamValue(TEST_SYSTEM_ID, "", (short) 0).param_value == (float) 123.456);
+		assert (shadow.getParamValue(TEST_SYSTEM_ID, "", (short) 1).param_value == (float) 987.654);
 	}
-	
+
 	@Test
 	public void testMissionAccepted() throws IOException {
 		List<msg_mission_item> mission = getSampleMission();
-		
+
 		shadow.setMission(TEST_SYSTEM_ID, mission);
-		
+
 		List<msg_mission_item> reportedMission = shadow.getMission(TEST_SYSTEM_ID);
-		
-		assert(mission.size() == reportedMission.size());
-		
+
+		assert (mission.size() == reportedMission.size());
+
 		for (msg_mission_item missionItem : mission) {
 			msg_mission_item reportedMissionItem = reportedMission.get(missionItem.seq);
-			assert(missionItem.command == reportedMissionItem.command);
+			assert (missionItem.command == reportedMissionItem.command);
 		}
 	}
 
 	@Test
 	public void testUpdateReportedState() throws IOException, InterruptedException {
 		MAVLinkPacket packet = getSamplePacket();
-		
-		shadow.updateReportedState(packet.unpack(), new Date().getTime());
-		
+
+		shadow.updateReportedState((msg_high_latency) packet.unpack());
+
 		Thread.sleep(1000);
-		
-		msg_high_latency originalMsg = (msg_high_latency)packet.unpack();
-		
-		msg_high_latency msg = (msg_high_latency)shadow.getLastMessage(
-				TEST_SYSTEM_ID, 
-				msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY);
-		
-		assert(msg != null);
-		assert(originalMsg.latitude == msg.latitude);
-		assert(originalMsg.longitude == msg.longitude);
+
+		msg_high_latency originalMsg = (msg_high_latency) packet.unpack();
+
+		msg_high_latency msg = (msg_high_latency) shadow.getLastReportedState(TEST_SYSTEM_ID);
+
+		assert (msg != null);
+		assert (originalMsg.latitude == msg.latitude);
+		assert (originalMsg.longitude == msg.longitude);
 	}
 
-    private MAVLinkPacket getSamplePacket() {
-        msg_high_latency msg = new msg_high_latency();
-        msg.latitude = 523867;
-        msg.longitude = 29380;
-//        msg.sysid = TEST_SYSTEM_ID;
-//        msg.compid = 0;
-        
-        MAVLinkPacket packet = msg.pack();
-        packet.sysid = TEST_SYSTEM_ID;
-        packet.compid = 0;
-        return packet;
-    }
+	private MAVLinkPacket getSamplePacket() {
+		msg_high_latency msg = new msg_high_latency();
+		msg.latitude = 523867;
+		msg.longitude = 29380;
+		// msg.sysid = TEST_SYSTEM_ID;
+		// msg.compid = 0;
 
-    private List<msg_mission_item> getSampleMission() {
-    	List<msg_mission_item> mission = new ArrayList<msg_mission_item>();
-    	
-    	msg_mission_item missionItem1 = new msg_mission_item();
-    	missionItem1.sysid = TEST_SYSTEM_ID;
-    	missionItem1.compid = 0;
-    	missionItem1.seq = 0;
-    	missionItem1.command = MAV_CMD.MAV_CMD_NAV_TAKEOFF;
-    	missionItem1.frame = MAV_FRAME.MAV_FRAME_GLOBAL;
-    	missionItem1.x = (float)34.0;
-    	missionItem1.y = (float)-117.0;
-    	missionItem1.z = (float)100.0;
-    	mission.add(missionItem1);
-    	
-    	msg_mission_item missionItem2 = new msg_mission_item();
-    	missionItem2.sysid = TEST_SYSTEM_ID;
-    	missionItem2.compid = 0;
-    	missionItem2.seq = 1;
-    	missionItem2.command = MAV_CMD.MAV_CMD_NAV_TAKEOFF;
-    	missionItem2.frame = MAV_FRAME.MAV_FRAME_GLOBAL;
-    	missionItem2.x = (float)34.5;
-    	missionItem2.y = (float)-117.5;
-    	missionItem2.z = (float)200.0;
-    	mission.add(missionItem2);
-    	
-    	return mission;
-    }
-    
+		MAVLinkPacket packet = msg.pack();
+		packet.sysid = TEST_SYSTEM_ID;
+		packet.compid = 0;
+		return packet;
+	}
+
+	private List<msg_mission_item> getSampleMission() {
+		List<msg_mission_item> mission = new ArrayList<msg_mission_item>();
+
+		msg_mission_item missionItem1 = new msg_mission_item();
+		missionItem1.sysid = TEST_SYSTEM_ID;
+		missionItem1.compid = 0;
+		missionItem1.seq = 0;
+		missionItem1.command = MAV_CMD.MAV_CMD_NAV_TAKEOFF;
+		missionItem1.frame = MAV_FRAME.MAV_FRAME_GLOBAL;
+		missionItem1.x = (float) 34.0;
+		missionItem1.y = (float) -117.0;
+		missionItem1.z = (float) 100.0;
+		mission.add(missionItem1);
+
+		msg_mission_item missionItem2 = new msg_mission_item();
+		missionItem2.sysid = TEST_SYSTEM_ID;
+		missionItem2.compid = 0;
+		missionItem2.seq = 1;
+		missionItem2.command = MAV_CMD.MAV_CMD_NAV_TAKEOFF;
+		missionItem2.frame = MAV_FRAME.MAV_FRAME_GLOBAL;
+		missionItem2.x = (float) 34.5;
+		missionItem2.y = (float) -117.5;
+		missionItem2.z = (float) 200.0;
+		mission.add(missionItem2);
+
+		return mission;
+	}
+
 }

@@ -62,6 +62,7 @@ import com.MAVLink.enums.MAV_STATE;
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkLogger;
 import com.envirover.uvhub.Config;
+import com.envirover.uvnet.shadow.UVLogbook;
 import com.envirover.uvnet.shadow.UVShadow;
 
 /**
@@ -79,16 +80,18 @@ public class ShadowClientSession implements ClientSession {
 
     private final MAVLinkChannel src;
     private final UVShadow shadow;
+    private final UVLogbook logbook;
 
     private AtomicBoolean isOpen = new AtomicBoolean(false);
     private List<msg_mission_item> desiredMission = new ArrayList<msg_mission_item>();
     private int desiredMissionCount = 0;
     private List<msg_mission_item> reportedMission = new ArrayList<msg_mission_item>();
 
-    public ShadowClientSession(MAVLinkChannel src, UVShadow shadow) {
+    public ShadowClientSession(MAVLinkChannel src, UVShadow shadow, UVLogbook logbook) {
     	this.heartbeatTimer = Executors.newScheduledThreadPool(2);
         this.src = src;
         this.shadow = shadow;
+        this.logbook = logbook;
     }
 
     /* (non-Javadoc)
@@ -296,7 +299,7 @@ public class ShadowClientSession implements ClientSession {
 	        	
 	        	msg_log_request_list log_request_list = (msg_log_request_list)packet.unpack();
 	        	
-	        	List<msg_log_entry> logs = shadow.getLogs(log_request_list.target_system);
+	        	List<msg_log_entry> logs = logbook.getLogs(log_request_list.target_system);
 	        	
 	        	if (logs != null) {
 		        	for (msg_log_entry log_entry : logs) {
@@ -310,7 +313,7 @@ public class ShadowClientSession implements ClientSession {
 	        	
 	        	msg_log_erase log_erase = (msg_log_erase)packet.unpack();
 	        	
-	        	shadow.eraseLogs(log_erase.target_system);
+	        	logbook.eraseLogs(log_erase.target_system);
 	        	
 	        	logger.info("Messages log erased.");
 	        	
@@ -339,9 +342,8 @@ public class ShadowClientSession implements ClientSession {
      * @throws InterruptedException 
      */
     private void reportState() throws IOException, InterruptedException {
-        msg_high_latency msgHighLatency = (msg_high_latency)shadow.getLastMessage(
-                                           Config.getInstance().getMavSystemId(),
-                                           msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY);
+        msg_high_latency msgHighLatency = (msg_high_latency)shadow.getLastReportedState(
+                                           Config.getInstance().getMavSystemId());
 
         sendToSource(getHeartbeatMsg(msgHighLatency));
         sendToSource(getSysStatusMsg(msgHighLatency));

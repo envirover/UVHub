@@ -44,7 +44,7 @@ public class OnBoardParams {
     private final static String DEFAULT_PARAMS_FILE = "default.params";
     private final static String PARAMS_FILE_FORMAT = "mavtype_%d_autopilot_%d.params";
 
-    private final static String HL_REPORT_PERIOD_PARAM = "HL_REPORT_PERIOD";
+    public final static String HL_REPORT_PERIOD_PARAM = "HL_REPORT_PERIOD";
 
     private final static Logger logger = LogManager.getLogger(UVHubDaemon.class);
 
