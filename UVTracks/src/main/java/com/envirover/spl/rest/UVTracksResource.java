@@ -23,7 +23,6 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -40,6 +39,7 @@ import com.envirover.geojson.Point;
 import com.envirover.spl.uvtracks.Config;
 import com.envirover.uvnet.mission.Plan;
 import com.envirover.uvnet.shadow.PersistentUVShadow;
+import com.envirover.uvnet.shadow.StateReport;
 import com.envirover.uvnet.shadow.UVLogbook;
 import com.envirover.uvnet.shadow.UVShadow;
 
@@ -95,13 +95,13 @@ public class UVTracksResource {
             sysid = Config.getInstance().getMavSystemId();
         }
 
-        List<Entry<Long, msg_high_latency>> reportedStates = logbook.getReportedStates(sysid, startTime, endTime, top);
+        List<StateReport> reportedStates = logbook.getReportedStates(sysid, startTime, endTime, top);
 
         FeatureCollection tracks = new FeatureCollection();
 
-        for (Entry<Long, msg_high_latency> entry : reportedStates) {
+        for (StateReport stateReport : reportedStates) {
             try {
-                tracks.getFeatures().add(toFeature(entry));
+                tracks.getFeatures().add(toFeature(stateReport));
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
@@ -132,10 +132,10 @@ public class UVTracksResource {
         return plan;
     }
 
-    private static Feature toFeature(Entry<Long, msg_high_latency> entry) throws IllegalArgumentException, IllegalAccessException {
+    private static Feature toFeature(StateReport entry) throws IllegalArgumentException, IllegalAccessException {
         Geometry geometry;
 
-        msg_high_latency msg = entry.getValue();
+        msg_high_latency msg = entry.getState();
 
         if (msg.msgid == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
             msg_high_latency hl = (msg_high_latency) msg;
@@ -160,7 +160,7 @@ public class UVTracksResource {
 
         Feature feature = new Feature(geometry, properties);
 
-        feature.getProperties().put("time", Long.valueOf(entry.getKey()));
+        feature.getProperties().put("time", entry.getTime());
 
         return feature;
     }

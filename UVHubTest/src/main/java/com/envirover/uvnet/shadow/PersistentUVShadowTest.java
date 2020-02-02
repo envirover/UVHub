@@ -118,15 +118,19 @@ public class PersistentUVShadowTest {
 	public void testUpdateReportedState() throws IOException, InterruptedException {
 		MAVLinkPacket packet = getSamplePacket();
 
-		shadow.updateReportedState((msg_high_latency) packet.unpack());
+		StateReport stateReport = new StateReport(new Date().getTime(), (msg_high_latency) packet.unpack());
+		shadow.updateReportedState(stateReport);
 
 		Thread.sleep(1000);
 
 		msg_high_latency originalMsg = (msg_high_latency) packet.unpack();
 
-		msg_high_latency msg = (msg_high_latency) shadow.getLastReportedState(TEST_SYSTEM_ID);
+		stateReport = shadow.getLastReportedState(TEST_SYSTEM_ID);
 
-		assert (msg != null);
+		assert (stateReport != null);
+
+		msg_high_latency msg = stateReport.getState();
+
 		assert (originalMsg.latitude == msg.latitude);
 		assert (originalMsg.longitude == msg.longitude);
 	}

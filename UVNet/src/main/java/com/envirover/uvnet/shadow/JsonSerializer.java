@@ -21,12 +21,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
@@ -34,7 +32,6 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONObject;
 
-import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_param_value;
@@ -100,9 +97,9 @@ class JsonSerializer {
         return parameterValue;
     }
 
-    public static Feature featureFromJSON(String json) throws JsonParseException, JsonMappingException, IOException {
-        return mapper.readValue(json, Feature.class);
-    }
+    // public static Feature featureFromJSON(String json) throws JsonParseException, JsonMappingException, IOException {
+    //     return mapper.readValue(json, Feature.class);
+    // }
 
     /**
      * Converts this list of mission items to JSON string.
@@ -184,30 +181,25 @@ class JsonSerializer {
     }
 
     /**
-     * Serializes MAVLink message of HIGH_LATENCY type to GeoJSON feature
-     * representation.
+     * Serializes StateReport to GeoJSON feature representation.
      * 
-     * @param msg MAVLink message of HIGH_LATENCY type
+     * @param stat vehicle state report
      * @return GeoJSON feature representation
      * @throws IllegalAccessException
      * @throws IllegalArgumentException
      */
-    public static String toJSON(MAVLinkMessage msg, Long timestamp) throws JsonGenerationException,
-            JsonMappingException, IOException, IllegalArgumentException, IllegalAccessException {
+    public static String toJSON(StateReport state) throws JsonGenerationException, JsonMappingException, IOException,
+            IllegalArgumentException, IllegalAccessException {
         Geometry geometry;
 
-        if (msg.msgid == msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY) {
-            msg_high_latency hl = (msg_high_latency) msg;
-            geometry = new Point(hl.longitude / 1.0E7, hl.latitude / 1.0E7, (double) hl.altitude_amsl);
-        } else {
-            geometry = null;
-        }
+        msg_high_latency hl = state.getState();
+        geometry = new Point(hl.longitude / 1.0E7, hl.latitude / 1.0E7, (double) hl.altitude_amsl);
 
         Map<String, Object> properties = new HashMap<String, Object>();
 
-        for (Field f : msg.getClass().getFields()) {
+        for (Field f : hl.getClass().getFields()) {
             if (!Modifier.isFinal(f.getModifiers())) {
-                Object value = f.get(msg);
+                Object value = f.get(hl);
 
                 if (f.getType() == byte[].class) {
                     value = bytesToString((byte[]) value);
@@ -219,12 +211,12 @@ class JsonSerializer {
 
         Feature feature = new Feature(geometry, properties);
 
-        feature.getProperties().put("time", timestamp);
+        feature.getProperties().put("time", state.getTime());
 
         return mapper.writeValueAsString(feature);
     }
 
-    public static Entry<Long, msg_high_latency> stateReportFromJSON(String json)
+    public static StateReport stateReportFromJSON(String json)
             throws JsonParseException, JsonMappingException, IOException {
 
         Feature feature = mapper.readValue(new ByteArrayInputStream(json.getBytes("UTF-8")), Feature.class);
@@ -236,9 +228,9 @@ class JsonSerializer {
         Object value = feature.getProperties().get("time");
         if (value != null) {
             if (value.getClass().equals(Long.class)) {
-              timestamp = (Long)value;
+                timestamp = (Long) value;
             } else if (value.getClass().equals(Integer.class)) {
-              timestamp = Long.valueOf((Integer)value);
+                timestamp = Long.valueOf((Integer) value);
             } else {
                 throw new JsonMappingException("Type of 'time' property is invalid.");
             }
@@ -267,7 +259,7 @@ class JsonSerializer {
             }
         }
 
-        return new AbstractMap.SimpleEntry<Long, msg_high_latency>(timestamp, msg);
+        return new StateReport(timestamp, msg);
     }
 
     private static String bytesToString(byte[] bytes) {

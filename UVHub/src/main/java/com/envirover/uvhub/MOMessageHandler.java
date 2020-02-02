@@ -30,6 +30,7 @@ import com.MAVLink.common.msg_param_value;
 import com.MAVLink.common.msg_statustext;
 import com.MAVLink.enums.MAV_SEVERITY;
 import com.envirover.mavlink.MAVLinkChannel;
+import com.envirover.uvnet.shadow.StateReport;
 import com.envirover.uvnet.shadow.UVLogbook;
 import com.envirover.uvnet.shadow.UVShadow;
 
@@ -86,15 +87,16 @@ public class MOMessageHandler implements MAVLinkChannel {
 
         switch (packet.msgid) {
         case msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY:
-            shadow.updateReportedState((msg_high_latency) packet.unpack());
-
             // Milliseconds elapsed since the last report
             long time = new Date().getTime();
             float elapsed = time - last_report_time;
 
+            StateReport state = new StateReport(time, (msg_high_latency) packet.unpack());
+            shadow.updateReportedState(state);
+
             // Log the report if HL_REPORT_PERIOD parameter value seconds elapsed
             if (elapsed >= getReportPeriod(packet.sysid) * 1000.0) {
-                logbook.addReportedState((msg_high_latency) packet.unpack(), time);
+                logbook.addReportedState(state);
                 last_report_time = time;
             }
 
