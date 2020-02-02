@@ -51,7 +51,8 @@ import com.envirover.uvnet.shadow.UVShadow;
 import net.sf.geographiclib.Geodesic;
 
 /**
- * A REST resource that provides access to vehicle tracks and missions.
+ * A REST resource that provides access to vehicle tracks, missions, and 
+ * on-board parameters.
  * 
  * v2 version supports geometryType=line query string parameter on /tracks and
  * /missions resources and returns GeoJSON instead of Plan object for /missions
@@ -67,6 +68,9 @@ public class UVTracksResourceV2 {
     private final UVShadow shadow;
     private final UVLogbook logbook;
 
+    /**
+     * Constructs the resource.
+     */
     public UVTracksResourceV2() {
         Config config = Config.getInstance();
 
@@ -85,7 +89,7 @@ public class UVTracksResourceV2 {
 
     /**
      * Returns track of the specified system as GeoJSON feature collection of points
-     * or a line string.
+     * or single line.
      * 
      * The query supports range the tracks by start and/or end times of the reports.
      * 
@@ -93,8 +97,9 @@ public class UVTracksResourceV2 {
      * @param startTime (optional) track start time in UNIX epoch time.
      * @param endTime   (optional) track end time in UNIX epoch time.
      * @param top       maximum number of points returned
+     * @param geometryType GeoJSON features geometry type <point|line>
      * @return GeoJSON feature collection
-     * @throws IOException              on I/O error
+     * @throws IOException on I/O error
      * @throws IllegalAccessException
      * @throws IllegalArgumentException
      */
@@ -119,11 +124,13 @@ public class UVTracksResourceV2 {
     }
 
     /**
-     * Returns mission items of the specified system.
+     * Returns mission of the specified system in Point or LineString 
+     * GeoJSON objects.
      * 
      * @param sysid sysid system Id. Default value is 1.
-     * @return mission plan
-     * @throws IOException              in case of I/O error
+     * @param geometryType GeoJSON features geometry type <point|line>
+     * @return GeoJSON feature collection
+     * @throws IOException in case of I/O error
      * @throws IllegalAccessException
      * @throws IllegalArgumentException
      */
@@ -146,6 +153,13 @@ public class UVTracksResourceV2 {
         return missionsToPointFeatures(missions);
     }
 
+    /**
+     * Returns on-board parameters values in JSON of the specified vehicle.
+     * 
+     * @param sysid sysid system Id. Default value is 1.
+     * @return on-board parameters
+     * @throws IOException in case of I/O error
+     */
     @GET
     @Path("/parameters")
     @Produces(MediaType.APPLICATION_JSON)
