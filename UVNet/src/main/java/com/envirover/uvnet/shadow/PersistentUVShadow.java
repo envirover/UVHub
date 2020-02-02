@@ -372,7 +372,7 @@ public class PersistentUVShadow implements UVShadow, UVLogbook {
     }
 
     @Override
-    public void updateReportedState(msg_high_latency msg) throws IOException {
+    public void updateReportedState(msg_high_latency msg, long time) throws IOException {
         open();
 
         // Save the message to the persistent store
@@ -381,7 +381,7 @@ public class PersistentUVShadow implements UVShadow, UVLogbook {
         indexRequest.id(Integer.toString(msg.sysid));
 
         try {
-            String source = JsonSerializer.toJSON(msg, Long.valueOf(0L));
+            String source = JsonSerializer.toJSON(msg, Long.valueOf(time));
             indexRequest.source(source, XContentType.JSON);
         } catch (IllegalArgumentException | IllegalAccessException e) {
             throw new IOException(e);
@@ -411,7 +411,7 @@ public class PersistentUVShadow implements UVShadow, UVLogbook {
     }
 
     @Override
-    public msg_high_latency getLastReportedState(int sysId) throws IOException {
+    public Entry<Long, msg_high_latency> getLastReportedState(int sysId) throws IOException {
         open();
 
         String id = Integer.toString(sysId);
@@ -423,9 +423,9 @@ public class PersistentUVShadow implements UVShadow, UVLogbook {
         if (getResponse.isExists()) {
             String source = getResponse.getSourceAsString();
 
-            return JsonSerializer.stateReportFromJSON(source).getValue();
+            return JsonSerializer.stateReportFromJSON(source);
         } else {
-            return new msg_high_latency();
+            return null;
         }
     }
 

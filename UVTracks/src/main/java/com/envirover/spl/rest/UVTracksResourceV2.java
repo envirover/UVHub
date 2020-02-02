@@ -51,7 +51,7 @@ import com.envirover.uvnet.shadow.UVShadow;
 import net.sf.geographiclib.Geodesic;
 
 /**
- * A REST resource that provides access to vehicle tracks, missions, and 
+ * A REST resource that provides access to vehicle tracks, missions, and
  * on-board parameters.
  * 
  * v2 version supports geometryType=line query string parameter on /tracks and
@@ -93,13 +93,13 @@ public class UVTracksResourceV2 {
      * 
      * The query supports range the tracks by start and/or end times of the reports.
      * 
-     * @param sysid     system Id. Default value is 1.
-     * @param startTime (optional) track start time in UNIX epoch time.
-     * @param endTime   (optional) track end time in UNIX epoch time.
-     * @param top       maximum number of points returned
+     * @param sysid        system Id. Default value is 1.
+     * @param startTime    (optional) track start time in UNIX epoch time.
+     * @param endTime      (optional) track end time in UNIX epoch time.
+     * @param top          maximum number of points returned
      * @param geometryType GeoJSON features geometry type <point|line>
      * @return GeoJSON feature collection
-     * @throws IOException on I/O error
+     * @throws IOException              on I/O error
      * @throws IllegalAccessException
      * @throws IllegalArgumentException
      */
@@ -124,13 +124,13 @@ public class UVTracksResourceV2 {
     }
 
     /**
-     * Returns mission of the specified system in Point or LineString 
-     * GeoJSON objects.
+     * Returns mission of the specified system in Point or LineString GeoJSON
+     * objects.
      * 
-     * @param sysid sysid system Id. Default value is 1.
+     * @param sysid        sysid system Id. Default value is 1.
      * @param geometryType GeoJSON features geometry type <point|line>
      * @return GeoJSON feature collection
-     * @throws IOException in case of I/O error
+     * @throws IOException              in case of I/O error
      * @throws IllegalAccessException
      * @throws IllegalArgumentException
      */
@@ -156,7 +156,7 @@ public class UVTracksResourceV2 {
     /**
      * Returns on-board parameters values in JSON of the specified vehicle.
      * 
-     * @param sysid sysid system Id. Default value is 1.
+     * @param sysid system Id. Default value is 1.
      * @return on-board parameters
      * @throws IOException in case of I/O error
      */
@@ -167,16 +167,48 @@ public class UVTracksResourceV2 {
         if (sysid == null) {
             sysid = Config.getInstance().getMavSystemId();
         }
-        
+
         List<msg_param_value> params = shadow.getParams(sysid);
 
         Map<String, Double> parameters = new HashMap<String, Double>();
-       
+
         for (msg_param_value param : params) {
             parameters.put(param.getParam_Id(), Double.valueOf(param.param_value));
         }
 
         return parameters;
+    }
+
+    /**
+     * Returns the last reported state of the vehicle as GeoJSON point feature collection.
+     * 
+     * If the state report is found, the returned feature collection contains single
+     * point feature, otherwise the feature collection is empty.
+     * 
+     * @param sysid system Id. Default value is 1.
+     * @return last reported state of the vehicle
+     * @throws IOException in case of I/O error
+     * @throws IllegalArgumentException
+     * @throws IllegalAccessException
+     */
+    @GET
+    @Path("/state")
+    @Produces(MediaType.APPLICATION_JSON)
+    public FeatureCollection getState(@QueryParam("sysid") Integer sysid)
+            throws IOException, IllegalArgumentException, IllegalAccessException {
+        if (sysid == null) {
+            sysid = Config.getInstance().getMavSystemId();
+        }
+
+        FeatureCollection features = new FeatureCollection();
+
+        Entry<Long, msg_high_latency> entry = shadow.getLastReportedState(sysid);
+
+        if (entry != null) {
+            features.getFeatures().add(reportToPointFeature(entry));
+        }
+
+        return features;
     }
 
     private static Point getMissionCoordinates(List<msg_mission_item> missions, int idx) {
@@ -268,36 +300,41 @@ public class UVTracksResourceV2 {
         return features;
     }
 
+    private static Feature reportToPointFeature(Entry<Long, msg_high_latency> reportedState)
+            throws IllegalArgumentException, IllegalAccessException {
+        Geometry geometry;
+
+        msg_high_latency msg = reportedState.getValue();
+
+        msg_high_latency hl = (msg_high_latency) msg;
+        geometry = new Point(hl.longitude / 1.0E7, hl.latitude / 1.0E7, (double) hl.altitude_amsl);
+
+        Map<String, Object> properties = new HashMap<String, Object>();
+
+        for (Field f : msg.getClass().getFields()) {
+            if (!Modifier.isFinal(f.getModifiers())) {
+                Object value = f.get(msg);
+
+                if (f.getType() == byte[].class) {
+                    value = bytesToString((byte[]) value);
+                }
+
+                properties.put(f.getName(), value);
+            }
+        }
+
+        properties.put("time", Long.valueOf(reportedState.getKey()));
+
+        return new Feature(geometry, properties);
+    }
+
     // Converts HIGH_LATENCY message to Point GeoJSON feature.
     private static FeatureCollection reportsToPointFeatures(List<Entry<Long, msg_high_latency>> reportedStates)
             throws IllegalArgumentException, IllegalAccessException {
         FeatureCollection features = new FeatureCollection();
 
         for (Entry<Long, msg_high_latency> entry : reportedStates) {
-            Geometry geometry;
-
-            msg_high_latency msg = entry.getValue();
-
-            msg_high_latency hl = (msg_high_latency) msg;
-            geometry = new Point(hl.longitude / 1.0E7, hl.latitude / 1.0E7, (double) hl.altitude_amsl);
-
-            Map<String, Object> properties = new HashMap<String, Object>();
-
-            for (Field f : msg.getClass().getFields()) {
-                if (!Modifier.isFinal(f.getModifiers())) {
-                    Object value = f.get(msg);
-
-                    if (f.getType() == byte[].class) {
-                        value = bytesToString((byte[]) value);
-                    }
-
-                    properties.put(f.getName(), value);
-                }
-            }
-
-            properties.put("time", Long.valueOf(entry.getKey()));
-
-            features.getFeatures().add(new Feature(geometry, properties));
+            features.getFeatures().add(reportToPointFeature(entry));
         }
 
         return features;

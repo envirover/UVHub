@@ -86,11 +86,11 @@ public class MOMessageHandler implements MAVLinkChannel {
 
         switch (packet.msgid) {
         case msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY:
-            shadow.updateReportedState((msg_high_latency) packet.unpack());
-
             // Milliseconds elapsed since the last report
             long time = new Date().getTime();
             float elapsed = time - last_report_time;
+
+            shadow.updateReportedState((msg_high_latency) packet.unpack(), time);
 
             // Log the report if HL_REPORT_PERIOD parameter value seconds elapsed
             if (elapsed >= getReportPeriod(packet.sysid) * 1000.0) {

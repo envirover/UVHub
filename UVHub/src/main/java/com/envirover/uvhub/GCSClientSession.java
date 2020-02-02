@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -111,11 +112,11 @@ public class GCSClientSession implements ClientSession {
                     reportState();
                 } catch (IOException | InterruptedException ex) {
                     logger.warn("Failed to send message to GCS client. " + ex.getMessage(), ex);
-                    
+
                     if (ex.getMessage() == null)
                         logger.warn(ex);
-                    
-                      logger.debug(ex.getMessage(), ex);
+
+                    logger.debug(ex.getMessage(), ex);
                     try {
                         onClose();
                     } catch (IOException e) {
@@ -126,7 +127,7 @@ public class GCSClientSession implements ClientSession {
 
                     if (ex.getMessage() == null)
                         logger.warn(ex);
-                        
+
                     logger.debug(ex);
                 }
             }
@@ -385,8 +386,9 @@ public class GCSClientSession implements ClientSession {
      * @throws InterruptedException
      */
     private synchronized void reportState() throws IOException, InterruptedException {
-        msg_high_latency msgHighLatency = shadow.getLastReportedState(Config.getInstance().getMavSystemId());
+        Entry<Long, msg_high_latency> entry = shadow.getLastReportedState(Config.getInstance().getMavSystemId());
 
+        msg_high_latency msgHighLatency = entry.getValue();
         sendToSource(getHeartbeatMsg(msgHighLatency));
         sendToSource(getSysStatusMsg(msgHighLatency));
         sendToSource(getGpsRawIntMsg(msgHighLatency));

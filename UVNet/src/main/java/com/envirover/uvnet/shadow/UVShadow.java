@@ -19,6 +19,7 @@ package com.envirover.uvnet.shadow;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map.Entry;
 
 import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_mission_item;
@@ -38,7 +39,7 @@ public interface UVShadow {
     /**
      * Resets values of all parameters.
      * 
-     * @param sysId system id
+     * @param sysId  system id
      * @param params values of all on-board parameters
      * @throws IOException parameter loading failed
      */
@@ -47,10 +48,10 @@ public interface UVShadow {
     /**
      * Returns PARAM_VALUE MAVLink message for the specified parameter.
      * 
-     * @param sysId system id
-     * @param paramId On-board parameter id
+     * @param sysId      system id
+     * @param paramId    On-board parameter id
      * @param paramIndex Parameter index. Send -1 to use the paramId field as
-     *            identifier, else the paramId will be ignored
+     *                   identifier, else the paramId will be ignored
      * @return MAVLink packet with parameter value or null, if the parameter was not
      *         found.
      * @throws IOException I/O operation failed
@@ -60,7 +61,7 @@ public interface UVShadow {
     /**
      * Sets value of the specified parameter.
      * 
-     * @param sysId system id
+     * @param sysId     system id
      * @param parameter On-board parameter
      * @throws IOException I/O operation failed
      */
@@ -86,7 +87,7 @@ public interface UVShadow {
     /**
      * Sets the specified mission.
      * 
-     * @param sysId system id
+     * @param sysId   system id
      * @param mission list of mission items
      * @throws IOException I/O operation failed
      */
@@ -102,19 +103,21 @@ public interface UVShadow {
     List<msg_mission_item> getMission(int sysId) throws IOException;
 
     /**
-     * Updates the reported state of the vehicle. 
+     * Updates the reported state of the vehicle.
      * 
-     * @param msg state report received from the vehicle
+     * @param msg   state report received from the vehicle
+     * @param times Unix Epoch report time
      * @throws IOException I/O operation failed
      */
-    void updateReportedState(msg_high_latency msg) throws IOException;
+    void updateReportedState(msg_high_latency msg, long time) throws IOException;
 
     /**
      * Returns the last reported state.
      * 
-     * @param sysId system ID
-     * @return the last reported state
+     * @param sysId system id
+     * @return report time and the last reported state pair or null if there were no
+     *         state reports.
      * @throws IOException I/O operation failed
      */
-    msg_high_latency getLastReportedState(int sysId) throws IOException;
+    Entry<Long, msg_high_latency> getLastReportedState(int sysId) throws IOException;
 }

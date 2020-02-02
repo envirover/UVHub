@@ -32,10 +32,10 @@ public interface UVLogbook {
      * Adds the report to the state report log.
      * 
      * @param msg       state report received from the vehicle
-     * @param timestamp Unix Epoch report time
+     * @param times Unix Epoch report time
      * @throws IOException I/O operation failed
      */
-    void addReportedState(msg_high_latency msg, long timestamp) throws IOException;
+    void addReportedState(msg_high_latency msg, long time) throws IOException;
 
     /**
      * Retrieves state reports for the specified system.
