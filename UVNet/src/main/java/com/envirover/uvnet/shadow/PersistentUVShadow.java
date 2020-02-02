@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpHost;
@@ -58,7 +57,6 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 
-import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_log_entry;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_param_set;
@@ -372,16 +370,20 @@ public class PersistentUVShadow implements UVShadow, UVLogbook {
     }
 
     @Override
-    public void updateReportedState(msg_high_latency msg, long time) throws IOException {
+    public void updateReportedState(StateReport state) throws IOException {
+        if (state == null) {
+            return;
+        }
+
         open();
 
         // Save the message to the persistent store
         IndexRequest indexRequest = org.elasticsearch.client.Requests.indexRequest(STATES_INDEX_NAME);
         indexRequest.type(DOCUMENT_TYPE);
-        indexRequest.id(Integer.toString(msg.sysid));
+        indexRequest.id(Integer.toString(state.getState().sysid));
 
         try {
-            String source = JsonSerializer.toJSON(msg, Long.valueOf(time));
+            String source = JsonSerializer.toJSON(state);
             indexRequest.source(source, XContentType.JSON);
         } catch (IllegalArgumentException | IllegalAccessException e) {
             throw new IOException(e);
@@ -391,16 +393,20 @@ public class PersistentUVShadow implements UVShadow, UVLogbook {
     }
 
     @Override
-    public void addReportedState(msg_high_latency msg, long timestamp) throws IOException {
+    public void addReportedState(StateReport state) throws IOException {
+        if (state == null) {
+            return;
+        }
+
         open();
 
         // Save the message to the persistent store
         IndexRequest indexRequest = org.elasticsearch.client.Requests.indexRequest(LOGS_INDEX_NAME);
         indexRequest.type(DOCUMENT_TYPE);
-        indexRequest.id(Long.toString(timestamp));
+        indexRequest.id(Long.toString(state.getTime()));
 
         try {
-            String source = JsonSerializer.toJSON(msg, timestamp);
+            String source = JsonSerializer.toJSON(state);
             indexRequest.source(source, XContentType.JSON);
         } catch (IllegalArgumentException | IllegalAccessException e) {
             throw new IOException(e);
@@ -411,7 +417,7 @@ public class PersistentUVShadow implements UVShadow, UVLogbook {
     }
 
     @Override
-    public Entry<Long, msg_high_latency> getLastReportedState(int sysId) throws IOException {
+    public StateReport getLastReportedState(int sysId) throws IOException {
         open();
 
         String id = Integer.toString(sysId);
@@ -430,7 +436,7 @@ public class PersistentUVShadow implements UVShadow, UVLogbook {
     }
 
     @Override
-    public List<Entry<Long, msg_high_latency>> getReportedStates(int sysId, Long startTime, Long endTime, int top)
+    public List<StateReport> getReportedStates(int sysId, Long startTime, Long endTime, int top)
             throws IOException {
         open();
 
@@ -464,10 +470,10 @@ public class PersistentUVShadow implements UVShadow, UVLogbook {
         SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
         SearchHits hits = searchResponse.getHits();
 
-        List<Entry<Long, msg_high_latency>> result = new ArrayList<Entry<Long, msg_high_latency>>();
+        List<StateReport> result = new ArrayList<StateReport>();
 
         for (Iterator<SearchHit> iter = hits.iterator(); iter.hasNext();) {
-            Entry<Long, msg_high_latency> stateReport = JsonSerializer.stateReportFromJSON(iter.next().getSourceAsString());
+            StateReport stateReport = JsonSerializer.stateReportFromJSON(iter.next().getSourceAsString());
             result.add(stateReport);
         }
 

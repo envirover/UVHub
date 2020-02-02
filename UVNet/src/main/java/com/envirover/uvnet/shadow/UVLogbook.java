@@ -19,9 +19,7 @@ package com.envirover.uvnet.shadow;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map.Entry;
 
-import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_log_entry;
 
 /**
@@ -31,11 +29,11 @@ public interface UVLogbook {
     /**
      * Adds the report to the state report log.
      * 
-     * @param msg       state report received from the vehicle
+     * @param state state report received from the vehicle
      * @param times Unix Epoch report time
      * @throws IOException I/O operation failed
      */
-    void addReportedState(msg_high_latency msg, long time) throws IOException;
+    void addReportedState(StateReport state) throws IOException;
 
     /**
      * Retrieves state reports for the specified system.
@@ -47,7 +45,7 @@ public interface UVLogbook {
      * @return List of <timestamp, state report> pairs
      * @throws IOException in case of I/O exception
      */
-    List<Entry<Long, msg_high_latency>> getReportedStates(int sysId, Long startTime, Long endTime, int top)
+    List<StateReport> getReportedStates(int sysId, Long startTime, Long endTime, int top)
             throws IOException;
 
     /**

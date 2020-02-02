@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -45,6 +44,7 @@ import com.envirover.geojson.LineString;
 import com.envirover.geojson.Point;
 import com.envirover.spl.uvtracks.Config;
 import com.envirover.uvnet.shadow.PersistentUVShadow;
+import com.envirover.uvnet.shadow.StateReport;
 import com.envirover.uvnet.shadow.UVLogbook;
 import com.envirover.uvnet.shadow.UVShadow;
 
@@ -114,7 +114,7 @@ public class UVTracksResourceV2 {
             sysid = Config.getInstance().getMavSystemId();
         }
 
-        List<Entry<Long, msg_high_latency>> reportedStates = logbook.getReportedStates(sysid, startTime, endTime, top);
+        List<StateReport> reportedStates = logbook.getReportedStates(sysid, startTime, endTime, top);
 
         if (geometryType.equalsIgnoreCase("Line")) {
             return reportsToLineFeature(reportedStates);
@@ -202,10 +202,10 @@ public class UVTracksResourceV2 {
 
         FeatureCollection features = new FeatureCollection();
 
-        Entry<Long, msg_high_latency> entry = shadow.getLastReportedState(sysid);
+        StateReport stateReport = shadow.getLastReportedState(sysid);
 
-        if (entry != null) {
-            features.getFeatures().add(reportToPointFeature(entry));
+        if (stateReport != null) {
+            features.getFeatures().add(reportToPointFeature(stateReport));
         }
 
         return features;
@@ -300,11 +300,11 @@ public class UVTracksResourceV2 {
         return features;
     }
 
-    private static Feature reportToPointFeature(Entry<Long, msg_high_latency> reportedState)
+    private static Feature reportToPointFeature(StateReport reportedState)
             throws IllegalArgumentException, IllegalAccessException {
         Geometry geometry;
 
-        msg_high_latency msg = reportedState.getValue();
+        msg_high_latency msg = reportedState.getState();
 
         msg_high_latency hl = (msg_high_latency) msg;
         geometry = new Point(hl.longitude / 1.0E7, hl.latitude / 1.0E7, (double) hl.altitude_amsl);
@@ -323,30 +323,30 @@ public class UVTracksResourceV2 {
             }
         }
 
-        properties.put("time", Long.valueOf(reportedState.getKey()));
+        properties.put("time", Long.valueOf(reportedState.getTime()));
 
         return new Feature(geometry, properties);
     }
 
     // Converts HIGH_LATENCY message to Point GeoJSON feature.
-    private static FeatureCollection reportsToPointFeatures(List<Entry<Long, msg_high_latency>> reportedStates)
+    private static FeatureCollection reportsToPointFeatures(List<StateReport> reportedStates)
             throws IllegalArgumentException, IllegalAccessException {
         FeatureCollection features = new FeatureCollection();
 
-        for (Entry<Long, msg_high_latency> entry : reportedStates) {
-            features.getFeatures().add(reportToPointFeature(entry));
+        for (StateReport stateReport : reportedStates) {
+            features.getFeatures().add(reportToPointFeature(stateReport));
         }
 
         return features;
     }
 
     // Converts list of HIGH_LATENCY message to LineString GeoJSON feature.
-    private static FeatureCollection reportsToLineFeature(List<Entry<Long, msg_high_latency>> reportedStates) {
+    private static FeatureCollection reportsToLineFeature(List<StateReport> reportedStates) {
 
         List<List<Double>> coordinates = new ArrayList<List<Double>>();
 
-        for (Entry<Long, msg_high_latency> entry : reportedStates) {
-            msg_high_latency hl = entry.getValue();
+        for (StateReport entry : reportedStates) {
+            msg_high_latency hl = entry.getState();
             if (hl.longitude != 0 || hl.latitude != 0) {
                 List<Double> point = new ArrayList<Double>();
                 point.add(hl.longitude / 1.0E7);
@@ -361,8 +361,8 @@ public class UVTracksResourceV2 {
         properties.put("length", getGeodesicLength(coordinates));
 
         if (reportedStates.size() > 0) {
-            properties.put("from_time", reportedStates.get(0).getKey());
-            properties.put("to_time", reportedStates.get(reportedStates.size() - 1).getKey());
+            properties.put("from_time", reportedStates.get(0).getTime());
+            properties.put("to_time", reportedStates.get(reportedStates.size() - 1).getTime());
         } else {
             properties.put("from_time", 0);
             properties.put("to_time", 0);

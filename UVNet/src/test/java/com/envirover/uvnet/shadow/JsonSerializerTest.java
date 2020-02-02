@@ -2,7 +2,6 @@ package com.envirover.uvnet.shadow;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.Map.Entry;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -15,7 +14,7 @@ import com.MAVLink.enums.MAV_COMPONENT;
 import com.MAVLink.enums.MAV_PARAM_TYPE;
 
 public class JsonSerializerTest {
-	
+
 	@Test
 	public void testToJSON() throws JsonGenerationException, JsonMappingException, IllegalArgumentException, IllegalAccessException, IOException {
 		msg_param_value paramValue = new msg_param_value();
@@ -27,27 +26,28 @@ public class JsonSerializerTest {
 		paramValue.param_type = MAV_PARAM_TYPE.MAV_PARAM_TYPE_REAL32;
 		paramValue.param_value = (float)123.456;
 
-		String json = JsonSerializer.toJSON(paramValue, new Date().getTime());
+		String json = JsonSerializer.toJSON(paramValue);
 		
 		System.out.println(json);
 		
-		json = JsonSerializer.toJSON(getSamplePacket().unpack(), new Date().getTime());
+		json = JsonSerializer.toJSON(new StateReport(new Date().getTime(), 
+		(msg_high_latency)getSamplePacket().unpack()));
 		
 		System.out.println(json);
 		
-		Entry<Long, msg_high_latency> entry = JsonSerializer.stateReportFromJSON(json);
-		System.out.print(entry.getKey());
+		StateReport stateReport = JsonSerializer.stateReportFromJSON(json);
+		System.out.print(stateReport.getTime());
 		System.out.print(" : ");
-		System.out.println(entry.getValue());
+		System.out.println(stateReport.getState());
 	}
 
-    private MAVLinkPacket getSamplePacket() {
-        msg_high_latency msg = new msg_high_latency();
-        msg.latitude = 523867;
-        msg.longitude = 2938;
-        msg.altitude_amsl = 400;
-        msg.sysid = 1;
-        msg.compid = 0;
-        return msg.pack();
-    }
+	private MAVLinkPacket getSamplePacket() {
+		msg_high_latency msg = new msg_high_latency();
+		msg.latitude = 523867;
+		msg.longitude = 2938;
+		msg.altitude_amsl = 400;
+		msg.sysid = 1;
+		msg.compid = 0;
+		return msg.pack();
+	}
 }

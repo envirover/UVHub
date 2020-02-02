@@ -19,9 +19,7 @@ package com.envirover.uvnet.shadow;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map.Entry;
 
-import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_param_value;
@@ -105,19 +103,17 @@ public interface UVShadow {
     /**
      * Updates the reported state of the vehicle.
      * 
-     * @param msg   state report received from the vehicle
-     * @param times Unix Epoch report time
+     * @param state reported state of the vehicle
      * @throws IOException I/O operation failed
      */
-    void updateReportedState(msg_high_latency msg, long time) throws IOException;
+    void updateReportedState(StateReport state) throws IOException;
 
     /**
      * Returns the last reported state.
      * 
      * @param sysId system id
-     * @return report time and the last reported state pair or null if there were no
-     *         state reports.
+     * @return the last reported state or null if there were no state reports.
      * @throws IOException I/O operation failed
      */
-    Entry<Long, msg_high_latency> getLastReportedState(int sysId) throws IOException;
+    StateReport getLastReportedState(int sysId) throws IOException;
 }

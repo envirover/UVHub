@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.junit.After;
 import org.junit.Before;
@@ -119,17 +118,18 @@ public class PersistentUVShadowTest {
 	public void testUpdateReportedState() throws IOException, InterruptedException {
 		MAVLinkPacket packet = getSamplePacket();
 
-		shadow.updateReportedState((msg_high_latency) packet.unpack(), new Date().getTime());
+		StateReport stateReport = new StateReport(new Date().getTime(), (msg_high_latency) packet.unpack());
+		shadow.updateReportedState(stateReport);
 
 		Thread.sleep(1000);
 
 		msg_high_latency originalMsg = (msg_high_latency) packet.unpack();
 
-		Entry<Long, msg_high_latency> entry = shadow.getLastReportedState(TEST_SYSTEM_ID);
+		stateReport = shadow.getLastReportedState(TEST_SYSTEM_ID);
 
-		assert (entry != null);
+		assert (stateReport != null);
 
-		msg_high_latency msg = entry.getValue();
+		msg_high_latency msg = stateReport.getState();
 
 		assert (originalMsg.latitude == msg.latitude);
 		assert (originalMsg.longitude == msg.longitude);
