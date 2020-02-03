@@ -43,7 +43,7 @@ import org.codehaus.jackson.type.TypeReference;
 /**
  * Client class for v2 version of UV Tracks web service.
  */
-class UVTracksClientV2 {
+class UVTracksV2Client {
     // Environment variables
     private static final String UVTRACKS_PROTOCOL = "UVTRACKS_PROTOCOL";
     private static final String UVTRACKS_HOSTNAME = "UVTRACKS_HOSTNAME";
@@ -58,9 +58,9 @@ class UVTracksClientV2 {
     private HttpClient httpclient = HttpClients.createDefault();
 
     /**
-     * Constructs UVTracksClientV2.
+     * Constructs UVTracksClient.
      */
-    public UVTracksClientV2() {
+    public UVTracksV2Client() {
         if (System.getenv(UVTRACKS_PROTOCOL) != null) {
             this.protocol = System.getenv(UVTRACKS_PROTOCOL);
         }
@@ -75,13 +75,13 @@ class UVTracksClientV2 {
     }
 
     /**
-     * Constructs UVTracksClientV2 with the specified URI attributes.
+     * Constructs UVTracksClient with the specified URI attributes.
      * 
      * @param protocol UV Tracks service protocol (http|https)
      * @param hostname UVTracks service hostname
      * @param port     UVTracks service port
      */
-    public UVTracksClientV2(String protocol, String hostname, int port) {
+    public UVTracksV2Client(String protocol, String hostname, int port) {
         this.protocol = protocol;
         this.hostname = hostname;
         this.port = port;

@@ -2,7 +2,7 @@ package com.envirover;
 
 import com.envirover.uvhub.UVHubTest;
 import com.envirover.uvtracks.UVTracksTest;
-import com.envirover.uvtracks.UVTracksTestV2;
+import com.envirover.uvtracks.UVTracksV2Test;
 
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
@@ -12,7 +12,7 @@ class TestRunner {
     public static void main(String[] args) {
         System.out.println("UV Hub and UV Tracks integration test.");
 
-        Result result = JUnitCore.runClasses(UVHubTest.class, UVTracksTest.class, UVTracksTestV2.class);
+        Result result = JUnitCore.runClasses(UVHubTest.class, UVTracksTest.class, UVTracksV2Test.class);
 
         if (result.wasSuccessful()) {
             System.out.println(

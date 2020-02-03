@@ -24,7 +24,6 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 import com.envirover.geojson.FeatureCollection;
-import com.envirover.uvnet.mission.Plan;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.logging.log4j.LogManager;
@@ -34,11 +33,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 // UV Tracks v2 web service integration test
-public class UVTracksTestV2 {
+public class UVTracksV2Test {
 
-    private final static Logger logger = LogManager.getLogger(UVTracksTestV2.class);
+    private final static Logger logger = LogManager.getLogger(UVTracksV2Test.class);
 
-    UVTracksClientV2 uvTracks = new UVTracksClientV2();
+    UVTracksV2Client uvTracks = new UVTracksV2Client();
 
     @BeforeClass
     public static void setUpClass() throws Exception {
