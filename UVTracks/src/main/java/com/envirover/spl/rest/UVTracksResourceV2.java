@@ -360,8 +360,8 @@ public class UVTracksResourceV2 {
         properties.put("length", getGeodesicLength(coordinates));
 
         if (reportedStates.size() > 0) {
-            properties.put("from_time", reportedStates.get(reportedStates.size() - 1).getTime()).getTime());
-            properties.put("to_time", reportedStates.get(0));
+            properties.put("from_time", reportedStates.get(reportedStates.size() - 1).getTime());
+            properties.put("to_time", reportedStates.get(0).getTime());
         } else {
             properties.put("from_time", 0);
             properties.put("to_time", 0);
