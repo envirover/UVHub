@@ -99,9 +99,9 @@ public class UVTracksResourceV2 {
      * @param top          maximum number of points returned
      * @param geometryType GeoJSON features geometry type <point|line>
      * @return GeoJSON feature collection
-     * @throws IOException              on I/O error
-     * @throws IllegalAccessException
-     * @throws IllegalArgumentException
+     * @throws IOException on I/O error
+     * @throws IllegalAccessException if UV Logs is not accessible
+     * @throws IllegalArgumentException if a parameter value is invalid
      */
     @GET
     @Path("/tracks")
@@ -117,7 +117,7 @@ public class UVTracksResourceV2 {
         List<StateReport> reportedStates = logbook.getReportedStates(sysid, startTime, endTime, top);
 
         if (geometryType.equalsIgnoreCase("Line")) {
-            return reportsToLineFeature(reportedStates);
+            return reportsToLineFeature(sysid, reportedStates);
         }
 
         return reportsToPointFeatures(reportedStates);
@@ -130,9 +130,9 @@ public class UVTracksResourceV2 {
      * @param sysid        sysid system Id. Default value is 1.
      * @param geometryType GeoJSON features geometry type <point|line>
      * @return GeoJSON feature collection
-     * @throws IOException              in case of I/O error
-     * @throws IllegalAccessException
-     * @throws IllegalArgumentException
+     * @throws IOException in case of I/O error
+     * @throws IllegalAccessException if UV Shadow is not accessible
+     * @throws IllegalArgumentException if a parameter value is invalid
      */
     @GET
     @Path("/missions")
@@ -147,7 +147,7 @@ public class UVTracksResourceV2 {
         List<msg_mission_item> missions = shadow.getMission(sysid);
 
         if (geometryType.equalsIgnoreCase("Line")) {
-            return missionsToLineFeature(missions);
+            return missionsToLineFeature(sysid, missions);
         }
 
         return missionsToPointFeatures(missions);
@@ -170,10 +170,10 @@ public class UVTracksResourceV2 {
 
         List<msg_param_value> params = shadow.getParams(sysid);
 
-        Map<String, Double> parameters = new HashMap<String, Double>();
+        Map<String, Double> parameters = new HashMap<>();
 
         for (msg_param_value param : params) {
-            parameters.put(param.getParam_Id(), Double.valueOf(param.param_value));
+            parameters.put(param.getParam_Id(), (double) param.param_value);
         }
 
         return parameters;
@@ -188,8 +188,8 @@ public class UVTracksResourceV2 {
      * @param sysid system Id. Default value is 1.
      * @return last reported state of the vehicle
      * @throws IOException in case of I/O error
-     * @throws IllegalArgumentException
-     * @throws IllegalAccessException
+     * @throws IllegalArgumentException if a parameter value is invalid
+     * @throws IllegalAccessException if UV Shadow is not accessible
      */
     @GET
     @Path("/state")
@@ -260,7 +260,7 @@ public class UVTracksResourceV2 {
 
             Geometry geometry = getMissionCoordinates(missions, i);
 
-            Map<String, Object> properties = new HashMap<String, Object>();
+            Map<String, Object> properties = new HashMap<>();
 
             for (Field f : mission.getClass().getFields()) {
                 if (!Modifier.isFinal(f.getModifiers())) {
@@ -281,18 +281,17 @@ public class UVTracksResourceV2 {
     }
 
     // Converts list of MISSION_ITEMs to GeoJSON LineString feature
-    private static FeatureCollection missionsToLineFeature(List<msg_mission_item> missions) {
-        List<List<Double>> coordinates = new ArrayList<List<Double>>();
+    private static FeatureCollection missionsToLineFeature(Integer sysid, List<msg_mission_item> missions) {
+        List<List<Double>> coordinates = new ArrayList<>();
 
         for (int i = 0; i < missions.size(); i++) {
             coordinates.add(getMissionCoordinates(missions, i).getCoordinates());
         }
 
-        Map<String, Object> properties = new HashMap<String, Object>();
+        Map<String, Object> properties = new HashMap<>();
 
         properties.put("length", getGeodesicLength(coordinates));
-        properties.put("cruise_speed", 0.0);
-        properties.put("hover_speed", 0.0);
+        properties.put("target_system", sysid);
 
         FeatureCollection features = new FeatureCollection();
         features.getFeatures().add(new Feature(new LineString(coordinates), properties));
@@ -306,10 +305,9 @@ public class UVTracksResourceV2 {
 
         msg_high_latency msg = reportedState.getState();
 
-        msg_high_latency hl = (msg_high_latency) msg;
-        geometry = new Point(hl.longitude / 1.0E7, hl.latitude / 1.0E7, (double) hl.altitude_amsl);
+        geometry = new Point(msg.longitude / 1.0E7, msg.latitude / 1.0E7, (double) msg.altitude_amsl);
 
-        Map<String, Object> properties = new HashMap<String, Object>();
+        Map<String, Object> properties = new HashMap<>();
 
         for (Field f : msg.getClass().getFields()) {
             if (!Modifier.isFinal(f.getModifiers())) {
@@ -323,7 +321,7 @@ public class UVTracksResourceV2 {
             }
         }
 
-        properties.put("time", Long.valueOf(reportedState.getTime()));
+        properties.put("time", reportedState.getTime());
 
         return new Feature(geometry, properties);
     }
@@ -341,14 +339,14 @@ public class UVTracksResourceV2 {
     }
 
     // Converts list of HIGH_LATENCY message to LineString GeoJSON feature.
-    private static FeatureCollection reportsToLineFeature(List<StateReport> reportedStates) {
+    private static FeatureCollection reportsToLineFeature(Integer sysid, List<StateReport> reportedStates) {
 
-        List<List<Double>> coordinates = new ArrayList<List<Double>>();
+        List<List<Double>> coordinates = new ArrayList<>();
 
         for (StateReport entry : reportedStates) {
             msg_high_latency hl = entry.getState();
             if (hl.longitude != 0 || hl.latitude != 0) {
-                List<Double> point = new ArrayList<Double>();
+                List<Double> point = new ArrayList<>();
                 point.add(hl.longitude / 1.0E7);
                 point.add(hl.latitude / 1.0E7);
                 point.add((double) hl.altitude_amsl);
@@ -356,8 +354,9 @@ public class UVTracksResourceV2 {
             }
         }
 
-        Map<String, Object> properties = new HashMap<String, Object>();
+        Map<String, Object> properties = new HashMap<>();
 
+        properties.put("sysid", sysid);
         properties.put("length", getGeodesicLength(coordinates));
 
         if (reportedStates.size() > 0) {
@@ -377,11 +376,11 @@ public class UVTracksResourceV2 {
     private static String bytesToString(byte[] bytes) {
         StringBuilder result = new StringBuilder();
 
-        for (int i = 0; i < bytes.length; i++) {
-            if (bytes[i] == 0)
+        for (byte b : bytes) {
+            if (b == 0)
                 break;
 
-            result.append(bytes[i]);
+            result.append(b);
         }
 
         return result.toString();
@@ -404,7 +403,7 @@ public class UVTracksResourceV2 {
     }
 
     private static Double getGeodesicLength(List<List<Double>> coordinates) {
-        Double length = 0.0;
+        double length = 0.0;
 
         for (int i = 0; i < coordinates.size() - 1; i++) {
             length += getGeodesicLength(coordinates.get(i), coordinates.get(i + 1));
