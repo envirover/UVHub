@@ -32,14 +32,22 @@ import com.MAVLink.common.msg_vfr_hud;
 import com.MAVLink.enums.MAV_MODE;
 import com.MAVLink.enums.MAV_STATE;
 
+import org.bson.codecs.pojo.annotations.BsonIgnore;
+
 /**
  * Reported state of the vehicle at specific time.
  * 
  * HIGH_LATENCY MAVlink message is used to store state of the vehicle.
  */
 public class StateReport {
-    private final Long time;
-    private final msg_high_latency state;
+    private Long time = 0L;
+    private msg_high_latency state = new msg_high_latency();
+
+    /**
+     * Default constructor of StateReport used by deserialization.
+     */
+    public StateReport() {
+    }
 
     /**
      * Constructs StateReport instance.
@@ -62,6 +70,15 @@ public class StateReport {
     }
 
     /**
+     * Sets Unix Epoch time of the report.
+     * 
+     * @param time Unix Epoch time of the report
+     */
+    public void setTime(Long time) {
+        this.time = time;
+    }
+
+    /**
      * Returns state of the vehicle.
      * 
      * @return state of the vehicle.
@@ -70,6 +87,16 @@ public class StateReport {
         return state;
     }
 
+    /**
+     * Sets state of the vehicle.
+     * 
+     * @param state state of the vehicle
+     */
+    public void setState(msg_high_latency state) {
+        this.state = state;
+    }
+
+    @BsonIgnore
     public MAVLinkMessage getHeartbeatMsg(int sysid, short autopilot, short mavType) {
         msg_heartbeat msg = new msg_heartbeat();
 
@@ -92,6 +119,7 @@ public class StateReport {
         return msg;
     }
 
+    @BsonIgnore
     public MAVLinkMessage getSysStatusMsg() {
         if (state == null) {
             return null;
@@ -105,6 +133,7 @@ public class StateReport {
         return msg;
     }
 
+    @BsonIgnore
     public MAVLinkMessage getGpsRawIntMsg() {
         if (state == null) {
             return null;
@@ -120,6 +149,7 @@ public class StateReport {
         return msg;
     }
 
+    @BsonIgnore
     public MAVLinkMessage getAttitudeMsg() {
         if (state == null) {
             return null;
@@ -133,6 +163,7 @@ public class StateReport {
         return msg;
     }
 
+    @BsonIgnore
     public MAVLinkMessage getGlobalPositionIntMsg() {
         if (state == null) {
             return null;
@@ -148,6 +179,7 @@ public class StateReport {
         return msg;
     }
 
+    @BsonIgnore
     public MAVLinkMessage getMissionCurrentMsg() {
         if (state == null) {
             return null;
@@ -159,6 +191,7 @@ public class StateReport {
         return msg;
     }
 
+    @BsonIgnore
     public MAVLinkMessage getNavControllerOutputMsg() {
         if (state == null) {
             return null;
@@ -170,6 +203,7 @@ public class StateReport {
         return msg;
     }
 
+    @BsonIgnore
     public MAVLinkMessage getVfrHudMsg() {
         if (state == null) {
             return null;
@@ -186,6 +220,7 @@ public class StateReport {
         return msg;
     }
 
+    @BsonIgnore
     public MAVLinkMessage getBattery2Msg() {
         if (state == null) {
             return null;

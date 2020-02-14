@@ -29,27 +29,24 @@ import org.junit.Test;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.common.msg_high_latency;
+import com.MAVLink.common.msg_log_entry;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_param_value;
 import com.MAVLink.enums.MAV_CMD;
 import com.MAVLink.enums.MAV_FRAME;
 import com.MAVLink.enums.MAV_PARAM_TYPE;
+import com.envirover.uvnet.shadow.impl.PersistentUVShadow;
 
 public class PersistentUVShadowTest {
 
 	private static int TEST_SYSTEM_ID = 2;
 
-	// default property values
-	private final static String DEFAULT_ES_ENDPOINT = "localhost";
-	private final static Integer DEFAULT_ES_PORT = 9200;
-	private final static String DEFAULT_ES_PROTOCOL = "http";
-
 	private PersistentUVShadow shadow = null;
 
 	@Before
 	public void setUp() throws Exception {
-		shadow = new PersistentUVShadow(DEFAULT_ES_ENDPOINT, DEFAULT_ES_PORT, DEFAULT_ES_PROTOCOL);
+		shadow = new PersistentUVShadow();
 		shadow.open();
 	}
 
@@ -90,12 +87,16 @@ public class PersistentUVShadowTest {
 
 		shadow.setParam(TEST_SYSTEM_ID, updatedParam1);
 
-		Thread.sleep(5000);
+		//Thread.sleep(5000);
 
 		assert (shadow.getParamValue(TEST_SYSTEM_ID, "param0", (short) -1).param_value == (float) 123.456);
 		assert (shadow.getParamValue(TEST_SYSTEM_ID, "param1", (short) -1).param_value == (float) 987.654);
 		assert (shadow.getParamValue(TEST_SYSTEM_ID, "", (short) 0).param_value == (float) 123.456);
 		assert (shadow.getParamValue(TEST_SYSTEM_ID, "", (short) 1).param_value == (float) 987.654);
+
+		params = shadow.getParams(TEST_SYSTEM_ID);
+		assert(params.get(0).param_index == 0);
+		assert(params.get(1).param_index == 1);
 	}
 
 	@Test
@@ -121,7 +122,7 @@ public class PersistentUVShadowTest {
 		StateReport stateReport = new StateReport(new Date().getTime(), (msg_high_latency) packet.unpack());
 		shadow.updateReportedState(stateReport);
 
-		Thread.sleep(1000);
+		//Thread.sleep(1000);
 
 		msg_high_latency originalMsg = (msg_high_latency) packet.unpack();
 
@@ -135,6 +136,30 @@ public class PersistentUVShadowTest {
 		assert (originalMsg.longitude == msg.longitude);
 	}
 
+	@Test
+    public void testUVLogbook() throws IOException {
+        PersistentUVShadow shadow = new PersistentUVShadow();
+        shadow.open();
+        
+        StateReport report = new StateReport();
+        report.setTime(new Date().getTime());
+        report.getState().sysid = 1;
+        shadow.addReportedState(report);
+        
+        List<StateReport> reports = shadow.getReportedStates(1, null, null, 1);
+        for (StateReport r : reports) {
+            System.out.println(String.format("%d/%d", r.getState().sysid, r.getTime()));
+        }
+
+        List<msg_log_entry> logs = shadow.getLogs(1);
+        for (msg_log_entry log : logs) {
+            System.out.println(String.format("Count: %d, Time: %d", log.size, log.time_utc));
+        }
+
+        shadow.eraseLogs(1);
+        shadow.close();
+	}
+	
 	private MAVLinkPacket getSamplePacket() {
 		msg_high_latency msg = new msg_high_latency();
 		msg.latitude = 523867;
@@ -152,7 +177,7 @@ public class PersistentUVShadowTest {
 		List<msg_mission_item> mission = new ArrayList<msg_mission_item>();
 
 		msg_mission_item missionItem1 = new msg_mission_item();
-		missionItem1.sysid = TEST_SYSTEM_ID;
+		missionItem1.target_system = (short)TEST_SYSTEM_ID;
 		missionItem1.compid = 0;
 		missionItem1.seq = 0;
 		missionItem1.command = MAV_CMD.MAV_CMD_NAV_TAKEOFF;
@@ -163,7 +188,7 @@ public class PersistentUVShadowTest {
 		mission.add(missionItem1);
 
 		msg_mission_item missionItem2 = new msg_mission_item();
-		missionItem2.sysid = TEST_SYSTEM_ID;
+		missionItem2.target_system = (short)TEST_SYSTEM_ID;
 		missionItem2.compid = 0;
 		missionItem2.seq = 1;
 		missionItem2.command = MAV_CMD.MAV_CMD_NAV_TAKEOFF;

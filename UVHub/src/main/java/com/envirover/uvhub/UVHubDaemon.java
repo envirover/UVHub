@@ -32,7 +32,7 @@ import com.envirover.mavlink.MAVLinkMessageQueue;
 import com.envirover.rockblock.RockBlockClient;
 import com.envirover.rockblock.RockBlockHttpHandler;
 import com.envirover.uvhub.Config;
-import com.envirover.uvnet.shadow.PersistentUVShadow;
+import com.envirover.uvnet.shadow.impl.ElasticUVShadow;
 import com.sun.net.httpserver.HttpServer;
 
 /**
@@ -46,7 +46,7 @@ public class UVHubDaemon implements Daemon {
 
     private final Config config = Config.getInstance();
 
-    private PersistentUVShadow shadow = null;
+    private ElasticUVShadow shadow = null;
     private GCSTcpServer gcsTcpServer = null;
     private RRTcpServer rrTcpServer = null;
     private ShadowTcpServer shadowServer = null;
@@ -67,7 +67,8 @@ public class UVHubDaemon implements Daemon {
         logger.info(String.format("MAV type: %d, MAV system ID: %d, Autopilot class: %d", 
                                   config.getMavType(), config.getMavSystemId(), config.getAutopilot()));
 
-        shadow = new PersistentUVShadow(config.getElasticsearchEndpoint(), config.getElasticsearchPort(),
+        shadow = new ElasticUVShadow(config.getElasticsearchEndpoint(),
+                config.getElasticsearchPort(),
                                         config.getElasticsearchProtocol());
         logger.info(String.format("Connecting to Elasticsearch at %s://%s:%d...", 
                     config.getElasticsearchProtocol(),
