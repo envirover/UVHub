@@ -30,20 +30,14 @@ public class Config {
     private final static String CONFIG_PROPERTIES_FILE = "app.properties";
 
     // Configuration properties
-    private final static String PROP_ES_ENDPOINT = "elasticsearch.endpoint";
-    private final static String PROP_ES_PORT = "elasticsearch.port";
-    private final static String PROP_ES_PROTOCOL = "elasticsearch.protocol";
+    private final static String PROP_SHADOW_CONNECTIONSTRING = "shadow.connectionstring";
     private final static String PROP_MAV_SYSID = "mav.sysid";
 
     // default property values
-    private final static String DEFAULT_ES_ENDPOINT = "localhost";
-    private final static Integer DEFAULT_ES_PORT = 9200;
-    private final static String DEFAULT_ES_PROTOCOL = "http";
+    private final static String DEFAULT_SHADOW_CONNECTIONSTRING = "mongodb://localhost:27017";
     private final static Integer DEFAULT_MAV_SYSID = 1;
 
-    private String esEndpoint = DEFAULT_ES_ENDPOINT;
-    private Integer esPort = DEFAULT_ES_PORT;
-    private String esProtocol = DEFAULT_ES_PROTOCOL;
+    private String shadowConnectionString = DEFAULT_SHADOW_CONNECTIONSTRING;
     private Integer mavSysId = DEFAULT_MAV_SYSID;
 
     private Properties props = new Properties();
@@ -75,31 +69,17 @@ public class Config {
             }
         }  
     
-        if (getProperty(PROP_ES_ENDPOINT) != null)
-            esEndpoint = getProperty(PROP_ES_ENDPOINT);
+        if (getProperty(PROP_SHADOW_CONNECTIONSTRING) != null)
+            shadowConnectionString = getProperty(PROP_SHADOW_CONNECTIONSTRING);
 
-        if (getProperty(PROP_ES_PORT) != null)
-            esPort = Integer.valueOf(getProperty(PROP_ES_PORT));
-
-        if (getProperty(PROP_ES_PROTOCOL) != null)
-            esProtocol = getProperty(PROP_ES_PROTOCOL);
-        
         if (getProperty(PROP_MAV_SYSID) != null)
             mavSysId = Integer.valueOf(getProperty(PROP_MAV_SYSID));    
     }
 
-    public String getElasticsearchEndpoint() {
-        return esEndpoint;
+    public String getShadowConnectionString() {
+        return shadowConnectionString;
     }
 
-    public Integer getElasticsearchPort() {
-        return esPort;
-    }
-
-    public String getElasticsearchProtocol() {
-        return esProtocol;
-    }
-    
     public Integer getMavSystemId() {
         return mavSysId;
     }

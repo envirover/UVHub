@@ -38,7 +38,7 @@ import com.envirover.geojson.Geometry;
 import com.envirover.geojson.Point;
 import com.envirover.spl.uvtracks.Config;
 import com.envirover.uvnet.mission.Plan;
-import com.envirover.uvnet.shadow.impl.ElasticUVShadow;
+import com.envirover.uvnet.shadow.impl.PersistentUVShadow;
 import com.envirover.uvnet.shadow.StateReport;
 import com.envirover.uvnet.shadow.UVLogbook;
 import com.envirover.uvnet.shadow.UVShadow;
@@ -65,8 +65,7 @@ public class UVTracksResource {
             e.printStackTrace();
         }
 
-        ElasticUVShadow shadow = new ElasticUVShadow(config.getElasticsearchEndpoint(),
-                config.getElasticsearchPort(), config.getElasticsearchProtocol());
+        PersistentUVShadow shadow = new PersistentUVShadow(config.getShadowConnectionString());
 
         this.shadow = shadow;
         this.logbook = shadow;
