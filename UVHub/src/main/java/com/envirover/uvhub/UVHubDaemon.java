@@ -72,7 +72,7 @@ public class UVHubDaemon implements Daemon {
 
         shadow.open();
 
-        logger.info("Connected to Elasticsearch.");
+        logger.info("Connected to MongoDB.");
 
         // Load default on-board parameters for the MAV_TYPE and AUTOPILOT
         List<msg_param_value> params = OnBoardParams.getDefaultParams(config.getMavType(),
