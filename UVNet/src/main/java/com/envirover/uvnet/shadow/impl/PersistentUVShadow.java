@@ -19,6 +19,7 @@ package com.envirover.uvnet.shadow.impl;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import com.MAVLink.common.msg_log_entry;
@@ -149,7 +150,7 @@ public class PersistentUVShadow implements UVShadow, UVLogbook {
     }
 
     @Override
-    public List<StateReport> getReportedStates(int sysId, Long startTime, Long endTime, int top) throws IOException {
+    public List<StateReport> getReportedStates(int sysId, Date startTime, Date endTime, int top) throws IOException {
         open();
 
         Bson filter = eq(STATE_REPORTS_SYSID, sysId);
@@ -182,7 +183,7 @@ public class PersistentUVShadow implements UVShadow, UVLogbook {
             log_entry.id = 1;
             log_entry.last_log_num = 1;
             log_entry.num_logs = 1;
-            log_entry.time_utc = report.getTime() / 1000;
+            log_entry.time_utc = report.getTime().getTime() / 1000;
             log_entry.size = tracksCollection.countDocuments(filter);
 
             logs.add(log_entry);

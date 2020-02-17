@@ -23,7 +23,6 @@ import java.util.Date;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.common.msg_command_ack;
-import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_mission_ack;
 import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_param_value;
@@ -54,7 +53,8 @@ public class MOMessageHandler implements MAVLinkChannel {
     private final UVShadow shadow;
     private final UVLogbook logbook;
 
-    private long last_report_time = 0L;
+    private final StateReport report = new StateReport();
+    private Date last_report_time = new Date(0L);
 
     /**
      * Constructs instance of MOMessageHandler.
@@ -86,21 +86,9 @@ public class MOMessageHandler implements MAVLinkChannel {
         }
 
         switch (packet.msgid) {
-        case msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY:
-            // Milliseconds elapsed since the last report
-            long time = new Date().getTime();
-            float elapsed = time - last_report_time;
+        // case msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY:
 
-            StateReport state = new StateReport(time, (msg_high_latency) packet.unpack());
-            shadow.updateReportedState(state);
-
-            // Log the report if HL_REPORT_PERIOD parameter value seconds elapsed
-            if (elapsed >= getReportPeriod(packet.sysid) * 1000.0) {
-                logbook.addReportedState(state);
-                last_report_time = time;
-            }
-
-            break;
+        // break;
         case msg_command_ack.MAVLINK_MSG_ID_COMMAND_ACK:
             // Replace the COMMAND_ACK message by STATUS_TEXT message.
             sendCommandAck(packet);
@@ -120,6 +108,21 @@ public class MOMessageHandler implements MAVLinkChannel {
             shadow.setMission(mission_ack.sysid, shadow.getDesiredMission());
             break;
         default:
+            // Update the reported state
+            if (StateCodec.update(report, packet.unpack())) {
+                // Milliseconds elapsed since the last report
+                Date time = new Date();
+                report.setTime(time);
+                shadow.updateReportedState(report);
+
+                // Log the report if HL_REPORT_PERIOD parameter value seconds elapsed
+                float elapsed = time.getTime() - last_report_time.getTime();
+                if (elapsed >= getReportPeriod(packet.sysid) * 1000.0) {
+                    logbook.addReportedState(report);
+                    last_report_time = time;
+                }
+            }
+
             dst.sendMessage(packet);
         }
     }

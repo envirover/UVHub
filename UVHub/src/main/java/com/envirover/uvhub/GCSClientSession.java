@@ -378,16 +378,10 @@ public class GCSClientSession implements ClientSession {
         StateReport stateReport = shadow.getLastReportedState(Config.getInstance().getMavSystemId());
 
         if (stateReport != null) {
-            sendToSource(
-                    stateReport.getHeartbeatMsg(config.getMavSystemId(), config.getAutopilot(), config.getMavType()));
-            sendToSource(stateReport.getSysStatusMsg());
-            sendToSource(stateReport.getGpsRawIntMsg());
-            sendToSource(stateReport.getAttitudeMsg());
-            sendToSource(stateReport.getGlobalPositionIntMsg());
-            sendToSource(stateReport.getMissionCurrentMsg());
-            sendToSource(stateReport.getNavControllerOutputMsg());
-            sendToSource(stateReport.getVfrHudMsg());
-            sendToSource(stateReport.getBattery2Msg());
+            List<MAVLinkMessage> messages = StateCodec.getMessages(stateReport);
+            for (MAVLinkMessage msg : messages) {
+                sendToSource(msg);
+            }
         }
     }
 

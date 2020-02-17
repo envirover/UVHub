@@ -18,21 +18,9 @@
 
 package com.envirover.uvnet.shadow;
 
-import com.MAVLink.Messages.MAVLinkMessage;
-import com.MAVLink.ardupilotmega.msg_battery2;
-import com.MAVLink.common.msg_attitude;
-import com.MAVLink.common.msg_global_position_int;
-import com.MAVLink.common.msg_gps_raw_int;
-import com.MAVLink.common.msg_heartbeat;
-import com.MAVLink.common.msg_high_latency;
-import com.MAVLink.common.msg_mission_current;
-import com.MAVLink.common.msg_nav_controller_output;
-import com.MAVLink.common.msg_sys_status;
-import com.MAVLink.common.msg_vfr_hud;
-import com.MAVLink.enums.MAV_MODE;
-import com.MAVLink.enums.MAV_STATE;
+import java.util.Date;
 
-import org.bson.codecs.pojo.annotations.BsonIgnore;
+import com.MAVLink.common.msg_high_latency;
 
 /**
  * Reported state of the vehicle at specific time.
@@ -40,7 +28,7 @@ import org.bson.codecs.pojo.annotations.BsonIgnore;
  * HIGH_LATENCY MAVlink message is used to store state of the vehicle.
  */
 public class StateReport {
-    private Long time = 0L;
+    private Date time = new Date();
     private msg_high_latency state = new msg_high_latency();
 
     /**
@@ -52,29 +40,29 @@ public class StateReport {
     /**
      * Constructs StateReport instance.
      * 
-     * @param time  Unix Epoch time of the report
+     * @param time time of the report
      * @param state state of the vehicle
      */
-    public StateReport(Long time, msg_high_latency state) {
+    public StateReport(Date time, msg_high_latency state) {
         this.time = time;
         this.state = state;
     }
 
     /**
-     * Returns Unix Epoch time of the report.
+     * Returns time of the report.
      * 
-     * @return Unix Epoch time of the report
+     * @return time of the report
      */
-    public Long getTime() {
+    public Date getTime() {
         return time;
     }
 
     /**
-     * Sets Unix Epoch time of the report.
+     * Sets time of the report.
      * 
-     * @param time Unix Epoch time of the report
+     * @param time time of the report
      */
-    public void setTime(Long time) {
+    public void setTime(Date time) {
         this.time = time;
     }
 
@@ -94,143 +82,6 @@ public class StateReport {
      */
     public void setState(msg_high_latency state) {
         this.state = state;
-    }
-
-    @BsonIgnore
-    public MAVLinkMessage getHeartbeatMsg(int sysid, short autopilot, short mavType) {
-        msg_heartbeat msg = new msg_heartbeat();
-
-        if (state != null) {
-            msg.sysid = state.sysid;
-            msg.compid = state.compid;
-            msg.base_mode = state.base_mode;
-            msg.custom_mode = state.custom_mode;
-        } else {
-            msg.sysid = sysid;
-            msg.compid = 0;
-            msg.base_mode = MAV_MODE.MAV_MODE_PREFLIGHT;
-            msg.custom_mode = 0;
-        }
-
-        msg.system_status = MAV_STATE.MAV_STATE_ACTIVE;
-        msg.autopilot = autopilot;
-        msg.type = mavType;
-
-        return msg;
-    }
-
-    @BsonIgnore
-    public MAVLinkMessage getSysStatusMsg() {
-        if (state == null) {
-            return null;
-        }
-
-        msg_sys_status msg = new msg_sys_status();
-        msg.sysid = state.sysid;
-        msg.battery_remaining = (byte) state.battery_remaining;
-        msg.voltage_battery = state.temperature * 1000;
-        msg.current_battery = state.temperature_air < 0 ? -1 : (short) (state.temperature_air * 100);
-        return msg;
-    }
-
-    @BsonIgnore
-    public MAVLinkMessage getGpsRawIntMsg() {
-        if (state == null) {
-            return null;
-        }
-
-        msg_gps_raw_int msg = new msg_gps_raw_int();
-        msg.sysid = state.sysid;
-        msg.fix_type = state.gps_fix_type;
-        msg.satellites_visible = state.gps_nsat;
-        msg.lat = state.latitude;
-        msg.lon = state.longitude;
-        msg.alt = state.altitude_amsl * 1000;
-        return msg;
-    }
-
-    @BsonIgnore
-    public MAVLinkMessage getAttitudeMsg() {
-        if (state == null) {
-            return null;
-        }
-
-        msg_attitude msg = new msg_attitude();
-        msg.sysid = state.sysid;
-        msg.yaw = (float) Math.toRadians(state.heading / 100.0);
-        msg.pitch = (float) Math.toRadians(state.pitch / 100.0);
-        msg.roll = (float) Math.toRadians(state.roll / 100.0);
-        return msg;
-    }
-
-    @BsonIgnore
-    public MAVLinkMessage getGlobalPositionIntMsg() {
-        if (state == null) {
-            return null;
-        }
-
-        msg_global_position_int msg = new msg_global_position_int();
-        msg.sysid = state.sysid;
-        msg.alt = state.altitude_amsl * 1000;
-        msg.lat = state.latitude;
-        msg.lon = state.longitude;
-        msg.hdg = state.heading;
-        msg.relative_alt = state.altitude_sp * 1000;
-        return msg;
-    }
-
-    @BsonIgnore
-    public MAVLinkMessage getMissionCurrentMsg() {
-        if (state == null) {
-            return null;
-        }
-
-        msg_mission_current msg = new msg_mission_current();
-        msg.sysid = state.sysid;
-        msg.seq = state.wp_num;
-        return msg;
-    }
-
-    @BsonIgnore
-    public MAVLinkMessage getNavControllerOutputMsg() {
-        if (state == null) {
-            return null;
-        }
-
-        msg_nav_controller_output msg = new msg_nav_controller_output();
-        msg.sysid = state.sysid;
-        msg.nav_bearing = (short) (state.heading_sp / 100);
-        return msg;
-    }
-
-    @BsonIgnore
-    public MAVLinkMessage getVfrHudMsg() {
-        if (state == null) {
-            return null;
-        }
-
-        msg_vfr_hud msg = new msg_vfr_hud();
-        msg.sysid = state.sysid;
-        msg.airspeed = state.airspeed;
-        msg.alt = state.altitude_amsl;
-        msg.climb = state.climb_rate;
-        msg.groundspeed = state.groundspeed;
-        msg.heading = (short) (state.heading / 100);
-        msg.throttle = state.throttle;
-        return msg;
-    }
-
-    @BsonIgnore
-    public MAVLinkMessage getBattery2Msg() {
-        if (state == null) {
-            return null;
-        }
-
-        msg_battery2 msg = new msg_battery2();
-        msg.sysid = state.sysid;
-        msg.current_battery = -1;
-        msg.voltage = state.temperature_air * 1000;
-        return msg;
     }
 
 }
