@@ -53,7 +53,7 @@ services:
       - "ROCKBLOCK_PASSWORD=${ROCKBLOCK_PASSWORD}"
       - "MAV_AUTOPILOT=3"
       - "MAT_TYPE=2"
-      - "ELASTICSEARCH_ENDPOINT=elasticsearch"
+      - "SHADOW_CONNECTIONSTRING=mongodb://mongo:27017"
 ```
 
 Run
@@ -78,7 +78,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - "ELASTICSEARCH_ENDPOINT=elasticsearch"
+      - "SHADOW_CONNECTIONSTRING=mongodb://mongo:27017"
 ```
 
 Run

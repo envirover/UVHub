@@ -38,7 +38,7 @@ public class Config {
     private final static String PROP_QUEUE_SIZE = "queue.size";
     private final static String PROP_ROCKBLOCK_PORT = "rockblock.port";
     private final static String PROP_MAVLINK_PORT = "mavlink.port";
-    private final static String PROP_SHADOW_PORT = "shadow.port";
+    private final static String PROP_SHADOW_CONNECTIONSTRING = "shadow.connectionstring";
     private final static String PROP_ROCKBLOCK_URL = "rockblock.url";
     private final static String PROP_ROCKBLOCK_IMEI = "rockblock.imei";
     private final static String PROP_ROCKBLOCK_USERNAME = "rockblock.username";
@@ -47,9 +47,6 @@ public class Config {
     private final static String PROP_MAV_AUTOPILOT = "mav.autopilot";
     private final static String PROP_MAV_TYPE = "mav.type";
     private final static String PROP_MAV_SYSID = "mav.sysid";
-    private final static String PROP_ES_ENDPOINT = "elasticsearch.endpoint";
-    private final static String PROP_ES_PORT = "elasticsearch.port";
-    private final static String PROP_ES_PROTOCOL = "elasticsearch.protocol";
 
     // default property values
     private final static String DEFAULT_ROCKBLOCK_URL = "https://core.rock7.com/rockblock/MT";
@@ -59,13 +56,11 @@ public class Config {
     private final static Integer DEFAULT_MAVLINK_PORT = 5760;
     private final static Integer DEFAULT_SHADOW_PORT = 5757;
     private final static Integer DEFAULT_QUEUE_SIZE = 1000;
-    private final static Integer DEFAULT_HEARTBEAT_INT = 1000;
+    private final static Integer DEFAULT_HEARTBEAT_INT = 500; //ms
     private final static Short DEFAULT_AUTOPILOT = MAV_AUTOPILOT.MAV_AUTOPILOT_ARDUPILOTMEGA;
     private final static Short DEFAULT_MAV_TYPE = MAV_TYPE.MAV_TYPE_GROUND_ROVER;
     private final static Integer DEFAULT_MAV_SYSID = 1;
-    private final static String DEFAULT_ES_ENDPOINT = "localhost";
-    private final static Integer DEFAULT_ES_PORT = 9200;
-    private final static String DEFAULT_ES_PROTOCOL = "http";
+    private final static String DEFAULT_SHADOW_CONNECTIONSTRING = "mongodb://localhost:27017";
     private final static Float DEFAULT_HL_REPORT_PERIOD = 60.0F; // 1 minute
 
     private String rockblockUrl = DEFAULT_ROCKBLOCK_URL;
@@ -82,9 +77,7 @@ public class Config {
     private Short autopilot = DEFAULT_AUTOPILOT;
     private Short mavType = DEFAULT_MAV_TYPE;
     private Integer mavSysId = DEFAULT_MAV_SYSID;
-    private String esEndpoint = DEFAULT_ES_ENDPOINT;
-    private Integer esPort = DEFAULT_ES_PORT;
-    private String esProtocol = DEFAULT_ES_PROTOCOL;
+    private String shadowConnectionString = DEFAULT_SHADOW_CONNECTIONSTRING;
     private Properties props = new Properties();
 
     private static final Config config = new Config();
@@ -123,8 +116,8 @@ public class Config {
         if (getProperty(PROP_MAVLINK_PORT) != null)
             mavlinkPort = Integer.valueOf(getProperty(PROP_MAVLINK_PORT));
 
-        if (getProperty(PROP_SHADOW_PORT) != null)
-            shadowPort = Integer.valueOf(getProperty(PROP_SHADOW_PORT));
+        if (getProperty(PROP_SHADOW_CONNECTIONSTRING) != null)
+            shadowConnectionString = getProperty(PROP_SHADOW_CONNECTIONSTRING);
 
         if (getProperty(PROP_QUEUE_SIZE) != null)
             queueSize = Integer.valueOf(getProperty(PROP_QUEUE_SIZE));
@@ -134,15 +127,6 @@ public class Config {
 
         if (getProperty(PROP_ROCKBLOCK_URL) != null)
             rockblockUrl = getProperty(PROP_ROCKBLOCK_URL);
-
-        if (getProperty(PROP_ES_ENDPOINT) != null)
-            esEndpoint = getProperty(PROP_ES_ENDPOINT);
-
-        if (getProperty(PROP_ES_PORT) != null)
-            esPort = Integer.valueOf(getProperty(PROP_ES_PORT));
-
-        if (getProperty(PROP_ES_PROTOCOL) != null)
-            esProtocol = getProperty(PROP_ES_PROTOCOL);
 
         if (getProperty(PROP_MAV_AUTOPILOT) != null)
             autopilot = Short.valueOf(getProperty(PROP_MAV_AUTOPILOT));
@@ -214,16 +198,8 @@ public class Config {
         return radioroomPort;
     }
 
-    public String getElasticsearchEndpoint() {
-        return esEndpoint;
-    }
-
-    public Integer getElasticsearchPort() {
-        return esPort;
-    }
-
-    public String getElasticsearchProtocol() {
-        return esProtocol;
+    public String getShadowConnectionString() {
+        return shadowConnectionString;
     }
 
     public Float getDefaultHLReportPeriod() {

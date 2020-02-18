@@ -18,6 +18,7 @@
 package com.envirover.uvnet.shadow;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 import com.MAVLink.common.msg_log_entry;
@@ -45,7 +46,7 @@ public interface UVLogbook {
      * @return List of <timestamp, state report> pairs
      * @throws IOException in case of I/O exception
      */
-    List<StateReport> getReportedStates(int sysId, Long startTime, Long endTime, int top)
+    List<StateReport> getReportedStates(int sysId, Date startTime, Date endTime, int top)
             throws IOException;
 
     /**

@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,10 +44,10 @@ import com.envirover.geojson.Geometry;
 import com.envirover.geojson.LineString;
 import com.envirover.geojson.Point;
 import com.envirover.spl.uvtracks.Config;
-import com.envirover.uvnet.shadow.PersistentUVShadow;
 import com.envirover.uvnet.shadow.StateReport;
 import com.envirover.uvnet.shadow.UVLogbook;
 import com.envirover.uvnet.shadow.UVShadow;
+import com.envirover.uvnet.shadow.impl.PersistentUVShadow;
 
 import net.sf.geographiclib.Geodesic;
 
@@ -80,8 +81,7 @@ public class UVTracksResourceV2 {
             e.printStackTrace();
         }
 
-        PersistentUVShadow shadow = new PersistentUVShadow(config.getElasticsearchEndpoint(),
-                config.getElasticsearchPort(), config.getElasticsearchProtocol());
+        PersistentUVShadow shadow = new PersistentUVShadow(config.getShadowConnectionString());
 
         this.shadow = shadow;
         this.logbook = shadow;
@@ -114,7 +114,9 @@ public class UVTracksResourceV2 {
             sysid = Config.getInstance().getMavSystemId();
         }
 
-        List<StateReport> reportedStates = logbook.getReportedStates(sysid, startTime, endTime, top);
+        Date start = startTime != null ? new Date(startTime) : null;
+        Date end = endTime != null ? new Date(endTime) : null;
+        List<StateReport> reportedStates = logbook.getReportedStates(sysid, start, end, top);
 
         if (geometryType.equalsIgnoreCase("Line")) {
             return reportsToLineFeature(sysid, reportedStates);

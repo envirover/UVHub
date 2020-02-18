@@ -47,7 +47,6 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.common.util.set.Sets;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -295,14 +294,14 @@ public class UVHubTest {
 
             Thread.sleep(100);
         }
-
-        Set<Integer> difference = Sets.difference(expectedMessages, receivedMessages);
         
-        if (difference.size() != 0) {
-            logger.warn(String.format("Missing MAVLink messages: %s", difference.toString()));
+        expectedMessages.removeAll(receivedMessages);
+
+         if (expectedMessages.size() != 0) {
+            logger.warn(String.format("Missing MAVLink messages: %s", expectedMessages.toString()));
         }
 
-        return difference.size() == 0;
+        return expectedMessages.size() == 0;
     }
 
 }
