@@ -1,4 +1,4 @@
-FROM openjdk:8u212-jre
+FROM openjdk:11-jdk-slim
 
 WORKDIR /usr/local/uvhub/
 
