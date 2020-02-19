@@ -8,7 +8,6 @@ phases:
         - sudo apt-get update
         - sudo apt-get -y install openjdk-8-jdk
         - java -version
-        - sudo apt-get install --reinstall ca-certificates
         # - sudo apt-get -y install maven
         - wget http://apache.mirrors.hoobly.com/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz -P /tmp
         - sudo tar xf /tmp/apache-maven-*.tar.gz -C /opt
