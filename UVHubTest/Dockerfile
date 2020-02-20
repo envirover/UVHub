@@ -1,4 +1,4 @@
-FROM openjdk:11-jdk-slim
+FROM openjdk:13-jdk
 
 WORKDIR /usr/local/uvhub-test/
 
