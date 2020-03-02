@@ -26,37 +26,19 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.MAVLink.common.*;
+import com.MAVLink.enums.MAV_STATE;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
-import com.MAVLink.common.msg_command_ack;
-import com.MAVLink.common.msg_command_int;
-import com.MAVLink.common.msg_command_long;
-import com.MAVLink.common.msg_mission_ack;
-import com.MAVLink.common.msg_mission_clear_all;
-import com.MAVLink.common.msg_mission_count;
-import com.MAVLink.common.msg_mission_current;
-import com.MAVLink.common.msg_mission_item;
-import com.MAVLink.common.msg_mission_item_int;
-import com.MAVLink.common.msg_mission_request;
-import com.MAVLink.common.msg_mission_request_list;
-import com.MAVLink.common.msg_mission_set_current;
-import com.MAVLink.common.msg_mission_write_partial_list;
-import com.MAVLink.common.msg_param_request_list;
-import com.MAVLink.common.msg_param_request_read;
-import com.MAVLink.common.msg_param_set;
-import com.MAVLink.common.msg_param_value;
-import com.MAVLink.common.msg_set_home_position;
-import com.MAVLink.common.msg_set_mode;
 import com.MAVLink.enums.MAV_CMD;
 import com.MAVLink.enums.MAV_MISSION_RESULT;
 import com.MAVLink.enums.MAV_RESULT;
 import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkLogger;
-import com.envirover.uvhub.Config;
 import com.envirover.uvnet.shadow.StateReport;
 import com.envirover.uvnet.shadow.UVShadow;
 
@@ -78,7 +60,7 @@ public class GCSClientSession implements ClientSession {
 
     private AtomicBoolean isOpen = new AtomicBoolean(false);
     private int desiredMissionCount = 0;
-    private List<msg_mission_item> reportedMission = new ArrayList<msg_mission_item>();
+    private List<msg_mission_item> reportedMission = new ArrayList<>();
 
     public GCSClientSession(MAVLinkChannel src, MAVLinkChannel mtMessageQueue, UVShadow shadow) {
         this.heartbeatTimer = Executors.newScheduledThreadPool(2);
@@ -180,12 +162,6 @@ public class GCSClientSession implements ClientSession {
             List<msg_param_value> params = shadow.getParams(Config.getInstance().getMavSystemId());
             for (msg_param_value param : params) {
                 sendToSource(param);
-
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
             }
 
             logger.info(MessageFormat.format("{0} on-board parameters sent to the MAVLink client.", params.size()));
@@ -197,7 +173,11 @@ public class GCSClientSession implements ClientSession {
             msg_param_request_read request = (msg_param_request_read) packet.unpack();
             // logger.info(MessageFormat.format("Sending value of parameter ''{0}'' to
             // MAVLink client.", request.param_index));
-            sendToSource(shadow.getParamValue(request.target_system, request.getParam_Id(), request.param_index));
+            msg_param_value paramValue = shadow.getParamValue(request.target_system,
+                                                              request.getParam_Id(),
+                                                              request.param_index);
+            sendToSource(paramValue);
+            MAVLinkLogger.log(Level.INFO, ">>", paramValue.pack());
             break;
         }
         case msg_param_set.MAVLINK_MSG_ID_PARAM_SET: {
@@ -205,6 +185,7 @@ public class GCSClientSession implements ClientSession {
 
             msg_param_set paramSet = (msg_param_set) packet.unpack();
             sendToSource(shadow.getParamValue(paramSet.target_system, paramSet.getParam_Id(), (short) -1));
+            MAVLinkLogger.log(Level.INFO, ">>", paramSet.pack());
             break;
         }
         }
@@ -234,6 +215,7 @@ public class GCSClientSession implements ClientSession {
             count.target_system = (short) packet.sysid;
             count.target_component = (short) packet.compid;
             sendToSource(count);
+            MAVLinkLogger.log(Level.INFO, ">>", count.pack());
             break;
         }
         case msg_mission_request.MAVLINK_MSG_ID_MISSION_REQUEST: {
@@ -244,6 +226,7 @@ public class GCSClientSession implements ClientSession {
                 mission.sysid = msg.target_system;
                 mission.compid = msg.target_component;
                 sendToSource(mission);
+                MAVLinkLogger.log(Level.INFO, ">>", mission.pack());
             }
             break;
         }
@@ -265,6 +248,7 @@ public class GCSClientSession implements ClientSession {
             request.target_system = (short) packet.sysid;
             request.target_component = (short) packet.compid;
             sendToSource(request);
+            MAVLinkLogger.log(Level.INFO, ">>", request.pack());
             break;
         }
         case msg_mission_item.MAVLINK_MSG_ID_MISSION_ITEM: {
@@ -279,6 +263,7 @@ public class GCSClientSession implements ClientSession {
                 mission_request.target_system = (short) packet.sysid;
                 mission_request.target_component = (short) packet.compid;
                 sendToSource(mission_request);
+                MAVLinkLogger.log(Level.INFO, ">>", mission_request.pack());
             } else {
                 msg_mission_ack mission_ack = new msg_mission_ack();
                 mission_ack.type = MAV_MISSION_RESULT.MAV_MISSION_ACCEPTED;
@@ -287,6 +272,7 @@ public class GCSClientSession implements ClientSession {
                 mission_ack.target_system = (short) packet.sysid;
                 mission_ack.target_component = (short) packet.compid;
                 sendToSource(mission_ack);
+                MAVLinkLogger.log(Level.INFO, ">>", mission_ack.pack());
             }
             break;
         }
@@ -314,6 +300,7 @@ public class GCSClientSession implements ClientSession {
             command_ack.sysid = msg.target_system;
             command_ack.compid = msg.target_component;
             sendToSource(command_ack);
+            MAVLinkLogger.log(Level.INFO, ">>", command_ack.pack());
         } else if (packet.msgid == msg_command_int.MAVLINK_MSG_ID_COMMAND_INT) {
             MAVLinkLogger.log(Level.INFO, "<<", packet);
             msg_command_int msg = (msg_command_int) packet.unpack();
@@ -323,6 +310,7 @@ public class GCSClientSession implements ClientSession {
             command_ack.sysid = msg.target_system;
             command_ack.compid = msg.target_component;
             sendToSource(command_ack);
+            MAVLinkLogger.log(Level.INFO, "<<", command_ack.pack());
         }
     }
 
@@ -370,7 +358,6 @@ public class GCSClientSession implements ClientSession {
      * Sends heartbeat and other status messages derived from HIGH_LATENCY message
      * to the specified client channel.
      *
-     * @param dst destination channel
      * @throws IOException          if a message sending failed
      * @throws InterruptedException
      */
@@ -382,6 +369,19 @@ public class GCSClientSession implements ClientSession {
             for (MAVLinkMessage msg : messages) {
                 sendToSource(msg);
             }
+        } else {
+            // send only heartbeat
+            msg_heartbeat msg = new msg_heartbeat();
+
+            msg.sysid = Config.getInstance().getMavSystemId();
+            msg.compid = 0;
+            msg.base_mode = 0;
+            msg.custom_mode = 0;
+            msg.system_status = MAV_STATE.MAV_STATE_POWEROFF;
+            msg.autopilot = Config.getInstance().getAutopilot();
+            msg.type = Config.getInstance().getMavType();
+
+            sendToSource(msg);
         }
     }
 
