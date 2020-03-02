@@ -173,9 +173,10 @@ public class GCSClientSession implements ClientSession {
             msg_param_request_read request = (msg_param_request_read) packet.unpack();
             // logger.info(MessageFormat.format("Sending value of parameter ''{0}'' to
             // MAVLink client.", request.param_index));
-            msg_param_value paramValue = shadow.getParamValue(request.target_system,
-                                                              request.getParam_Id(),
-                                                              request.param_index);
+            msg_param_value paramValue = shadow.getParamValue(
+                    request.target_system,
+                    request.getParam_Id(),
+                    request.param_index);
             sendToSource(paramValue);
             MAVLinkLogger.log(Level.INFO, ">>", paramValue.pack());
             break;
@@ -184,8 +185,13 @@ public class GCSClientSession implements ClientSession {
             MAVLinkLogger.log(Level.INFO, "<<", packet);
 
             msg_param_set paramSet = (msg_param_set) packet.unpack();
-            sendToSource(shadow.getParamValue(paramSet.target_system, paramSet.getParam_Id(), (short) -1));
-            MAVLinkLogger.log(Level.INFO, ">>", paramSet.pack());
+
+            msg_param_value paramValue = shadow.getParamValue(
+                    paramSet.target_system,
+                    paramSet.getParam_Id(),
+                    (short) -1);
+            sendToSource(paramValue);
+            MAVLinkLogger.log(Level.INFO, ">>", paramValue.pack());
             break;
         }
         }

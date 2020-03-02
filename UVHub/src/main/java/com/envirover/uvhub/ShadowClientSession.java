@@ -180,7 +180,12 @@ public class ShadowClientSession implements ClientSession {
                 shadow.setParam(paramSet.target_system, paramSet);
             }
 
-            sendToSource(shadow.getParamValue(paramSet.target_system, paramSet.getParam_Id(), (short) -1));
+            msg_param_value paramValue = shadow.getParamValue(
+                    paramSet.target_system,
+                    paramSet.getParam_Id(),
+                    (short) -1);
+            sendToSource(paramValue);
+            MAVLinkLogger.log(Level.INFO, ">>", paramValue.pack());
             break;
         }
         }
