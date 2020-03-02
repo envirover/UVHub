@@ -310,7 +310,7 @@ public class GCSClientSession implements ClientSession {
             command_ack.sysid = msg.target_system;
             command_ack.compid = msg.target_component;
             sendToSource(command_ack);
-            MAVLinkLogger.log(Level.INFO, "<<", command_ack.pack());
+            MAVLinkLogger.log(Level.INFO, ">>", command_ack.pack());
         }
     }
 
