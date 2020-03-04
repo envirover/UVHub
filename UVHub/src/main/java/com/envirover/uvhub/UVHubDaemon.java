@@ -97,12 +97,12 @@ public class UVHubDaemon implements Daemon {
         shadowServer = new ShadowTcpServer(config.getShadowPort(), shadow, shadow);
 
         // Mobile-originated queue contains messages receive form the vehicle.
-        MAVLinkMessageQueue moMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
+        //MAVLinkMessageQueue moMessageQueue = new MAVLinkMessageQueue(config.getQueueSize());
 
         // Mobile-originated message handler is an implementation of MAVLinkChannel.
         // Messages sent to MOMessageHandler either used to update the vehicle's shadow,
         // or pushed to the provided mobile-originated queue.
-        MOMessageHandler moHandler = new MOMessageHandler(moMessageQueue, shadow, shadow);
+        MOMessageHandler moHandler = new MOMessageHandler(shadow, shadow);
 
         // RadioRoom TCP server accepts TCP/IP connections on port 5060 from SPL
         // RadioRoom.

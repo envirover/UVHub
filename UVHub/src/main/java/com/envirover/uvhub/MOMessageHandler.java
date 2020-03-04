@@ -49,7 +49,6 @@ public class MOMessageHandler implements MAVLinkChannel {
 
     private final static Logger logger = LogManager.getLogger(MOMessageHandler.class);
 
-    private final MAVLinkChannel dst;
     private final UVShadow shadow;
     private final UVLogbook logbook;
 
@@ -59,11 +58,11 @@ public class MOMessageHandler implements MAVLinkChannel {
     /**
      * Constructs instance of MOMessageHandler.
      * 
-     * @param dst    destination channel for mobile-originated messages.
      * @param shadow vehicle shadow
+     * @param  logbook vehicle logbook
      */
-    public MOMessageHandler(MAVLinkChannel dst, UVShadow shadow, UVLogbook logbook) {
-        this.dst = dst;
+    public MOMessageHandler(UVShadow shadow, UVLogbook logbook) {
+
         this.shadow = shadow;
         this.logbook = logbook;
     }
@@ -91,7 +90,7 @@ public class MOMessageHandler implements MAVLinkChannel {
         // break;
         case msg_command_ack.MAVLINK_MSG_ID_COMMAND_ACK:
             // Replace the COMMAND_ACK message by STATUS_TEXT message.
-            sendCommandAck(packet);
+            //sendCommandAck(packet);
             break;
         case msg_param_value.MAVLINK_MSG_ID_PARAM_VALUE:
             msg_param_value param_value = (msg_param_value) packet.unpack();
@@ -122,8 +121,6 @@ public class MOMessageHandler implements MAVLinkChannel {
                     last_report_time = time;
                 }
             }
-
-            dst.sendMessage(packet);
         }
     }
 
@@ -131,23 +128,23 @@ public class MOMessageHandler implements MAVLinkChannel {
     public void close() {
     }
 
-    private void sendCommandAck(MAVLinkPacket packet) throws IOException {
-        // Replace COMMAND_ACK by STATUSTEXT message
-        msg_command_ack ack = (msg_command_ack) packet.unpack();
-
-        String text = MessageFormat.format("ACK: comand={0}, result={1}", ack.command, ack.result);
-
-        msg_statustext msg = new msg_statustext();
-        msg.severity = MAV_SEVERITY.MAV_SEVERITY_INFO;
-        msg.setText(text);
-
-        MAVLinkPacket p = msg.pack();
-        // p.seq = seq++;
-        p.sysid = packet.sysid;
-        p.compid = packet.compid;
-
-        dst.sendMessage(p);
-    }
+//    private void sendCommandAck(MAVLinkPacket packet) throws IOException {
+//        // Replace COMMAND_ACK by STATUSTEXT message
+//        msg_command_ack ack = (msg_command_ack) packet.unpack();
+//
+//        String text = MessageFormat.format("ACK: comand={0}, result={1}", ack.command, ack.result);
+//
+//        msg_statustext msg = new msg_statustext();
+//        msg.severity = MAV_SEVERITY.MAV_SEVERITY_INFO;
+//        msg.setText(text);
+//
+//        MAVLinkPacket p = msg.pack();
+//        // p.seq = seq++;
+//        p.sysid = packet.sysid;
+//        p.compid = packet.compid;
+//
+//        dst.sendMessage(p);
+//    }
 
     private float getReportPeriod(int sysId) throws IOException {
         msg_param_value period = shadow.getParamValue(sysId, OnBoardParams.HL_REPORT_PERIOD_PARAM, (short) -1);
