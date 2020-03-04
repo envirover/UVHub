@@ -151,7 +151,7 @@ public class ShadowClientSession implements ClientSession {
             List<msg_param_value> params = shadow.getParams(msg.target_system);
 
             for (msg_param_value param : params) {
-                sendToSource(param);
+                sendToSource(param, false);
             }
 
             logger.info(MessageFormat.format("{0} on-board parameters sent to the MAVLink client.", params.size()));
@@ -167,8 +167,7 @@ public class ShadowClientSession implements ClientSession {
                     request.target_system,
                     request.getParam_Id(),
                     request.param_index);
-            sendToSource(paramValue);
-            MAVLinkLogger.log(Level.INFO, ">>", paramValue.pack());
+            sendToSource(paramValue, true);
             break;
         }
         case msg_param_set.MAVLINK_MSG_ID_PARAM_SET: {
@@ -184,8 +183,7 @@ public class ShadowClientSession implements ClientSession {
                     paramSet.target_system,
                     paramSet.getParam_Id(),
                     (short) -1);
-            sendToSource(paramValue);
-            MAVLinkLogger.log(Level.INFO, ">>", paramValue.pack());
+            sendToSource(paramValue, true);
             break;
         }
         }
@@ -207,8 +205,7 @@ public class ShadowClientSession implements ClientSession {
             count.compid = msg.target_component;
             count.target_system = (short) packet.sysid;
             count.target_component = (short) packet.compid;
-            sendToSource(count);
-            MAVLinkLogger.log(Level.INFO, ">>", count.pack());
+            sendToSource(count, true);
             break;
         }
         case msg_mission_request.MAVLINK_MSG_ID_MISSION_REQUEST: {
@@ -218,8 +215,7 @@ public class ShadowClientSession implements ClientSession {
                 msg_mission_item mission = reportedMission.get(msg.seq);
                 mission.sysid = msg.target_system;
                 mission.compid = msg.target_component;
-                sendToSource(mission);
-                MAVLinkLogger.log(Level.INFO, ">>", mission.pack());
+                sendToSource(mission, true);
             }
             break;
         }
@@ -239,8 +235,7 @@ public class ShadowClientSession implements ClientSession {
             request.compid = msg.target_component;
             request.target_system = (short) packet.sysid;
             request.target_component = (short) packet.compid;
-            sendToSource(request);
-            MAVLinkLogger.log(Level.INFO, ">>", request.pack());
+            sendToSource(request, true);
             break;
         }
         case msg_mission_item_int.MAVLINK_MSG_ID_MISSION_ITEM_INT: {
@@ -263,8 +258,7 @@ public class ShadowClientSession implements ClientSession {
                 mission_request.compid = msg.target_component;
                 mission_request.target_system = (short) packet.sysid;
                 mission_request.target_component = (short) packet.compid;
-                sendToSource(mission_request);
-                MAVLinkLogger.log(Level.INFO, ">>", mission_request.pack());
+                sendToSource(mission_request, true);
             } else {
                 msg_mission_ack mission_ack = new msg_mission_ack();
                 mission_ack.type = MAV_MISSION_RESULT.MAV_MISSION_ACCEPTED;
@@ -272,8 +266,7 @@ public class ShadowClientSession implements ClientSession {
                 mission_ack.compid = msg.target_component;
                 mission_ack.target_system = (short) packet.sysid;
                 mission_ack.target_component = (short) packet.compid;
-                sendToSource(mission_ack);
-                MAVLinkLogger.log(Level.INFO, ">>", mission_ack.pack());
+                sendToSource(mission_ack, true);
                 shadow.setMission(msg.target_system, desiredMission);
             }
             break;
@@ -296,7 +289,7 @@ public class ShadowClientSession implements ClientSession {
 
             if (logs != null) {
                 for (msg_log_entry log_entry : logs) {
-                    sendToSource(log_entry);
+                    sendToSource(log_entry, true);
                 }
             }
 
@@ -314,7 +307,7 @@ public class ShadowClientSession implements ClientSession {
         }
     }
 
-    private void sendToSource(MAVLinkMessage msg) throws IOException {
+    private void sendToSource(MAVLinkMessage msg, boolean log) throws IOException {
         if (msg == null) {
             return;
         }
@@ -323,7 +316,10 @@ public class ShadowClientSession implements ClientSession {
         packet.sysid = msg.sysid;
         packet.compid = 1;
         src.sendMessage(packet);
-        MAVLinkLogger.log(Level.DEBUG, ">>", packet);
+
+        if (log) {
+            MAVLinkLogger.log(Level.INFO, ">>", packet);
+        }
     }
 
     /**
@@ -339,7 +335,7 @@ public class ShadowClientSession implements ClientSession {
         if (stateReport != null) {
             List<MAVLinkMessage> messages = StateCodec.getMessages(stateReport);
             for (MAVLinkMessage msg : messages) {
-                sendToSource(msg);
+                sendToSource(msg, false);
             }
         } else {
             // send only heartbeat
@@ -353,7 +349,7 @@ public class ShadowClientSession implements ClientSession {
             msg.autopilot = Config.getInstance().getAutopilot();
             msg.type = Config.getInstance().getMavType();
 
-            sendToSource(msg);
+            sendToSource(msg, false);
         }
     }
 
