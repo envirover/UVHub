@@ -1,7 +1,7 @@
 /*
  * Envirover confidential
  * 
- *  [2017] Envirover
+ *  [2020] Envirover
  *  All Rights Reserved.
  * 
  * NOTICE:  All information contained herein is, and remains the property of 
@@ -21,99 +21,111 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.MessageFormat;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
-import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkSocket;
 
 /**
- * MAVLink TCP server that accepts TCP/IP connections from SPL RadioRoom clients.
- * {@link com.envirover.uvhub.RRClientSession} is created for each client connection. 
+ * TCP server that accepts TCP/IP connections from UV RadioRoom clients.
+ *
+ * Only one client connection is open at a time. When new client is connected,
+ * the previous one is closed.
  *  
  * @author Pavel Bobov
  *
  */
 public class RRTcpServer {
 
+    public final static String CHANNEL_NAME = "tcp";
+
     private final static Logger logger = LogManager.getLogger(RRTcpServer.class);
 
-    private final Integer port;
-    private final MAVLinkChannel dst;
-    private final ExecutorService threadPool; 
-    private final ConnectionListener connectionListener = new ConnectionListener();
-  
-    private ServerSocket serverSocket;
-    private Thread listenerThread;
+    private final Integer port;  // server's  port
+    private final MOMessageHandler handler;
+    private final Thread connectionListenerThread;
+    private final Thread socketListenerThread;
+
+    private ServerSocket serverSocket = null;
+    private MAVLinkSocket clientSocket = null;
 
     /**
      * Creates an instance of RRTcpServer.
      * 
      * @param port TCP port used for SPL RadioRoom connections 
-     * @param dst Mobile-originated message handler
+     * @param handler Mobile-originated message handler
      */
-    public RRTcpServer(Integer port, MAVLinkChannel dst) {
+    public RRTcpServer(Integer port, MOMessageHandler handler) {
         this.port = port;
-        this.dst = dst;
-        this.threadPool = Executors.newCachedThreadPool();
+        this.handler = handler;
+        this.socketListenerThread = new Thread(new SocketListener());
+        this.connectionListenerThread = new Thread(new ConnectionListener());
     }
 
     /**
-     * Starts RRTcpServer.
+     * Returns MAVLinkSocket for the last connected client or null if clients
+     * were not connected.
+     *
+     * @return  MAVLinkSocket for the last connected RadioRoom client.
+     */
+    public synchronized MAVLinkSocket getClientSocket() {
+        return clientSocket;
+    }
+
+    /**
+     * Closes MAVLinkSocket of the previously connected client, if any,
+     * and replaces it by the specified MAVLinkSocket.
+     *
+     * @param clientSocket MAVLinkSocket of the connected client.
+     */
+    private synchronized void setClientSocket(MAVLinkSocket clientSocket) {
+        if (this.clientSocket != null) {
+            this.clientSocket.close();
+        }
+
+        this.clientSocket = clientSocket;
+    }
+
+    /**
+     * Starts the server.
+     *
+     * Creates a server socket, bound to the specified port.
+     * Starts the connection listener and socket listener threads.
      * 
-     * @throws IOException Signals that an I/O exception of some sort has occurred.
+     * @throws IOException if binding to the port failed.
      */
     public void start() throws IOException {
         serverSocket = new ServerSocket(port);
-        listenerThread = new Thread(connectionListener);
-        listenerThread.start();
+        connectionListenerThread.start();
+        socketListenerThread.start();
     }
 
     /**
      * Stops RRTcpServer.
      * 
-     * @throws IOException Signals that an I/O exception of some sort has occurred.
+     * @throws IOException Signals that an I/O exception has occurred.
      */
     public void stop() throws IOException {
-        threadPool.shutdownNow();
-        listenerThread.interrupt();
-        serverSocket.close();
-    }
+        socketListenerThread.interrupt();
+        connectionListenerThread.interrupt();
 
-    /**
-     * Returns the last connected client socket.
-     * 
-     * @return
-     */
-    public MAVLinkSocket getMAVLinkSocket() {
-    	return connectionListener.getClientSocket();
-    }
-    
-    protected ClientSession createClientSession(MAVLinkSocket clientSocket) {
-        return new RRClientSession(dst);
+        if (serverSocket != null) {
+            serverSocket.close();
+            serverSocket = null;
+        }
+
+        if (clientSocket != null) {
+            clientSocket.close();
+            clientSocket = null;
+        }
     }
 
     /**
      * Accepts socket connections. 
-     * 
-     * @author pavel
-     *
      */
     class ConnectionListener implements Runnable {
-    	
-    	private MAVLinkSocket clientSocket = null;
-    	
-    	public synchronized MAVLinkSocket getClientSocket() {
-   			return clientSocket;
-    	}
-    	
-    	private synchronized void setClientSocket(MAVLinkSocket clientSocket) {
-    		this.clientSocket = clientSocket;
-    	}
     	
         @Override
         public void run() {
@@ -125,58 +137,41 @@ public class RRTcpServer {
                     // primary channel for mobile-terminated messages.
                    	setClientSocket(new MAVLinkSocket(socket));
                     
-                    ClientSession session = createClientSession(getClientSocket());
-                    session.onOpen();
-
-                    threadPool.execute(new SocketListener(getClientSocket(), session));
-
-                    logger.info(MessageFormat.format("RadioRoom client ''{0}'' connected.", socket.getInetAddress()));
+                    logger.info(MessageFormat.format("RadioRoom client ''{0}'' connected.",
+                                                     socket.getInetAddress()));
                 } catch (IOException e) {
                     e.printStackTrace();
                     return;
                 }
             }
         }
+    }
 
-        /**
-         * Reads MAVLink messages from the socket and passes them to RRClientSession.onMessage(). 
-         * 
-         * @author pavel
-         *
-         */
-        class SocketListener implements Runnable {
+    /**
+     * Reads MAVLink messages from the client socket and passes them to
+     * the mobile-originated message handler.
+     */
+     class SocketListener implements Runnable {
 
-            private final MAVLinkSocket clientSocket;
-            private final ClientSession session;
+        @Override
+        public void run() {
+            while (serverSocket.isBound()) {
+                try {
+                    MAVLinkSocket mavSocket = getClientSocket();
 
-            public SocketListener(MAVLinkSocket clientSocket, ClientSession session) {
-                this.clientSocket = clientSocket;
-                this.session = session;
-            }
-
-            @Override
-            public void run() {
-                while (session.isOpen()) {
-                    try {
-                        MAVLinkPacket packet = clientSocket.receiveMessage();
+                    if (mavSocket != null) {
+                        MAVLinkPacket packet = mavSocket.receiveMessage();
 
                         if (packet != null) {
-                            session.onMessage(packet);
+                            handler.handleMessage(packet, CHANNEL_NAME);
                         }
-
-                        Thread.sleep(10);
-                    } catch (InterruptedException | IOException e) {
-                        try {
-                            session.onClose();
-                            clientSocket.close();
-                        } catch (IOException e1) {
-                            e1.printStackTrace();
-                        }
-
-                        logger.info("RadioRoom client disconnected.");
-
-                        return;
                     }
+
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    return;
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }

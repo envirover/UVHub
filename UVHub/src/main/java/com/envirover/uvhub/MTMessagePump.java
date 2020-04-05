@@ -1,7 +1,7 @@
 /*
  * Envirover confidential
  * 
- *  [2018] Envirover
+ *  [2020] Envirover
  *  All Rights Reserved.
  * 
  * NOTICE:  All information contained herein is, and remains the property of 
@@ -19,6 +19,7 @@ package com.envirover.uvhub;
 
 import java.io.IOException;
 
+import com.envirover.rockblock.RockBlockHttpHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -44,6 +45,7 @@ public class MTMessagePump implements Runnable {
     private final MAVLinkChannel src;
     private final RRTcpServer tcpServer;
     private final MAVLinkChannel rockblock;
+    private final MOMessageHandler moMessageHandler;
 
     /**
      * Constructs instance of MTMessagePump.
@@ -52,10 +54,24 @@ public class MTMessagePump implements Runnable {
      * @param tcpServer RadioRoom TCP server
      * @param rockblock RockBLOCK messages channel
      */
-    public MTMessagePump(MAVLinkChannel src, RRTcpServer tcpServer, MAVLinkChannel rockblock) {
+    public MTMessagePump(MAVLinkChannel src, RRTcpServer tcpServer, MAVLinkChannel rockblock, MOMessageHandler moMessageHandler) {
         this.src = src;
         this.tcpServer = tcpServer;
         this.rockblock = rockblock;
+        this.moMessageHandler = moMessageHandler;
+    }
+
+    /**
+     * Returns the active channel.
+     *
+     * @return active channel
+     */
+    private MAVLinkChannel getActiveChannel() {
+        if (RockBlockHttpHandler.CHANNEL_NAME.equals(moMessageHandler.getActiveChannelName())) {
+            return rockblock;
+        }
+
+        return tcpServer.getClientSocket();
     }
 
     @Override
@@ -67,27 +83,9 @@ public class MTMessagePump implements Runnable {
                 MAVLinkPacket packet = src.receiveMessage();
 
                 if (packet != null) {
-                    boolean sent = false;
-
-                    if (tcpServer != null) {
-                        MAVLinkChannel tcpSocket = tcpServer.getMAVLinkSocket();
-
-                        // Try the TCP channel first if it's active.
-                        if (tcpSocket != null) {
-                            try {
-                                tcpSocket.sendMessage(packet);
-                                sent = true;
-                            } catch (IOException ex) {
-                                logger.error(ex.getMessage());
-                            }
-                        }
-                    }
-
-                    // Send the message to the secondary RockBLOCK channel if
-                    // If the TCP channel is not active, or sending message to
-                    // the TCP channel failed.
-                    if (!sent && rockblock != null) {
-                        rockblock.sendMessage(packet);
+                    MAVLinkChannel channel = getActiveChannel();
+                    if (channel != null) {
+                        channel.sendMessage(packet);
                     }
                 }
 
