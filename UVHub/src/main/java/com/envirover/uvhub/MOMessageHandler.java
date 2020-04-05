@@ -1,7 +1,7 @@
 /*
  * Envirover confidential
  * 
- *  [2017] Envirover
+ *  [2020] Envirover
  *  All Rights Reserved.
  * 
  * NOTICE:  All information contained herein is, and remains the property of 
@@ -26,9 +26,6 @@ import com.MAVLink.common.msg_command_ack;
 import com.MAVLink.common.msg_mission_ack;
 import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_param_value;
-import com.MAVLink.common.msg_statustext;
-import com.MAVLink.enums.MAV_SEVERITY;
-import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.uvnet.shadow.StateReport;
 import com.envirover.uvnet.shadow.UVLogbook;
 import com.envirover.uvnet.shadow.UVShadow;
@@ -45,15 +42,16 @@ import org.apache.logging.log4j.Logger;
  * @author Pavel Bobov
  *
  */
-public class MOMessageHandler implements MAVLinkChannel {
+public class MOMessageHandler {
 
     private final static Logger logger = LogManager.getLogger(MOMessageHandler.class);
 
     private final UVShadow shadow;
     private final UVLogbook logbook;
-
     private final StateReport report = new StateReport();
-    private Date last_report_time = new Date(0L);
+
+    private Date lastReportTime = new Date(0L);
+    private String activeChannelName = null;
 
     /**
      * Constructs instance of MOMessageHandler.
@@ -67,26 +65,36 @@ public class MOMessageHandler implements MAVLinkChannel {
         this.logbook = logbook;
     }
 
-    @Override
-    public MAVLinkPacket receiveMessage() throws IOException {
-        return null;
+    /**
+     * Returns name of the channel from that the last message was received.
+     *
+     * @return name of the active channel.
+     */
+    public String getActiveChannelName() {
+        return activeChannelName;
     }
 
-    @Override
-    public void sendMessage(MAVLinkPacket packet) throws IOException {
+    /**
+     * Handles mobile-originated message.
+     *
+     * @param packet mobile-originated MAVLink message packet
+     * @param channelName name of the channel from which the message was received.
+     * @throws IOException if message handling failed because of an I/O error.
+     */
+    public void handleMessage(MAVLinkPacket packet, String channelName) throws IOException {
         if (packet == null) {
             return;
         }
 
+        activeChannelName = channelName;
+
         if (packet.sysid != Config.getInstance().getMavSystemId()) {
-            logger.warn(
-                    MessageFormat.format("System ID of the autopilot ({0}) does not match system ID of UV Hub ({1}).",
+            logger.warn(MessageFormat.format("System ID of the autopilot ({0}) does not match system ID of UV Hub ({1}).",
                             packet.sysid, Config.getInstance().getMavSystemId()));
         }
 
         switch (packet.msgid) {
         // case msg_high_latency.MAVLINK_MSG_ID_HIGH_LATENCY:
-
         // break;
         case msg_command_ack.MAVLINK_MSG_ID_COMMAND_ACK:
             // Replace the COMMAND_ACK message by STATUS_TEXT message.
@@ -115,17 +123,13 @@ public class MOMessageHandler implements MAVLinkChannel {
                 shadow.updateReportedState(report);
 
                 // Log the report if HL_REPORT_PERIOD parameter value seconds elapsed
-                float elapsed = time.getTime() - last_report_time.getTime();
+                float elapsed = time.getTime() - lastReportTime.getTime();
                 if (elapsed >= getReportPeriod(packet.sysid) * 1000.0) {
                     logbook.addReportedState(report);
-                    last_report_time = time;
+                    lastReportTime = time;
                 }
             }
         }
-    }
-
-    @Override
-    public void close() {
     }
 
 //    private void sendCommandAck(MAVLinkPacket packet) throws IOException {

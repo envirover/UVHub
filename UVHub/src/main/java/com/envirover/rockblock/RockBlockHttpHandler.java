@@ -21,10 +21,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.List;
 
+import com.envirover.uvhub.MOMessageHandler;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
@@ -37,7 +38,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
-import com.envirover.mavlink.MAVLinkChannel;
 import com.envirover.mavlink.MAVLinkLogger;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -50,19 +50,21 @@ import com.sun.net.httpserver.HttpHandler;
 @SuppressWarnings("restriction")
 public class RockBlockHttpHandler implements HttpHandler {
 
+    public final static String CHANNEL_NAME = "isbd";
+
     private final static Logger logger = LogManager.getLogger(RockBlockHttpHandler.class);
 
-    private final MAVLinkChannel dst;
+    private final MOMessageHandler handler;
     private final String imei;
 
     /**
      * Constructs instance of RockBlockHttpHandler.
      * 
-     * @param dst MAVLink message handler
+     * @param handler Mobile-originated message handler
      * @param imei RockBLOCK imei
      */
-    public RockBlockHttpHandler(MAVLinkChannel dst, String imei) {
-        this.dst = dst;
+    public RockBlockHttpHandler(MOMessageHandler handler, String imei) {
+        this.handler = handler;
         this.imei = imei;
     }
 
@@ -74,7 +76,7 @@ public class RockBlockHttpHandler implements HttpHandler {
             IOUtils.copy(is, writer, "UTF-8");
             String theString = writer.toString();
 
-            List<NameValuePair> params = URLEncodedUtils.parse(theString, Charset.forName("UTF-8"));
+            List<NameValuePair> params = URLEncodedUtils.parse(theString, StandardCharsets.UTF_8);
 
             IridiumMessage message = new IridiumMessage(params);
 
@@ -86,7 +88,7 @@ public class RockBlockHttpHandler implements HttpHandler {
                 MAVLinkPacket packet = message.getPacket();
 
                 if (packet != null) {
-                    dst.sendMessage(packet);
+                    handler.handleMessage(packet, CHANNEL_NAME);
 
                     MAVLinkLogger.log(Level.INFO, "MO", packet);
                 } else {
@@ -101,7 +103,7 @@ public class RockBlockHttpHandler implements HttpHandler {
             t.sendResponseHeaders(200, response.length());
 
             try (OutputStream os = t.getResponseBody()) {
-                os.write(response.getBytes("UTF-8"));
+                os.write(response.getBytes(StandardCharsets.UTF_8));
             }
         } catch (Exception e) {
             e.printStackTrace();

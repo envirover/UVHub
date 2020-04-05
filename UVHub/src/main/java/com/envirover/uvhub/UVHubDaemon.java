@@ -23,7 +23,6 @@ import java.util.List;
 
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
-import org.apache.commons.daemon.DaemonInitException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,7 +30,6 @@ import com.MAVLink.common.msg_param_value;
 import com.envirover.mavlink.MAVLinkMessageQueue;
 import com.envirover.rockblock.RockBlockClient;
 import com.envirover.rockblock.RockBlockHttpHandler;
-import com.envirover.uvhub.Config;
 import com.envirover.uvnet.shadow.impl.PersistentUVShadow;
 import com.sun.net.httpserver.HttpServer;
 
@@ -61,7 +59,7 @@ public class UVHubDaemon implements Daemon {
     }
 
     @Override
-    public void init(DaemonContext context) throws DaemonInitException, IOException {
+    public void init(DaemonContext context) throws IOException {
         config.init();
 
         logger.info(String.format("MAV type: %d, MAV system ID: %d, Autopilot class: %d", config.getMavType(),
@@ -143,7 +141,7 @@ public class UVHubDaemon implements Daemon {
         // Mobile-terminated message pump pumps MAVLink messages from the specified
         // mobile-terminated queue to the last connected RadioRoom TCP client or
         // the specified RockBLOCK HTTP client.
-        MTMessagePump mtMsgPump = new MTMessagePump(mtMessageQueue, rrTcpServer, rockblock);
+        MTMessagePump mtMsgPump = new MTMessagePump(mtMessageQueue, rrTcpServer, rockblock, moHandler);
         mtMsgPumpThread = new Thread(mtMsgPump, "mt-message-pump");
     }
 
