@@ -1,18 +1,17 @@
 /*
- * Envirover confidential
- * 
- *  [2019] Envirover
- *  All Rights Reserved.
- * 
- * NOTICE:  All information contained herein is, and remains the property of 
- * Envirover and its suppliers, if any.  The intellectual and technical concepts
- * contained herein are proprietary to Envirover and its suppliers and may be 
- * covered by U.S. and Foreign Patents, patents in process, and are protected
- * by trade secret or copyright law.
- * 
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Envirover.
+ * Copyright 2016-2020 Pavel Bobov
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.envirover.uvhub;
@@ -85,7 +84,7 @@ public class UVHubTest {
     public static void setUp() throws IOException {
         config.init();
     }
-    
+
     private String getUVHubHostname() {
         String hostname = System.getenv(UVHUB_HOSTNAME);
         return hostname != null ? hostname.trim() : DEFAULT_UVHUB_HOSTNAME;
@@ -260,8 +259,8 @@ public class UVHubTest {
     /**
      * Compares state received with by HIGH_LATENCY message with the sate sent to
      * GCS in a set of MAVLink messages
-     * 
-     * 
+     *
+     *
      * @param reported HIGH_LATENCY message packet
      * @param client GCS port socket client
      * @return true if received messages set includes all expected messages
@@ -270,16 +269,16 @@ public class UVHubTest {
      */
     private boolean compareReportedState(MAVLinkPacket reported, MAVLinkSocket client)
             throws IOException, InterruptedException {
-        Integer[] expectedIds = { 
-            msg_heartbeat.MAVLINK_MSG_ID_HEARTBEAT, 
-            msg_sys_status.MAVLINK_MSG_ID_SYS_STATUS, 
-            msg_gps_raw_int.MAVLINK_MSG_ID_GPS_RAW_INT, 
+        Integer[] expectedIds = {
+            msg_heartbeat.MAVLINK_MSG_ID_HEARTBEAT,
+            msg_sys_status.MAVLINK_MSG_ID_SYS_STATUS,
+            msg_gps_raw_int.MAVLINK_MSG_ID_GPS_RAW_INT,
             msg_attitude.MAVLINK_MSG_ID_ATTITUDE,
             msg_global_position_int.MAVLINK_MSG_ID_GLOBAL_POSITION_INT,
             msg_mission_current.MAVLINK_MSG_ID_MISSION_CURRENT,
             msg_nav_controller_output.MAVLINK_MSG_ID_NAV_CONTROLLER_OUTPUT,
             msg_vfr_hud.MAVLINK_MSG_ID_VFR_HUD
-        };   
+        };
 
         Set<Integer> expectedMessages = new HashSet<Integer>(Arrays.asList(expectedIds));
 
@@ -294,7 +293,7 @@ public class UVHubTest {
 
             Thread.sleep(100);
         }
-        
+
         expectedMessages.removeAll(receivedMessages);
 
          if (expectedMessages.size() != 0) {
