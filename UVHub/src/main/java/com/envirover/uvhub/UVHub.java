@@ -30,6 +30,7 @@ import org.apache.commons.daemon.DaemonController;
 public class UVHub {
     
     private final static Logger logger = LogManager.getLogger(UVHub.class);
+
     public static void main(String[] args) {
         UVHubDaemon daemon = new UVHubDaemon();
         try {
