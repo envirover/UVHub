@@ -19,6 +19,7 @@ package com.envirover.uvhub;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.text.MessageFormat;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -156,8 +157,12 @@ public class GCSTcpServer {
                             logger.debug(e1.getMessage());
                         }
                         return;
+                    } catch(SocketException e) {
+                        // Connection reset
+                        logger.warn(e.getMessage());
+                        return;
                     } catch(IOException e) {
-                        logger.warn(e.getMessage()); 
+                        logger.debug(e.getMessage());
                     }
                 }
             }

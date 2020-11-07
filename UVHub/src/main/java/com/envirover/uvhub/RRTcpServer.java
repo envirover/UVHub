@@ -19,6 +19,7 @@ package com.envirover.uvhub;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.text.MessageFormat;
 
 import org.apache.logging.log4j.LogManager;
@@ -169,8 +170,12 @@ public class RRTcpServer {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
                     return;
+                } catch (SocketException e) {
+                  // Connection reset
+                  logger.warn(e.getMessage());
+                  return;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                  logger.debug(e.getMessage());
                 }
             }
         }
