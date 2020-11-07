@@ -2,7 +2,7 @@
 
 # UV Hub
 
-UV Hub repository contains java projects used by backend servers of SPL system.
+UV Hub repository contains java projects used by backend servers of [SPL](http://envirover.com/docs/spl.html) telemetry system.
 
 | Project | Description |
 |---------|--------------------------------|
