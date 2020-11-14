@@ -170,12 +170,8 @@ public class RRTcpServer {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
                     return;
-                } catch (SocketException e) {
-                  // Connection reset
-                  logger.warn(e.getMessage());
-                  return;
                 } catch (IOException e) {
-                  logger.debug(e.getMessage());
+                    logger.debug(e.getMessage());
                 }
             }
         }
