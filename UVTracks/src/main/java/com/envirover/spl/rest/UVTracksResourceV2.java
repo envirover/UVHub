@@ -32,6 +32,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_param_value;
@@ -261,24 +262,29 @@ public class UVTracksResourceV2 {
 
             Geometry geometry = getMissionCoordinates(missions, i);
 
-            Map<String, Object> properties = new HashMap<>();
-
-            for (Field f : mission.getClass().getFields()) {
-                if (!Modifier.isFinal(f.getModifiers())) {
-                    Object value = f.get(mission);
-
-                    if (f.getType() == byte[].class) {
-                        value = bytesToString((byte[]) value);
-                    }
-
-                    properties.put(f.getName(), value);
-                }
-            }
+            Map<String, Object> properties = getMessageProperties(mission);
 
             features.getFeatures().add(new Feature(geometry, properties));
         }
 
         return features;
+    }
+
+    private static Map<String, Object> getMessageProperties(MAVLinkMessage msg) throws IllegalAccessException {
+        Map<String, Object> properties = new HashMap<>();
+
+        for (Field f : msg.getClass().getFields()) {
+            if (!Modifier.isFinal(f.getModifiers())) {
+                Object value = f.get(msg);
+
+                if (f.getType() == byte[].class) {
+                    value = bytesToString((byte[]) value);
+                }
+
+                properties.put(f.getName(), value);
+            }
+        }
+        return properties;
     }
 
     // Converts list of MISSION_ITEMs to GeoJSON LineString feature
@@ -308,19 +314,7 @@ public class UVTracksResourceV2 {
 
         geometry = new Point(msg.longitude / 1.0E7, msg.latitude / 1.0E7, (double) msg.altitude_amsl);
 
-        Map<String, Object> properties = new HashMap<>();
-
-        for (Field f : msg.getClass().getFields()) {
-            if (!Modifier.isFinal(f.getModifiers())) {
-                Object value = f.get(msg);
-
-                if (f.getType() == byte[].class) {
-                    value = bytesToString((byte[]) value);
-                }
-
-                properties.put(f.getName(), value);
-            }
-        }
+        Map<String, Object> properties = getMessageProperties(msg);
 
         properties.put("time", reportedState.getTime());
 

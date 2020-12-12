@@ -172,6 +172,8 @@ public class RRTcpServer {
                     return;
                 } catch (IOException e) {
                     logger.debug(e.getMessage());
+                } catch (Exception e) {
+                    logger.error(e.getMessage());
                 }
             }
         }

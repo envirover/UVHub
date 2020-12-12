@@ -75,13 +75,13 @@ public class ShadowClientSession implements ClientSession {
      * @see com.envirover.nvi.ClientSession#onOpen()
      */
     @Override
-    public void onOpen() throws IOException {
+    public void onOpen() {
         Runnable heartbeatTask = new Runnable() {
             @Override
             public void run() {
                 try {
                     reportState();
-                } catch (IOException | InterruptedException ex) {
+                } catch (IOException ex) {
                     logger.warn("Failed to send message to GCS client. " + ex.getMessage());
                     logger.debug(ex);
                     try {
@@ -326,9 +326,8 @@ public class ShadowClientSession implements ClientSession {
      * to the specified client channel.
      *
      * @throws IOException          if a message sending failed
-     * @throws InterruptedException
      */
-    private void reportState() throws IOException, InterruptedException {
+    private void reportState() throws IOException {
         StateReport stateReport = shadow.getLastReportedState(Config.getInstance().getMavSystemId());
 
         if (stateReport != null) {
