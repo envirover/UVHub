@@ -157,12 +157,14 @@ public class GCSTcpServer {
                             logger.debug(e1.getMessage());
                         }
                         return;
-                    } catch(SocketException e) {
+                    } catch (SocketException e) {
                         // Connection reset
                         logger.warn(e.getMessage());
                         return;
-                    } catch(IOException e) {
+                    } catch (IOException e) {
                         logger.debug(e.getMessage());
+                    } catch (Exception e) {
+                        logger.error(e.getMessage());
                     }
                 }
             }
