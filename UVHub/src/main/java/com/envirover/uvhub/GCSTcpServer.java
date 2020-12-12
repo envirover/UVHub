@@ -164,7 +164,7 @@ public class GCSTcpServer {
                     } catch (IOException e) {
                         logger.debug(e.getMessage());
                     } catch (Exception e) {
-                        logger.error(e.getMessage());
+                        logger.error(e.getMessage(), e);
                     }
                 }
             }
