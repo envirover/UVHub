@@ -57,7 +57,7 @@ public class GCSClientSession implements ClientSession {
     private final MAVLinkChannel dst;
     private final UVShadow shadow;
 
-    private AtomicBoolean isOpen = new AtomicBoolean(false);
+    private final AtomicBoolean isOpen = new AtomicBoolean(false);
     private int desiredMissionCount = 0;
     private List<msg_mission_item> reportedMission = new ArrayList<>();
 
@@ -74,13 +74,13 @@ public class GCSClientSession implements ClientSession {
      * @see com.envirover.nvi.ClientSession#onOpen()
      */
     @Override
-    public void onOpen() throws IOException {
+    public void onOpen() {
         Runnable heartbeatTask = new Runnable() {
             @Override
             public void run() {
                 try {
                     reportState();
-                } catch (IOException | InterruptedException ex) {
+                } catch (IOException ex) {
                     logger.warn("Failed to send message to GCS client. " + ex.getMessage(), ex);
 
                     if (ex.getMessage() == null)
@@ -282,11 +282,10 @@ public class GCSClientSession implements ClientSession {
     }
 
     /**
-     * Immediately return COMMAND_ACK for COMMAND_LONG and and COMMAND_INT.
+     * Immediately return COMMAND_ACK for COMMAND_LONG and COMMAND_INT.
      * 
-     * @param packet
-     * @throws IOException
-     * @throws InterruptedException
+     * @param packet mobile-terminated MAVLink packet
+     * @throws IOException if sending ack to the GCS client failed
      */
     private synchronized void handleCommand(MAVLinkPacket packet) throws IOException {
         if (packet == null) {
@@ -330,7 +329,6 @@ public class GCSClientSession implements ClientSession {
         }
 
         return packet.msgid == msg_set_mode.MAVLINK_MSG_ID_SET_MODE
-                || packet.msgid == msg_param_set.MAVLINK_MSG_ID_PARAM_SET
                 || packet.msgid == msg_mission_write_partial_list.MAVLINK_MSG_ID_MISSION_WRITE_PARTIAL_LIST
                 || packet.msgid == msg_mission_item.MAVLINK_MSG_ID_MISSION_ITEM
                 || packet.msgid == msg_mission_set_current.MAVLINK_MSG_ID_MISSION_SET_CURRENT
@@ -362,9 +360,8 @@ public class GCSClientSession implements ClientSession {
      * to the specified client channel.
      *
      * @throws IOException          if a message sending failed
-     * @throws InterruptedException
      */
-    private synchronized void reportState() throws IOException, InterruptedException {
+    private synchronized void reportState() throws IOException {
         StateReport stateReport = shadow.getLastReportedState(Config.getInstance().getMavSystemId());
 
         if (stateReport != null) {
