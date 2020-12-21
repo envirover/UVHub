@@ -22,6 +22,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.text.MessageFormat;
 
+import com.envirover.mavlink.MAVLinkLogger;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -140,8 +142,11 @@ public class RRTcpServer {
                     logger.info(MessageFormat.format("RadioRoom client ''{0}'' connected.",
                                                      socket.getInetAddress()));
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.info(e.getMessage(), e);
+                    logger.info("Exiting RadioRoom TCP connection listener thread...");
                     return;
+                } catch (Exception e) {
+                    logger.error(e);
                 }
             }
         }
@@ -163,6 +168,7 @@ public class RRTcpServer {
                         MAVLinkPacket packet = mavSocket.receiveMessage();
 
                         if (packet != null) {
+                            MAVLinkLogger.log(Level.INFO, "RR/TCP >>", packet);
                             handler.handleMessage(packet, CHANNEL_NAME);
                         }
                     }
