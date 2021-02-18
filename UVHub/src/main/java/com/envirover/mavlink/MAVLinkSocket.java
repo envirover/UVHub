@@ -70,8 +70,8 @@ public class MAVLinkSocket implements MAVLinkChannel {
 
             MAVLinkPacket packet = null;
 
-            // The maximum size of MAVLink packet is 263 bytes.
-            for (int i = 0; i < 263 * 2; i++) {
+            // The maximum size of MAVLink 2 packet is 280 bytes.
+            for (int i = 0; i < 280 * 2; i++) {
                 try {
                     int c = in.readUnsignedByte();
                     packet = parser.mavlink_parse_char(c);
