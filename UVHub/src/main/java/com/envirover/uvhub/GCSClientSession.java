@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.MAVLink.common.*;
 import com.MAVLink.enums.MAV_STATE;
+import com.MAVLink.minimal.msg_heartbeat;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

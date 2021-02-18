@@ -25,6 +25,7 @@ import org.apache.logging.log4j.Logger;
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.ardupilotmega.msg_battery2;
 import com.MAVLink.common.*;
+import com.MAVLink.minimal.*;
 
 /**
  * Decodes and logs MAVLink messages to Log4j logger.

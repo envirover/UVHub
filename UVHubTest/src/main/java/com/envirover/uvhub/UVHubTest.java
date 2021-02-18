@@ -53,7 +53,6 @@ import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.common.msg_attitude;
 import com.MAVLink.common.msg_global_position_int;
 import com.MAVLink.common.msg_gps_raw_int;
-import com.MAVLink.common.msg_heartbeat;
 import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_mission_current;
 import com.MAVLink.common.msg_nav_controller_output;
@@ -61,6 +60,7 @@ import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_param_value;
 import com.MAVLink.common.msg_sys_status;
 import com.MAVLink.common.msg_vfr_hud;
+import com.MAVLink.minimal.msg_heartbeat;
 import com.envirover.mavlink.MAVLinkLogger;
 import com.envirover.mavlink.MAVLinkSocket;
 
