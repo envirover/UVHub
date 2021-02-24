@@ -17,6 +17,8 @@ public class MAVLinkTest {
     public void testPackAndParse() {
         // Test pack and parse of HIGH_LATENCY common message 
         msg_high_latency msgHighLatency = new msg_high_latency();
+        msgHighLatency.sysid = 1;
+        msgHighLatency.compid = 190;
         msgHighLatency.airspeed = 0;
         msgHighLatency.airspeed_sp = 1;
         msgHighLatency.altitude_amsl = 2;
@@ -46,7 +48,7 @@ public class MAVLinkTest {
         originalPacket.sysid = 1;
         originalPacket.compid = 190;
 
-        originalPacket.seq = 123;
+        //originalPacket.seq = 123;
 
         MAVLinkLogger.log(Level.INFO, ">>", originalPacket);
         
@@ -75,7 +77,7 @@ public class MAVLinkTest {
         originalPacket.sysid = 1;
         originalPacket.compid = 190;
 
-        originalPacket.seq = 123;
+        //originalPacket.seq = 123;
 
         MAVLinkLogger.log(Level.INFO, ">>", originalPacket);
         

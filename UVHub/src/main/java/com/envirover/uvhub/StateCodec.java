@@ -8,13 +8,13 @@ import com.MAVLink.ardupilotmega.msg_battery2;
 import com.MAVLink.common.msg_attitude;
 import com.MAVLink.common.msg_global_position_int;
 import com.MAVLink.common.msg_gps_raw_int;
-import com.MAVLink.common.msg_heartbeat;
 import com.MAVLink.common.msg_high_latency;
 import com.MAVLink.common.msg_mission_current;
 import com.MAVLink.common.msg_nav_controller_output;
 import com.MAVLink.common.msg_sys_status;
 import com.MAVLink.common.msg_vfr_hud;
 import com.MAVLink.enums.MAV_STATE;
+import com.MAVLink.minimal.msg_heartbeat;
 import com.envirover.uvnet.shadow.StateReport;
 
 /**
