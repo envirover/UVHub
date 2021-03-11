@@ -53,7 +53,7 @@ import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.common.msg_attitude;
 import com.MAVLink.common.msg_global_position_int;
 import com.MAVLink.common.msg_gps_raw_int;
-import com.MAVLink.common.msg_high_latency;
+import com.MAVLink.common.msg_high_latency2;
 import com.MAVLink.common.msg_mission_current;
 import com.MAVLink.common.msg_nav_controller_output;
 import com.MAVLink.common.msg_param_set;
@@ -246,7 +246,7 @@ public class UVHubTest {
     }
 
     private MAVLinkPacket getSamplePacket() {
-        msg_high_latency msg = new msg_high_latency();
+        msg_high_latency2 msg = new msg_high_latency2();
         msg.latitude = 523867;
         msg.longitude = 2938;
         msg.sysid = 255;

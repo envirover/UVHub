@@ -357,7 +357,7 @@ public class GCSClientSession implements ClientSession {
     }
 
     /**
-     * Sends heartbeat and other status messages derived from HIGH_LATENCY message
+     * Sends heartbeat and other status messages derived from HIGH_LATENCY2 message
      * to the specified client channel.
      *
      * @throws IOException          if a message sending failed

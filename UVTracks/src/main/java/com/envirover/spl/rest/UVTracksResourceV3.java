@@ -33,7 +33,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.MAVLink.Messages.MAVLinkMessage;
-import com.MAVLink.common.msg_high_latency;
+import com.MAVLink.common.msg_high_latency2;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_param_value;
 import com.MAVLink.enums.MAV_CMD;
@@ -60,8 +60,8 @@ import net.sf.geographiclib.Geodesic;
  * resource.
  */
 
-@Path("/v2")
-public class UVTracksResourceV2 {
+@Path("/v3")
+public class UVTracksResourceV3 {
 
     private final static String DEFAULT_TOP = "100";
     private final static String DEFAULT_GEOMETRY_TYPE = "Point";
@@ -72,7 +72,7 @@ public class UVTracksResourceV2 {
     /**
      * Constructs the resource.
      */
-    public UVTracksResourceV2() {
+    public UVTracksResourceV3() {
         Config config = Config.getInstance();
 
         try {
@@ -310,9 +310,9 @@ public class UVTracksResourceV2 {
             throws IllegalArgumentException, IllegalAccessException {
         Geometry geometry;
 
-        msg_high_latency msg = reportedState.getState();
+        msg_high_latency2 msg = reportedState.getState();
 
-        geometry = new Point(msg.longitude / 1.0E7, msg.latitude / 1.0E7, (double) msg.altitude_amsl);
+        geometry = new Point(msg.longitude / 1.0E7, msg.latitude / 1.0E7, (double) msg.altitude);
 
         Map<String, Object> properties = getMessageProperties(msg);
 
@@ -321,7 +321,7 @@ public class UVTracksResourceV2 {
         return new Feature(geometry, properties);
     }
 
-    // Converts HIGH_LATENCY message to Point GeoJSON feature.
+    // Converts HIGH_LATENCY2 message to Point GeoJSON feature.
     private static FeatureCollection reportsToPointFeatures(List<StateReport> reportedStates)
             throws IllegalArgumentException, IllegalAccessException {
         FeatureCollection features = new FeatureCollection();
@@ -333,18 +333,18 @@ public class UVTracksResourceV2 {
         return features;
     }
 
-    // Converts list of HIGH_LATENCY message to LineString GeoJSON feature.
+    // Converts list of HIGH_LATENCY2 message to LineString GeoJSON feature.
     private static FeatureCollection reportsToLineFeature(Integer sysid, List<StateReport> reportedStates) {
 
         List<List<Double>> coordinates = new ArrayList<>();
 
         for (StateReport entry : reportedStates) {
-            msg_high_latency hl = entry.getState();
+            msg_high_latency2 hl = entry.getState();
             if (hl.longitude != 0 || hl.latitude != 0) {
                 List<Double> point = new ArrayList<>();
                 point.add(hl.longitude / 1.0E7);
                 point.add(hl.latitude / 1.0E7);
-                point.add((double) hl.altitude_amsl);
+                point.add((double) hl.altitude);
                 coordinates.add(point);
             }
         }
