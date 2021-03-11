@@ -6,7 +6,7 @@ import static org.junit.Assert.fail;
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Parser;
 import com.MAVLink.ardupilotmega.msg_battery2;
-import com.MAVLink.common.msg_high_latency;
+import com.MAVLink.common.msg_high_latency2;
 
 import org.apache.logging.log4j.Level;
 import org.junit.Test;
@@ -16,33 +16,29 @@ public class MAVLinkTest {
     @Test
     public void testPackAndParse() {
         // Test pack and parse of HIGH_LATENCY common message 
-        msg_high_latency msgHighLatency = new msg_high_latency();
+        msg_high_latency2 msgHighLatency = new msg_high_latency2();
         msgHighLatency.sysid = 1;
         msgHighLatency.compid = 190;
         msgHighLatency.airspeed = 0;
         msgHighLatency.airspeed_sp = 1;
-        msgHighLatency.altitude_amsl = 2;
-        msgHighLatency.altitude_sp = 3;
-        msgHighLatency.base_mode = 4;
-        msgHighLatency.battery_remaining = 5;
+        msgHighLatency.altitude = 2;
+        msgHighLatency.target_altitude = 3;
+        msgHighLatency.battery = 5;
         msgHighLatency.climb_rate = 6;
         msgHighLatency.custom_mode = 7;
-        msgHighLatency.failsafe = 8;
-        msgHighLatency.gps_fix_type = 9;
-        msgHighLatency.gps_nsat = 10;
+        msgHighLatency.failure_flags = 8;
         msgHighLatency.groundspeed = 11;
         msgHighLatency.heading = 12;
-        msgHighLatency.heading_sp = 13;
-        msgHighLatency.landed_state = 14;
+        msgHighLatency.target_heading = 13;
         msgHighLatency.latitude = 15;
         msgHighLatency.longitude = 16;
-        msgHighLatency.pitch = 17;
-        msgHighLatency.roll = 18;
-        msgHighLatency.temperature = 19;
         msgHighLatency.temperature_air = 20;
         msgHighLatency.throttle = 21;
-        msgHighLatency.wp_distance = 22;
+        msgHighLatency.target_distance = 22;
         msgHighLatency.wp_num = 23;
+        msgHighLatency.custom0 = 24;
+        msgHighLatency.custom1 = 25;
+        msgHighLatency.custom2 = 26;
 
         MAVLinkPacket originalPacket = msgHighLatency.pack();
         originalPacket.sysid = 1;
@@ -59,7 +55,7 @@ public class MAVLinkTest {
         if (parsedPacket != null) {
             MAVLinkLogger.log(Level.DEBUG, "<<", parsedPacket);
 
-            msg_high_latency parsedHighLatency = (msg_high_latency) parsedPacket.unpack();
+            msg_high_latency2 parsedHighLatency = (msg_high_latency2) parsedPacket.unpack();
 
             assertEquals(msgHighLatency.toString(), parsedHighLatency.toString());
         } else {

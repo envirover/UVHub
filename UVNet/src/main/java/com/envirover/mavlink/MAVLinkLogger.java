@@ -1078,6 +1078,22 @@ public class MAVLinkLogger {
                                 msg.temperature_air, msg.failsafe, msg.wp_num, msg.wp_distance));
                 break;
             }
+            case msg_high_latency2.MAVLINK_MSG_ID_HIGH_LATENCY2: {
+                msg_high_latency2 msg = (msg_high_latency2) packet.unpack();
+                logger.log(priority,
+                        MessageFormat.format(
+                                "{0} HIGH_LATENCY2: compid={1}, sysid={2}, timestamp={3}, type={4}, autopilot={5}, custom_mode={6}, " +
+                                "heading={7}, target_heading={8}, throttle={9}, latitude={10}, longitude={11}, altitude={12}, " +
+                                "target_altitude={13}, airspeed={14}, airspeed_sp={15}, groundspeed={16}, climb_rate={17}, " +
+                                "windspeed={18}, wind_heading={19}, eph={20}, epv={21}, battery={22}, temperature_air={23}, " +
+                                "failure_flags={24}, wp_num={25}, target_distance={26}, custom0={27}, custom1={28}, custom2={29}",
+                                dir, msg.compid, msg.sysid,  msg.timestamp, msg.type, msg.autopilot, msg.custom_mode,
+                                msg.heading, msg.target_heading, msg.throttle, msg.latitude, msg.longitude, msg.altitude,
+                                msg.target_altitude, msg.airspeed, msg.airspeed_sp, msg.groundspeed, msg.climb_rate,
+                                msg.windspeed, msg.wind_heading, msg.eph, msg.epv, msg.battery, msg.temperature_air,
+                                msg.failure_flags, msg.wp_num, msg.target_distance, msg.custom0, msg.custom1, msg.custom2));
+                break;
+            }
             case msg_vibration.MAVLINK_MSG_ID_VIBRATION: {
                 msg_vibration msg = (msg_vibration) packet.unpack();
                 logger.log(priority,

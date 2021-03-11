@@ -18,7 +18,7 @@ package com.envirover.uvnet.shadow;
 
 import java.util.Date;
 
-import com.MAVLink.common.msg_high_latency;
+import com.MAVLink.common.msg_high_latency2;
 
 /**
  * Reported state of the vehicle at specific time.
@@ -27,7 +27,7 @@ import com.MAVLink.common.msg_high_latency;
  */
 public class StateReport {
     private Date time = new Date();
-    private msg_high_latency state = new msg_high_latency();
+    private msg_high_latency2 state = new msg_high_latency2();
 
     /**
      * Default constructor of StateReport used by deserialization.
@@ -41,7 +41,7 @@ public class StateReport {
      * @param time time of the report
      * @param state state of the vehicle
      */
-    public StateReport(Date time, msg_high_latency state) {
+    public StateReport(Date time, msg_high_latency2 state) {
         this.time = time;
         this.state = state;
     }
@@ -69,7 +69,7 @@ public class StateReport {
      * 
      * @return state of the vehicle.
      */
-    public msg_high_latency getState() {
+    public msg_high_latency2 getState() {
         return state;
     }
 
@@ -78,7 +78,7 @@ public class StateReport {
      * 
      * @param state state of the vehicle
      */
-    public void setState(msg_high_latency state) {
+    public void setState(msg_high_latency2 state) {
         this.state = state;
     }
 

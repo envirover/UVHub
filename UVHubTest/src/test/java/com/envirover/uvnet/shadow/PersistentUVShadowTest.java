@@ -27,7 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.MAVLink.MAVLinkPacket;
-import com.MAVLink.common.msg_high_latency;
+import com.MAVLink.common.msg_high_latency2;
 import com.MAVLink.common.msg_log_entry;
 import com.MAVLink.common.msg_mission_item;
 import com.MAVLink.common.msg_param_set;
@@ -118,18 +118,18 @@ public class PersistentUVShadowTest {
 	public void testUpdateReportedState() throws IOException, InterruptedException {
 		MAVLinkPacket packet = getSamplePacket();
 
-		StateReport stateReport = new StateReport(new Date(), (msg_high_latency) packet.unpack());
+		StateReport stateReport = new StateReport(new Date(), (msg_high_latency2) packet.unpack());
 		shadow.updateReportedState(stateReport);
 
 		//Thread.sleep(1000);
 
-		msg_high_latency originalMsg = (msg_high_latency) packet.unpack();
+		msg_high_latency2 originalMsg = (msg_high_latency2) packet.unpack();
 
 		stateReport = shadow.getLastReportedState(TEST_SYSTEM_ID);
 
 		assert (stateReport != null);
 
-		msg_high_latency msg = stateReport.getState();
+		msg_high_latency2 msg = stateReport.getState();
 
 		assert (originalMsg.latitude == msg.latitude);
 		assert (originalMsg.longitude == msg.longitude);
@@ -160,7 +160,7 @@ public class PersistentUVShadowTest {
 	}
 
 	private MAVLinkPacket getSamplePacket() {
-		msg_high_latency msg = new msg_high_latency();
+		msg_high_latency2 msg = new msg_high_latency2();
 		msg.latitude = 523867;
 		msg.longitude = 29380;
 		// msg.sysid = TEST_SYSTEM_ID;
