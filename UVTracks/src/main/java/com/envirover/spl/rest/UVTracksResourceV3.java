@@ -340,6 +340,7 @@ public class UVTracksResourceV3 {
         properties.remove("custom0");
         properties.remove("custom1");
         properties.remove("custom2");
+        properties.remove("isMavlink2");
 
         properties.put("time", reportedState.getTime());
 
