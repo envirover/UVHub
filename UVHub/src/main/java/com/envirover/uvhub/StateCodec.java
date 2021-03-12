@@ -132,6 +132,7 @@ class StateCodec {
         msg_nav_controller_output msg = new msg_nav_controller_output();
         msg.sysid = state.sysid;
         msg.nav_bearing = (short) (state.target_heading * 2);
+        msg.wp_dist = state.target_distance;
         return msg;
     }
 

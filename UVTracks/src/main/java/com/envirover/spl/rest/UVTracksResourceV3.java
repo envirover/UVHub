@@ -316,6 +316,31 @@ public class UVTracksResourceV3 {
 
         Map<String, Object> properties = getMessageProperties(msg);
 
+        // Scale the properties
+        properties.put("mav_type", properties.get("type"));
+        properties.remove("type");
+        properties.put("latitude", (Integer)properties.get("latitude") / 10e6);
+        properties.put("longitude", (Integer)properties.get("longitude") / 10e6);
+        properties.put("altitude", (Short)properties.get("altitude") * 1.0);
+        properties.put("target_altitude", (Short)properties.get("target_altitude") * 1.0);
+        properties.put("epv", (Short)properties.get("epv") / 10.0);
+        properties.put("eph", (Short)properties.get("eph") / 10.0);
+        properties.put("target_distance", (Integer)properties.get("target_distance") * 1.0);
+        properties.put("airspeed", (Short)properties.get("airspeed") / 5.0);
+        properties.put("airspeed_sp", (Short)properties.get("airspeed_sp") / 5.0);
+        properties.put("groundspeed", (Short)properties.get("groundspeed") / 5.0);
+        properties.put("windspeed", (Short)properties.get("windspeed") / 5.0);
+        properties.put("climb_rate", (Byte)properties.get("climb_rate") / 10.0);
+        properties.put("heading", (Short)properties.get("heading") * 2.0);
+        properties.put("target_heading", (Short)properties.get("target_heading") * 2.0);
+        properties.put("wind_heading", (Short)properties.get("wind_heading") * 2.0);
+        properties.put("temperature_air", (Byte)properties.get("temperature_air") * 1.0);
+        properties.put("battery_voltage", (Byte)properties.get("custom0") * 1.0);
+        properties.put("battery2_voltage", (Byte)properties.get("custom1") * 1.0);
+        properties.remove("custom0");
+        properties.remove("custom1");
+        properties.remove("custom2");
+
         properties.put("time", reportedState.getTime());
 
         return new Feature(geometry, properties);
