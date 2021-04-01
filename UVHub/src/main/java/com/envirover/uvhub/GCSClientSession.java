@@ -256,6 +256,35 @@ public class GCSClientSession implements ClientSession {
             sendToSource(request, true);
             break;
         }
+        case msg_mission_item_int.MAVLINK_MSG_ID_MISSION_ITEM_INT: {
+            msg_mission_item_int msg = (msg_mission_item_int) packet.unpack();
+            int current = msg.current;
+            if (current==2) {
+                MAVLinkLogger.log(Level.INFO, "GOTO_POINT <<", packet);
+                break;
+            }
+            //shadow.getDesiredMission().add(msg);
+            if (msg.seq + 1 < desiredMissionCount) {
+                MAVLinkLogger.log(Level.INFO, "MISSION_POINT <<", packet);
+                msg_mission_request_int mission_request = new msg_mission_request_int();
+                mission_request.seq = msg.seq + 1;
+                mission_request.sysid = msg.target_system;
+                mission_request.compid = msg.target_component;
+                mission_request.target_system = (short) packet.sysid;
+                mission_request.target_component = (short) packet.compid;
+                sendToSource(mission_request, true);
+            } else {
+                MAVLinkLogger.log(Level.INFO, "MISSION_STORED <<", packet);
+                msg_mission_ack mission_ack = new msg_mission_ack();
+                mission_ack.type = MAV_MISSION_RESULT.MAV_MISSION_ACCEPTED;
+                mission_ack.sysid = msg.target_system;
+                mission_ack.compid = msg.target_component;
+                mission_ack.target_system = (short) packet.sysid;
+                mission_ack.target_component = (short) packet.compid;
+                sendToSource(mission_ack, true);
+            }
+            break;
+        }
         case msg_mission_item.MAVLINK_MSG_ID_MISSION_ITEM: {
             MAVLinkLogger.log(Level.INFO, "<<", packet);
             msg_mission_item msg = (msg_mission_item) packet.unpack();
@@ -310,6 +339,15 @@ public class GCSClientSession implements ClientSession {
             command_ack.result = MAV_RESULT.MAV_RESULT_ACCEPTED;
             command_ack.sysid = msg.target_system;
             command_ack.compid = msg.target_component;
+            sendToSource(command_ack, true);
+        } else if (packet.msgid == msg_set_mode.MAVLINK_MSG_ID_SET_MODE) {
+            MAVLinkLogger.log(Level.INFO, "<<", packet);
+            msg_set_mode msg = (msg_set_mode) packet.unpack();
+            msg_command_ack command_ack = new msg_command_ack();
+            command_ack.command = 11; //msg.command;
+            command_ack.result = MAV_RESULT.MAV_RESULT_ACCEPTED;
+            command_ack.sysid = msg.target_system;
+            command_ack.compid = msg.target_system; //msg.target_component;
             sendToSource(command_ack, true);
         }
     }
