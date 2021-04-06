@@ -323,8 +323,16 @@ public class UVTracksResourceV3 {
         properties.put("longitude", (Integer)properties.get("longitude") / 10e6);
         properties.put("altitude", (Short)properties.get("altitude") * 1.0);
         properties.put("target_altitude", (Short)properties.get("target_altitude") * 1.0);
-        properties.put("epv", (Short)properties.get("epv") / 10.0);
-        properties.put("eph", (Short)properties.get("eph") / 10.0);
+        double pitch = (Short)properties.get("epv") * 2.0;
+        if (pitch > 180.0) {
+            pitch -= 360;
+        }
+        properties.put("pitch", pitch);
+        double roll = (Short)properties.get("eph") * 2.0;
+        if (roll > 180) {
+            roll -= 360;
+        }
+        properties.put("roll", roll);
         properties.put("target_distance", (Integer)properties.get("target_distance") * 1.0);
         properties.put("airspeed", (Short)properties.get("airspeed") / 5.0);
         properties.put("airspeed_sp", (Short)properties.get("airspeed_sp") / 5.0);
@@ -337,6 +345,9 @@ public class UVTracksResourceV3 {
         properties.put("temperature_air", (Byte)properties.get("temperature_air") * 1.0);
         properties.put("battery_voltage", (Byte)properties.get("custom0") * 1.0);
         properties.put("battery2_voltage", (Byte)properties.get("custom1") * 1.0);
+        properties.put("channel", (Byte)properties.get("custom2"));
+        properties.remove("eph");
+        properties.remove("epv");
         properties.remove("custom0");
         properties.remove("custom1");
         properties.remove("custom2");
