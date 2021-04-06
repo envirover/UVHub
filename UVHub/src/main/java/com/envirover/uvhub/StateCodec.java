@@ -93,8 +93,8 @@ class StateCodec {
         msg.lat = state.latitude;
         msg.lon = state.longitude;
         msg.alt = state.altitude * 1000;
-        msg.eph = state.eph;
-        msg.epv = state.epv;
+        //msg.eph = state.eph;
+        //msg.epv = state.epv;
         //msg.satellites_visible = 4;
         msg.fix_type = GPS_FIX_TYPE.GPS_FIX_TYPE_3D_FIX;
         return msg;
@@ -104,8 +104,14 @@ class StateCodec {
         msg_attitude msg = new msg_attitude();
         msg.sysid = state.sysid;
         msg.yaw = (float) Math.toRadians(state.heading * 2);
-        msg.pitch = 0;
-        msg.roll = 0;
+        msg.pitch = (float) Math.toRadians(state.epv * 2);
+        if (msg.pitch > Math.PI) {
+            msg.pitch -= 2 * Math.PI;
+        }
+        msg.roll = (float) Math.toRadians(state.eph * 2);
+        if (msg.roll > Math.PI) {
+            msg.roll -= 2 * Math.PI;
+        }
         return msg;
     }
 
