@@ -137,7 +137,7 @@ class StateCodec {
     private static MAVLinkMessage getNavControllerOutputMsg(msg_high_latency2 state) {
         msg_nav_controller_output msg = new msg_nav_controller_output();
         msg.sysid = state.sysid;
-        msg.nav_bearing = (short) (state.target_heading * 2);
+        msg.target_bearing = (short) (state.target_heading * 2);
         msg.wp_dist = state.target_distance;
         return msg;
     }
