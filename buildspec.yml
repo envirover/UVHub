@@ -22,6 +22,8 @@ phases:
   build:
     commands:
       - mvn install -DskipTests=true
+      - echo Logging in Docker Hub...
+      - docker login --username=${DOCKER_HUB_USERNAME} --password=${DOCKER_HUB_PASSWORD}
       - docker build -t 306327466070.dkr.ecr.us-west-2.amazonaws.com/uvhub:$IMAGE_TAG ./UVHub/
       - docker build -t 306327466070.dkr.ecr.us-west-2.amazonaws.com/uvtracks:$IMAGE_TAG ./UVTracks/
       - docker build -t 306327466070.dkr.ecr.us-west-2.amazonaws.com/uvhub-test:$IMAGE_TAG ./UVHubTest/
