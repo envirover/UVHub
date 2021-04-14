@@ -90,12 +90,11 @@ class StateCodec {
     private static MAVLinkMessage getGpsRawIntMsg(msg_high_latency2 state) {
         msg_gps_raw_int msg = new msg_gps_raw_int();
         msg.sysid = state.sysid;
+        msg.time_usec = state.timestamp * 1000;
         msg.lat = state.latitude;
         msg.lon = state.longitude;
         msg.alt = state.altitude * 1000;
-        //msg.eph = state.eph;
-        //msg.epv = state.epv;
-        //msg.satellites_visible = 4;
+        msg.vel = state.groundspeed / 5 * 100;
         msg.fix_type = GPS_FIX_TYPE.GPS_FIX_TYPE_3D_FIX;
         return msg;
     }
@@ -119,11 +118,11 @@ class StateCodec {
         msg_global_position_int msg = new msg_global_position_int();
         msg.sysid = state.sysid;
         msg.time_boot_ms = state.timestamp;
-        msg.alt = state.altitude * 1000;
+        msg.alt = state.target_altitude * 1000;
+        msg.relative_alt = state.target_altitude * 1000;
         msg.lat = state.latitude;
         msg.lon = state.longitude;
         msg.hdg = state.heading;
-        msg.relative_alt = state.target_altitude * 1000;
         return msg;
     }
 
