@@ -43,11 +43,12 @@ import com.envirover.uvnet.shadow.UVShadow;
 public class GCSTcpServer {
 
     private final static Logger logger = LogManager.getLogger(GCSTcpServer.class);
+    private final static int MAX_THREADS = 10;
 
     private final Integer port;
     private final MAVLinkChannel mtMessageQueue;
-    private final ExecutorService threadPool; 
-    protected final UVShadow shadow;
+    private final ExecutorService threadPool;
+     protected final UVShadow shadow;
     protected final UVLogbook logbook;
     
     private ServerSocket serverSocket;
@@ -63,7 +64,7 @@ public class GCSTcpServer {
     public GCSTcpServer(Integer port, MAVLinkChannel mtMessageQueue, UVShadow shadow, UVLogbook logbook) {
         this.port = port;
         this.mtMessageQueue = mtMessageQueue;
-        this.threadPool = Executors.newCachedThreadPool();
+        this.threadPool = Executors.newFixedThreadPool(MAX_THREADS);
         this.shadow = shadow;
         this.logbook = logbook;
     }
