@@ -12,7 +12,7 @@ class TestRunner {
     public static void main(String[] args) {
         System.out.println("UV Hub and UV Tracks integration test.");
 
-        Result result = JUnitCore.runClasses(UVHubTest.class, UVTracksTest.class, UVTracksV3Test.class);
+        Result result = JUnitCore.runClasses(UVHubTest.class, UVTracksV3Test.class);
 
         if (result.wasSuccessful()) {
             System.out.println(
