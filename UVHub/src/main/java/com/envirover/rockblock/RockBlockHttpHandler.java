@@ -36,7 +36,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.MAVLink.MAVLinkPacket;
-import com.MAVLink.Parser;
 import com.envirover.mavlink.MAVLinkLogger;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -166,14 +165,7 @@ public class RockBlockHttpHandler implements HttpHandler {
         }
 
         public MAVLinkPacket getPacket() throws DecoderException {
-            Parser parser = new Parser();
-            MAVLinkPacket packet = null;
-
-            for (byte b : Hex.decodeHex(data.toCharArray())) {
-                packet = parser.mavlink_parse_char(b & 0xFF);
-            }
-
-            return packet;
+            return CustomEncoder.decodePacket(Hex.decodeHex(data.toCharArray()));
         }
 
         @Override
