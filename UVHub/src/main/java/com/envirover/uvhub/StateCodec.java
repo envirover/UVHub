@@ -66,7 +66,7 @@ class StateCodec {
 
     private static MAVLinkMessage getHeartbeatMsg(msg_high_latency2 state) {
         msg_heartbeat msg = new msg_heartbeat();
-
+        msg.isMavlink2 = true;
         msg.sysid = state.sysid;
         msg.compid = state.compid;
         msg.base_mode = (short)(state.custom_mode & 0xFF);
@@ -80,6 +80,7 @@ class StateCodec {
 
     private static MAVLinkMessage getSysStatusMsg(msg_high_latency2 state) {
         msg_sys_status msg = new msg_sys_status();
+        msg.isMavlink2 = true;
         msg.sysid = state.sysid;
         msg.onboard_control_sensors_health = getHealth(state.failure_flags);
         msg.battery_remaining = state.battery;
@@ -89,6 +90,7 @@ class StateCodec {
 
     private static MAVLinkMessage getGpsRawIntMsg(msg_high_latency2 state) {
         msg_gps_raw_int msg = new msg_gps_raw_int();
+        msg.isMavlink2 = true;
         msg.sysid = state.sysid;
         msg.time_usec = state.timestamp * 1000;
         msg.lat = state.latitude;
@@ -101,6 +103,7 @@ class StateCodec {
 
     private static MAVLinkMessage getAttitudeMsg(msg_high_latency2 state) {
         msg_attitude msg = new msg_attitude();
+        msg.isMavlink2 = true;
         msg.sysid = state.sysid;
         msg.yaw = (float) Math.toRadians(state.heading * 2);
         msg.pitch = (float) Math.toRadians(state.epv * 2);
@@ -116,6 +119,7 @@ class StateCodec {
 
     private static MAVLinkMessage getGlobalPositionIntMsg(msg_high_latency2 state) {
         msg_global_position_int msg = new msg_global_position_int();
+        msg.isMavlink2 = true;
         msg.sysid = state.sysid;
         msg.time_boot_ms = state.timestamp;
         msg.alt = state.target_altitude * 1000;
@@ -128,6 +132,7 @@ class StateCodec {
 
     private static MAVLinkMessage getMissionCurrentMsg(msg_high_latency2 state) {
         msg_mission_current msg = new msg_mission_current();
+        msg.isMavlink2 = true;
         msg.sysid = state.sysid;
         msg.seq = state.wp_num;
         return msg;
@@ -135,6 +140,7 @@ class StateCodec {
 
     private static MAVLinkMessage getNavControllerOutputMsg(msg_high_latency2 state) {
         msg_nav_controller_output msg = new msg_nav_controller_output();
+        msg.isMavlink2 = true;
         msg.sysid = state.sysid;
         msg.target_bearing = (short) (state.target_heading * 2);
         msg.wp_dist = state.target_distance;
@@ -143,6 +149,7 @@ class StateCodec {
 
     private static MAVLinkMessage getVfrHudMsg(msg_high_latency2 state) {
         msg_vfr_hud msg = new msg_vfr_hud();
+        msg.isMavlink2 = true;
         msg.sysid = state.sysid;
         msg.airspeed = state.airspeed / 5;
         msg.alt = state.altitude;
@@ -155,6 +162,7 @@ class StateCodec {
 
     private static MAVLinkMessage getBattery2Msg(msg_high_latency2 state) {
         msg_battery2 msg = new msg_battery2();
+        msg.isMavlink2 = true;
         msg.sysid = state.sysid;
         msg.current_battery = -1;
         msg.voltage = state.custom1 * 1000;
@@ -163,6 +171,7 @@ class StateCodec {
 
     private static MAVLinkMessage getWindMsg(msg_high_latency2 state) {
         msg_wind msg = new msg_wind();
+        msg.isMavlink2 = true;
         msg.sysid = state.sysid;
         msg.direction = state.wind_heading * 2;
         msg.speed = (float)(state.windspeed / 5.0);
@@ -171,6 +180,7 @@ class StateCodec {
 
     private static MAVLinkMessage getScaledPressure(msg_high_latency2 state) {
         msg_scaled_pressure msg = new msg_scaled_pressure();
+        msg.isMavlink2 = true;
         msg.sysid = state.sysid;
         msg.temperature = state.temperature_air;
         return msg;

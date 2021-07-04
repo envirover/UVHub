@@ -200,6 +200,7 @@ public class ShadowClientSession implements ClientSession {
             msg_mission_request_list msg = (msg_mission_request_list) packet.unpack();
             reportedMission = shadow.getMission(msg.target_system);
             msg_mission_count count = new msg_mission_count();
+            count.isMavlink2 = true;
             count.count = reportedMission != null ? reportedMission.size() : 0;
             count.sysid = msg.target_system;
             count.compid = msg.target_component;
@@ -230,6 +231,7 @@ public class ShadowClientSession implements ClientSession {
             desiredMission = new ArrayList<>(msg.count);
             desiredMissionCount = msg.count;
             msg_mission_request request = new msg_mission_request();
+            request.isMavlink2 = true;
             request.seq = 0;
             request.sysid = msg.target_system;
             request.compid = msg.target_component;
@@ -253,6 +255,7 @@ public class ShadowClientSession implements ClientSession {
             }
             if (msg.seq + 1 != desiredMissionCount) {
                 msg_mission_request mission_request = new msg_mission_request();
+                mission_request.isMavlink2 = true;
                 mission_request.seq = msg.seq + 1;
                 mission_request.sysid = msg.target_system;
                 mission_request.compid = msg.target_component;
@@ -261,6 +264,7 @@ public class ShadowClientSession implements ClientSession {
                 sendToSource(mission_request, true);
             } else {
                 msg_mission_ack mission_ack = new msg_mission_ack();
+                mission_ack.isMavlink2 = true;
                 mission_ack.type = MAV_MISSION_RESULT.MAV_MISSION_ACCEPTED;
                 mission_ack.sysid = msg.target_system;
                 mission_ack.compid = msg.target_component;
@@ -339,7 +343,7 @@ public class ShadowClientSession implements ClientSession {
         } else {
             // send only heartbeat
             msg_heartbeat msg = new msg_heartbeat();
-
+            msg.isMavlink2 = true;
             msg.sysid = Config.getInstance().getMavSystemId();
             msg.compid = 0;
             msg.base_mode = 0;
