@@ -90,10 +90,10 @@ public class RockBlockClient implements MAVLinkChannel {
 
         HttpPost httppost = new HttpPost(serviceURL);
 
-        String data = Hex.encodeHexString(packet.encodePacket());
+        String data = Hex.encodeHexString(CustomEncoder.encodePacket(packet));
 
         // Request parameters and other properties.
-        List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+        List<NameValuePair> params = new ArrayList<>(2);
         params.add(new BasicNameValuePair(PARAM_IMEI, imei));
         params.add(new BasicNameValuePair(PARAM_USERNAME, username));
         params.add(new BasicNameValuePair(PARAM_PASSWORD, password));

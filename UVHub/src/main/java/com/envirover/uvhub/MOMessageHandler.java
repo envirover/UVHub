@@ -102,6 +102,7 @@ public class MOMessageHandler {
         case msg_param_value.MAVLINK_MSG_ID_PARAM_VALUE:
             msg_param_value param_value = (msg_param_value) packet.unpack();
             msg_param_set param = new msg_param_set();
+            param.isMavlink2 = true;
             param.sysid = param_value.sysid;
             param.compid = param_value.compid;
             param.setParam_Id(param_value.getParam_Id());

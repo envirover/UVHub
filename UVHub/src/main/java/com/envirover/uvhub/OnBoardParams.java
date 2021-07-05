@@ -126,6 +126,7 @@ public class OnBoardParams {
                 String[] tokens = str.split("\t");
                 if (tokens.length >= 5) {
                     msg_param_value param = new msg_param_value();
+                    param.isMavlink2 = true;
                     param.sysid = sysId;
                     param.compid = Integer.parseInt(tokens[1]);
                     param.setParam_Id(tokens[2].trim());
@@ -144,6 +145,7 @@ public class OnBoardParams {
         if (!hlReportPeriodParamFound) {
             // Add HL_REPORT_PERIOD parameter
             msg_param_value param = new msg_param_value();
+            param.isMavlink2 = true;
             param.sysid = sysId;
             param.compid = 190;
             param.setParam_Id(HL_REPORT_PERIOD_PARAM);

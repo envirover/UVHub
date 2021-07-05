@@ -178,6 +178,7 @@ public class PersistentUVShadow implements UVShadow, UVLogbook {
 
         for (StateReport report : reports) {
             msg_log_entry log_entry = new msg_log_entry();
+            log_entry.isMavlink2 = true;
             log_entry.sysid = sysId;
             log_entry.compid = 0;
             log_entry.id = 1;
